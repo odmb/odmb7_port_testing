@@ -35,11 +35,11 @@ set_clock_groups -group [get_clocks lf_clk -include_generated_clocks] -asynchron
 # Create the MGT reference clocks
 # ----------------------------------
 create_clock -name gth_refclk0_q224 -period 6.25 [get_ports REF_CLK_1_P]
-create_clock -name gth_refclk0_q225 -period 6.25 [get_ports REF_CLK_4_P]
+create_clock -name gth_refclk0_q225 -period 8.33 [get_ports REF_CLK_4_P]
 create_clock -name gth_refclk0_q226 -period 6.25 [get_ports REF_CLK_3_P]
 create_clock -name gth_refclk1_q226 -period 8    [get_ports CLK_125_REF_P]
 create_clock -name gth_refclk0_q227 -period 6.25 [get_ports REF_CLK_2_P]
-create_clock -name gth_refclk1_q227 -period 6.25 [get_ports REF_CLK_5_P]
+create_clock -name gth_refclk1_q227 -period 8.33 [get_ports REF_CLK_5_P]
 set_clock_groups -group [get_clocks gth_refclk0_q224 -include_generated_clocks] -asynchronous
 set_clock_groups -group [get_clocks gth_refclk0_q225 -include_generated_clocks] -asynchronous
 set_clock_groups -group [get_clocks gth_refclk0_q226 -include_generated_clocks] -asynchronous

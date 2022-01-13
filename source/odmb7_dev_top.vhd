@@ -231,484 +231,16 @@ entity odmb7_ucsb_dev is
 end odmb7_ucsb_dev;
 
 architecture Behavioral of odmb7_ucsb_dev is
+
   constant NCFEB  : integer range 1 to 7 := 7;  -- Number of DCFEBS, 7 for ODMB7
 
-  component odmb_clocking is
+  component ila_gbt_exde is
     port (
-      -- Input ports
-      CMS_CLK_FPGA_P : in std_logic;    -- system clock: 40.07897 MHz
-      CMS_CLK_FPGA_N : in std_logic;    -- system clock: 40.07897 MHz
-      GP_CLK_6_P     : in std_logic;    -- clock synthesizer ODIV6: 80 MHz
-      GP_CLK_6_N     : in std_logic;    -- clock synthesizer ODIV6: 80 MHz
-      GP_CLK_7_P     : in std_logic;    -- clock synthesizer ODIV7: 80 MHz
-      GP_CLK_7_N     : in std_logic;    -- clock synthesizer ODIV7: 80 MHz
-      REF_CLK_1_P    : in std_logic;    -- refclk0 to 224
-      REF_CLK_1_N    : in std_logic;    -- refclk0 to 224
-      REF_CLK_2_P    : in std_logic;    -- refclk0 to 227
-      REF_CLK_2_N    : in std_logic;    -- refclk0 to 227
-      REF_CLK_3_P    : in std_logic;    -- refclk0 to 226
-      REF_CLK_3_N    : in std_logic;    -- refclk0 to 226
-      REF_CLK_4_P    : in std_logic;    -- refclk0 to 225
-      REF_CLK_4_N    : in std_logic;    -- refclk0 to 225
-      REF_CLK_5_P    : in std_logic;    -- refclk1 to 227
-      REF_CLK_5_N    : in std_logic;    -- refclk1 to 227
-      CLK_125_REF_P  : in std_logic;    -- refclk1 to 226
-      CLK_125_REF_N  : in std_logic;    -- refclk1 to 226
-      EMCCLK         : in std_logic;    -- Low frequency, 133 MHz for SPI programing clock
-      LF_CLK         : in std_logic;    -- Low frequency, 10 kHz
-
-      -- Output clocks
-      mgtrefclk0_224 : out std_logic;   -- MGT refclk for GT wizard
-      mgtrefclk0_225 : out std_logic;   -- MGT refclk for GT wizard
-      mgtrefclk0_226 : out std_logic;   -- MGT refclk for GT wizard
-      mgtrefclk1_226 : out std_logic;   -- MGT refclk for GT wizard
-      mgtrefclk0_227 : out std_logic;   -- MGT refclk for GT wizard
-      mgtrefclk1_227 : out std_logic;   -- MGT refclk for GT wizard
-      clk_sysclk625k : out std_logic;
-      clk_sysclk1p25 : out std_logic;
-      clk_sysclk2p5  : out std_logic;
-      clk_sysclk10   : out std_logic;   -- derived clock from MMCM
-      clk_sysclk20   : out std_logic;   -- derived clock from MMCM
-      clk_sysclk40   : out std_logic;   -- derived clock from MMCM
-      clk_sysclk80   : out std_logic;   -- derived clock from MMCM
-      clk_sysclk160  : out std_logic;   -- derived clock from MMCM
-      clk_cmsclk     : out std_logic;   -- buffed CMS clock, 40.07897 MHz
-      clk_emcclk     : out std_logic;   -- buffed EMC clock
-      clk_lfclk      : out std_logic;   -- buffed LF clock
-      clk_gp6        : out std_logic;
-      clk_gp7        : out std_logic;
-      clk_mgtclk1    : out std_logic;   -- buffed ODIV2 port of the refclks, 160 MHz
-      clk_mgtclk2    : out std_logic;   -- buffed ODIV2 port of the refclks, 160 MHz
-      clk_mgtclk3    : out std_logic;   -- buffed ODIV2 port of the refclks, 160 MHz
-      clk_mgtclk4    : out std_logic;   -- buffed ODIV2 port of the refclks, 160 MHz
-      clk_mgtclk5    : out std_logic;   -- buffed ODIV2 port of the refclks, 160 MHz
-      clk_mgtclk125  : out std_logic    -- buffed ODIV2 port of the refclks, 125 MHz
-      );
-  end component;
-
-  component ODMB_VME is
-    generic (
-      NCFEB       : integer range 1 to 7 := 7  -- Number of DCFEBS, 7 for ME1/1, 5
-      );
-    port (
-      --------------------
-      -- Clock
-      --------------------
-      CLK160      : in std_logic;  -- For dcfeb prbs (160MHz)
-      CLK40       : in std_logic;  -- NEW (fastclk -> 40MHz)
-      CLK10       : in std_logic;  -- NEW (midclk -> fastclk/4 -> 10MHz)
-      CLK2P5      : in std_logic;  -- 2.5 MHz clock
-      CLK1P25     : in std_logic;  -- 1.25 MHz clock
-
-      --------------------
-      -- VME signals  <-- relevant ones only
-      --------------------
-      VME_DATA_IN   : in std_logic_vector (15 downto 0);
-      VME_DATA_OUT  : out std_logic_vector (15 downto 0);
-      VME_GAP_B     : in std_logic;     -- Also known as GA(5)
-      VME_GA_B      : in std_logic_vector (4 downto 0);
-      VME_ADDR      : in std_logic_vector (23 downto 1);
-      VME_AM        : in std_logic_vector (5 downto 0);
-      VME_AS_B      : in std_logic;
-      VME_DS_B      : in std_logic_vector (1 downto 0);
-      VME_LWORD_B   : in std_logic;
-      VME_WRITE_B   : in std_logic;
-      VME_IACK_B    : in std_logic;
-      VME_BERR_B    : in std_logic;
-      VME_SYSFAIL_B : in std_logic;
-      VME_DTACK_B   : out std_logic;
-      VME_OE_B      : out std_logic;
-      VME_DIR_B     : out std_logic;
-
-      --------------------
-      -- JTAG Signals To/From DCFEBs
-      --------------------
-      DCFEB_TCK    : out std_logic_vector (NCFEB downto 1);
-      DCFEB_TMS    : out std_logic;
-      DCFEB_TDI    : out std_logic;
-      DCFEB_TDO    : in  std_logic_vector (NCFEB downto 1);
-
-      DCFEB_DONE     : in std_logic_vector (NCFEB downto 1);
-      DCFEB_INITJTAG : in std_logic;
-      DCFEB_REPROG_B : out std_logic;  -- Hard reset to DCFEBs
-
-      --------------------
-      -- JTAG Signals To/From ODMBs
-      --------------------
-      ODMB_TCK    : out std_logic;
-      ODMB_TMS    : out std_logic;
-      ODMB_TDI    : out std_logic;
-      ODMB_TDO    : in  std_logic;
-      ODMB_SEL    : out std_logic;
-      ODMB_INITJTAG : in std_logic;
-
-      --------------------
-      -- From/To LVMB: ODMB & ODMB7 design, ODMB5 to be seen
-      --------------------
-      LVMB_PON     : out std_logic_vector(7 downto 0);
-      PON_LOAD_B   : out std_logic;
-      PON_OE       : out std_logic;
-      R_LVMB_PON   : in  std_logic_vector(7 downto 0);
-      LVMB_CSB     : out std_logic_vector(6 downto 0);
-      LVMB_SCLK    : out std_logic;
-      LVMB_SDIN    : out std_logic;
-      LVMB_SDOUT   : in  std_logic;
-
-      --------------------
-      -- OTMB signals
-      --------------------
-      OTMB        : in  std_logic_vector(35 downto 0);      -- "TMB[35:0]" in Bank 44-45
-      RAWLCT      : in  std_logic_vector(7 downto 0);       -- Bank 45
-      OTMB_DAV    : in  std_logic;                          -- "TMB_DAV" in Bank 45
-      ALCT_DAV    : in  std_logic;                          -- "LEGACY_ALCT_DAV" in Bank 45
-      OTMB_FF_CLK : in  std_logic;                          -- "TMB_FF_CLK" in Bank 45, not used
-      RSVTD       : in  std_logic_vector(5 downto 3);       -- Bank 44-45, remapped from r4 schematics
-      RSVFD       : out std_logic_vector(2 downto 0);       -- Bank 44-45, "RSVTD[2:0]" in r4 schematics
-      LCT_RQST    : out std_logic_vector(2 downto 1);       -- Bank 45
-
-      --------------------
-      -- VMEMON Configuration signals for top level
-      --------------------
-      FW_RESET             : out std_logic;
-      L1A_RESET_PULSE      : out std_logic;
-      OPT_RESET_PULSE      : out std_logic;
-      TEST_INJ             : out std_logic;
-      TEST_PLS             : out std_logic;
-      TEST_BC0             : out std_logic;
-      TEST_PED             : out std_logic;
-      TEST_LCT             : out std_logic;
-      MASK_L1A             : out std_logic_vector(NCFEB downto 0);
-      MASK_PLS             : out std_logic;
-      ODMB_CAL             : out std_logic;
-      MUX_DATA_PATH        : out std_logic;
-      MUX_TRIGGER          : out std_logic;
-      MUX_LVMB             : out std_logic;
-      ODMB_PED             : out std_logic_vector(1 downto 0);
-      ODMB_STAT_DATA       : in std_logic_vector(15 downto 0);
-      ODMB_STAT_SEL        : out std_logic_vector(7 downto 0);
-
-      --------------------
-      -- VMECONFREGS Configuration signals for top level
-      --------------------
-      LCT_L1A_DLY      : out std_logic_vector(5 downto 0);
-      CABLE_DLY        : out integer range 0 to 1;
-      OTMB_PUSH_DLY    : out integer range 0 to 63;
-      ALCT_PUSH_DLY    : out integer range 0 to 63;
-      BX_DLY           : out integer range 0 to 4095;
-      INJ_DLY          : out std_logic_vector(4 downto 0);
-      EXT_DLY          : out std_logic_vector(4 downto 0);
-      CALLCT_DLY       : out std_logic_vector(3 downto 0);
-      ODMB_ID          : out std_logic_vector(15 downto 0);
-      NWORDS_DUMMY     : out std_logic_vector(15 downto 0);
-      KILL             : out std_logic_vector(NCFEB+2 downto 1);
-      CRATEID          : out std_logic_vector(7 downto 0);
-      CHANGE_REG_DATA  : in std_logic_vector(15 downto 0);
-      CHANGE_REG_INDEX : in integer range 0 to NREGS;
-
-      --------------------
-      -- EEPROM signals
-      --------------------
-      CNFG_DATA_IN     : in std_logic_vector(7 downto 4);
-      CNFG_DATA_OUT    : out std_logic_vector(7 downto 4);
-      CNFG_DATA_DIR    : out std_logic_vector(7 downto 4);
-      PROM_CS2_B       : out std_logic;
-
-      --------------------
-      -- FED/SPY/DCFEB/ALCT Optical PRBS test signals
-      --------------------
-      MGT_PRBS_TYPE        : out std_logic_vector(3 downto 0); -- DDU/SPY/DCFEB/ALCT Common PRBS type
-      FED_PRBS_TX_EN       : out std_logic_vector(3 downto 0);
-      FED_PRBS_RX_EN       : out std_logic_vector(3 downto 0);
-      FED_PRBS_TST_CNT     : out std_logic_vector(15 downto 0);
-      FED_PRBS_ERR_CNT     : in  std_logic_vector(15 downto 0);
-      SPY_PRBS_TX_EN       : out std_logic;
-      SPY_PRBS_RX_EN       : out std_logic;
-      SPY_PRBS_TST_CNT     : out std_logic_vector(15 downto 0);
-      SPY_PRBS_ERR_CNT     : in  std_logic_vector(15 downto 0);
-      DCFEB_PRBS_FIBER_SEL : out std_logic_vector(3 downto 0);
-      DCFEB_PRBS_EN        : out std_logic;
-      DCFEB_PRBS_RST       : out std_logic;
-      DCFEB_PRBS_RD_EN     : out std_logic;
-      DCFEB_RXPRBSERR      : in  std_logic;
-      DCFEB_PRBS_ERR_CNT   : in  std_logic_vector(15 downto 0);
-
-      --------------------
-      -- System monitoring
-      --------------------
-      -- Current monitoring
-      SYSMON_P      : in std_logic_vector(15 downto 0);
-      SYSMON_N      : in std_logic_vector(15 downto 0);
-      -- Voltage monitoring through MAX127 chips
-      ADC_CS_B      : out std_logic_vector(4 downto 0);
-      ADC_DIN       : out std_logic;
-      ADC_SCK       : out std_logic;
-      ADC_DOUT      : in std_logic;
-
-      --------------------
-      -- Other
-      --------------------
-      DIAGOUT     : out std_logic_vector(17 downto 0); -- for debugging
-      RST         : in std_logic;
-      PON_RESET   : in std_logic
-      );
-  end component;
-
-  component ODMB_CTRL is
-    generic (
-      NCFEB       : integer range 1 to 7 := NCFEB; -- Number of DCFEBS, 7 for ME1/1, 5
-      CAFIFO_SIZE : integer range 1 to 128 := 32   -- Number FIFO words in CAFIFO: 32 for ODMB, 16 for test
-      );
-    port (
-      --------------------
-      -- Clock
-      --------------------
-      DDUCLK       : in std_logic;
-      CMSCLK       : in std_logic;
-
-      CCB_CMD      : in  std_logic_vector(5 downto 0);  -- ccbcmnd(5 downto 0) - from J3
-      CCB_CMD_S    : in  std_logic;       -- ccbcmnd(6) - from J3
-      CCB_DATA     : in  std_logic_vector(7 downto 0);  -- ccbdata(7 downto 0) - from J3
-      CCB_DATA_S   : in  std_logic;       -- ccbdata(8) - from J3
-      CCB_BX0_B    : in  std_logic;       -- bx0 - from J3
-      CCB_BXRST_B  : in  std_logic;       -- bxrst - from J3
-      CCB_L1ARST_B : in  std_logic;       -- l1rst - from J3
-      CCB_CLKEN    : in  std_logic;       -- clken - from J3
-
-      --------------------
-      -- ODMB VME <-> CALIBTRIG
-      --------------------
-      TEST_CCBINJ   : in std_logic;
-      TEST_CCBPLS   : in std_logic;
-      TEST_CCBPED   : in std_logic;
-
-      --------------------
-      -- Delay registers (from VMECONFREGS)
-      --------------------
-      LCT_L1A_DLY   : in std_logic_vector(5 downto 0);
-      INJ_DLY       : in std_logic_vector(4 downto 0);
-      EXT_DLY       : in std_logic_vector(4 downto 0);
-      CALLCT_DLY    : in std_logic_vector(3 downto 0);
-      OTMB_PUSH_DLY : in integer range 0 to 63;
-      ALCT_PUSH_DLY : in integer range 0 to 63;
-      PUSH_DLY      : in integer range 0 to 63;
-
-      --------------------
-      -- Configuration
-      --------------------
-      CAL_MODE      : in std_logic;
-      PEDESTAL      : in std_logic;
-      PEDESTAL_OTMB   : in  std_logic;
-
-      --------------------
-      -- TRGCNTRL
-      --------------------
-      RAW_L1A       : in std_logic;
-      RAWLCT        : in std_logic_vector(7 downto 0);
-
-      --------------------
-      -- DAV
-      --------------------
-      OTMB_DAV : in std_logic;
-      ALCT_DAV : in std_logic;
-
-      --------------------
-      -- To/From DCFEBs (FF-EMU-MOD)
-      --------------------
-      DCFEB_INJPULSE  : out std_logic;
-      DCFEB_EXTPULSE  : out std_logic;
-      DCFEB_L1A       : out std_logic;
-      DCFEB_L1A_MATCH : out std_logic_vector(NCFEB downto 1);
-
-      ALCT_DAV_SYNC_OUT : out std_logic;
-      OTMB_DAV_SYNC_OUT : out std_logic;
-
-      --------------------
-      -- Other
-      --------------------
-      DIAGOUT     : out std_logic_vector (17 downto 0); -- for debugging
-      KILL        : in std_logic_vector(NCFEB+2 downto 1);
-      LCT_ERR     : out std_logic;            -- To an LED in the original design
-
-      BX_DLY      : in integer range 0 to 4095;
-      L1ACNT_RST  : in std_logic;
-      BXCNT_RST   : in std_logic;
-      RST         : in std_logic;
-
-      EOF_DATA    : in std_logic_vector(NCFEB+2 downto 1);
-
-      CAFIFO_PREV_NEXT_L1A_MATCH : out std_logic_vector(15 downto 0);
-      CAFIFO_PREV_NEXT_L1A       : out std_logic_vector(15 downto 0);
-      CONTROL_DEBUG              : out std_logic_vector(15 downto 0);
-      CAFIFO_DEBUG               : out std_logic_vector(15 downto 0);
-      CAFIFO_WR_ADDR             : out std_logic_vector(7 downto 0);
-      CAFIFO_RD_ADDR             : out std_logic_vector(7 downto 0);
-
-      -- From CAFIFO to Data FIFOs
-      CAFIFO_L1A           : out std_logic;
-      CAFIFO_L1A_MATCH_IN  : out std_logic_vector(NCFEB+2 downto 1);  -- From TRGCNTRL to CAFIFO to generate Data
-      CAFIFO_L1A_MATCH_OUT : out std_logic_vector(NCFEB+2 downto 1);  -- From CAFIFO to CONTROL
-      CAFIFO_L1A_CNT       : out std_logic_vector(23 downto 0);
-      CAFIFO_L1A_DAV       : out std_logic_vector(NCFEB+2 downto 1);
-      CAFIFO_BX_CNT        : out std_logic_vector(11 downto 0);
-
-      -- From GigaLinks
-      DDU_DATA       : out std_logic_vector(15 downto 0);
-      DDU_DATA_VALID : out std_logic;
-
-      -- For headers/trailers
-      GA             : in std_logic_vector(4 downto 0);
-      CRATEID        : in std_logic_vector(7 downto 0);
-      AUTOKILLED_DCFEBS  : in std_logic_vector(NCFEB downto 1);
-
-      -- From/To Data FIFOs
-      FIFO_RE_B      : out std_logic_vector(NCFEB+2 downto 1);
-      FIFO_OE_B      : out std_logic_vector(NCFEB+2 downto 1);
-      FIFO_DOUT      : in std_logic_vector(17 downto 0);
-      -- FIFO_EOF       : in std_logic;
-      FIFO_EMPTY     : in std_logic_vector(NCFEB+2 downto 1);  -- emptyf*(7 DOWNTO 1) - from FIFOs
-      FIFO_HALF_FULL : in std_logic_vector(NCFEB+2 downto 1)  --
-
-      );
-  end component;
-
-  component odmb_data is
-    generic (
-      NCFEB       : integer range 1 to 7 := NCFEB  -- Number of DCFEBS, 7 for ME1/1, 5
-    );
-    port (
-      CMSCLK              : in std_logic;
-      DDUCLK              : in std_logic;
-      DCFEBCLK            : in std_logic;
-      RESET               : in std_logic;
-      L1ACNT_RST          : in std_logic;
-      KILL                : in std_logic_vector(NCFEB+2 downto 1);
-      CAFIFO_L1A          : in std_logic;
-      CAFIFO_L1A_MATCH_IN : in std_logic_vector(NCFEB+2 downto 1);
-      DCFEB_L1A           : in std_logic;
-      DCFEB_L1A_MATCH     : in std_logic_vector(NCFEB downto 1);
-      NWORDS_DUMMY        : in std_logic_vector(15 downto 0);
-
-      DCFEB_TCK           : in std_logic_vector(NCFEB downto 1);
-      DCFEB_TDO           : out std_logic_vector(NCFEB downto 1);
-      DCFEB_TMS           : in std_logic;
-      DCFEB_TDI           : in std_logic;
-
-      DCFEB_FIFO_RST      : in std_logic_vector (NCFEB downto 1); -- auto-kill related
-      EOF_DATA            : out std_logic_vector(NCFEB+2 downto 1);
-      INTO_FIFO_DAV       : out std_logic_vector(NCFEB+2 downto 1);
-
-      OTMB_DATA_IN        : in std_logic_vector(17 downto 0);
-      ALCT_DATA_IN        : in std_logic_vector(17 downto 0);
-
-      DCFEB_DATA_IN       : in t_twobyte_arr(NCFEB downto 1);
-      DCFEB_DAV_IN        : in std_logic_vector(NCFEB downto 1);
-
-      GEN_DCFEB_SEL       : in std_logic;
-
-      FIFO_RE_B           : in std_logic_vector(NCFEB+2 downto 1);
-      FIFO_OE_B           : in std_logic_vector(NCFEB+2 downto 1);
-      FIFO_DOUT           : out std_logic_vector(17 downto 0);
-      FIFO_EMPTY          : out std_logic_vector(NCFEB+2 downto 1);
-      FIFO_HALF_FULL      : out std_logic_vector(NCFEB+2 downto 1)
-    );
-  end component;
-
-  component odmb_status is
-    generic (
-      NCFEB            : integer range 1 to 7 := 7  -- Number of DCFEBS, 7 for ME1/1, 5
-      );
-    port (
-      ODMB_STAT_SEL    : in  std_logic_vector(7 downto 0);
-      ODMB_STAT_DATA   : out std_logic_vector(15 downto 0);
-
-      CMSCLK           : in std_logic;
-      DDUCLK           : in std_logic;
-      DCFEBCLK         : in std_logic;
-
-      DCFEB_CRC_VALID  : in std_logic_vector(NCFEB downto 1);
-      DCFEB_RXD_VALID  : in std_logic_vector(NCFEB downto 1);
-      DCFEB_BAD_RX     : in std_logic_vector(NCFEB downto 1);
-      RAW_LCT          : in std_logic_vector(NCFEB downto 0);
-      ALCT_DAV         : in std_logic;
-      OTMB_DAV         : in std_logic;
-      RAW_L1A          : in std_logic;
-      DCFEB_L1A        : in std_logic;
-
-      EOF_DATA         : in std_logic_vector(NCFEB+2 downto 1);
-      FIFO_RE_B        : in std_logic_vector(NCFEB+2 downto 1);
-      INTO_FIFO_DAV    : in std_logic_vector(NCFEB+2 downto 1);
-      CAFIFO_L1A_MATCH : in std_logic_vector(NCFEB+2 downto 1);
-      CAFIFO_L1A_DAV   : in std_logic_vector(NCFEB+2 downto 1);
-
-      CAFIFO_L1A_CNT   : in std_logic_vector(23 downto 0);
-      CAFIFO_BX_CNT    : in std_logic_vector(11 downto 0);
-
-      CCB_CMD_BXEV     : in  std_logic_vector(7 downto 0);
-      CCB_CMD_S        : in  std_logic;       -- ccbcmnd(6) - from J3
-      CCB_DATA         : in  std_logic_vector(7 downto 0);  -- ccbdata(7 downto 0) - from J3
-      CCB_DATA_S       : in  std_logic;       -- ccbdata(8) - from J3
-      CCB_RSV          : in  std_logic_vector(10 downto 0);
-      CCB_OTHER        : in  std_logic_vector(10 downto 0);
-
-      L1ACNT_RST       : in std_logic;
-      PON_RESET        : in std_logic;
-      RESET            : in std_logic  --! Global reset
-      );
-  end component;
-
-  component mgt_spy is
-    port (
-      mgtrefclk       : in  std_logic; -- buffer'ed reference clock signal
-      txusrclk        : out std_logic; -- USRCLK for TX data preparation
-      rxusrclk        : out std_logic; -- USRCLK for RX data readout
-      sysclk          : in  std_logic; -- clock for the helper block, 80 MHz
-      spy_rx_n        : in  std_logic;
-      spy_rx_p        : in  std_logic;
-      spy_tx_n        : out std_logic;
-      spy_tx_p        : out std_logic;
-      txready         : out std_logic; -- Flag for tx reset done
-      rxready         : out std_logic; -- Flag for rx reset done
-      txdata          : in std_logic_vector(15 downto 0);  -- Data to be transmitted
-      txd_valid       : in std_logic;   -- Flag for tx data valid
-      txdiffctrl      : in std_logic_vector(3 downto 0);   -- Controls the TX voltage swing
-      loopback        : in std_logic_vector(2 downto 0);   -- For internal loopback tests
-      rxdata          : out std_logic_vector(15 downto 0);  -- Data received
-      rxd_valid       : out std_logic;   -- Flag for valid data;
-      bad_rx          : out std_logic;   -- Flag for fiber errors;
-      prbs_type       : in  std_logic_vector(3 downto 0);
-      prbs_tx_en      : in  std_logic;
-      prbs_rx_en      : in  std_logic;
-      prbs_tst_cnt    : in  std_logic_vector(15 downto 0);
-      prbs_err_cnt    : out std_logic_vector(15 downto 0);
-      reset           : in  std_logic
-      );
-  end component;
-
-  component mgt_cfeb is
-    generic (
-      NLINK     : integer range 1 to 20 := 7;  -- number of links
-      DATAWIDTH : integer := 16                -- user data width
-      );
-    port (
-      mgtrefclk    : in  std_logic; -- buffer'ed reference clock signal
-      rxusrclk     : out std_logic; -- USRCLK for RX data readout
-      sysclk       : in  std_logic; -- clock for the helper block, 80 MHz
-      daq_rx_n     : in  std_logic_vector(NLINK-1 downto 0);
-      daq_rx_p     : in  std_logic_vector(NLINK-1 downto 0);
-      rxdata_cfeb  : out t_twobyte_arr(NLINK downto 1);
-      rxd_valid    : out std_logic_vector(NLINK downto 1);   -- Flag for valid data
-      crc_valid    : out std_logic_vector(NLINK downto 1);   -- Flag for valid CRC
-      rxready      : out std_logic;                          -- Flag for rx reset done
-      bad_rx       : out std_logic_vector(NLINK downto 1);   -- Flag for fiber errors
-      kill_rxout   : in  std_logic_vector(NLINK downto 1);   -- Kill DCFEB by no output
-      kill_rxpd    : in  std_logic_vector(NLINK downto 1);   -- Kill bad DCFEB with power down RX
-      fifo_full    : in  std_logic_vector(NLINK downto 1);   -- Flag for FIFO full
-      fifo_afull   : in  std_logic_vector(NLINK downto 1);   -- Flag for FIFO almost full
-      prbs_type    : in  std_logic_vector(3 downto 0);
-      prbs_rx_en   : in  std_logic_vector(NLINK downto 1);
-      prbs_tst_cnt : in  std_logic_vector(15 downto 0);
-      prbs_err_cnt : out std_logic_vector(15 downto 0);
-      reset        : in  std_logic
+      clk: in std_logic;
+      probe0: in std_logic_vector(83 downto 0);
+      probe1: in std_logic_vector(31 downto 0);
+      probe2: in std_logic_vector(0 downto 0);
+      probe3: in std_logic_vector(0 downto 0)
       );
   end component;
 
@@ -981,27 +513,22 @@ architecture Behavioral of odmb7_ucsb_dev is
   --------------------------------------
   -- MGT signals for ALCT RX channels
   --------------------------------------
-  constant ALCT_NLINK : integer := 1;
-  constant ALCTDWIDTH : integer := 16;
+  signal usrclk_mgta      : std_logic; -- User clock for ALCT, at 120 MHz
+  signal alct_rxclken     : std_logic; -- Clock enable signal, on for every third clock of the usrclk
+  signal alct_rxdata      : std_logic_vector(111 downto 0); -- Data received from ALCT
+  signal alct_rxdata_gbt  : std_logic_vector(83 downto 0);  -- Data received for GBT Frame
+  signal alct_rxdata_wb   : std_logic_vector(31 downto 0);  -- Extra data for Wide Bus
+  signal alct_rxd_valid   : std_logic; -- Flag for valid data
+  signal alct_mgt_rxready : std_logic; -- Flag for valid mgt status
+  signal alct_gbt_rxready : std_logic; -- Flag for valid gbt sync status
+  signal alct_rxready     : std_logic; -- Flag combined of previous two
+  signal alct_bad_rx      : std_logic; -- Flag for bad receiver packet / fiber error
 
-  signal usrclk_mgta : std_logic;
-  signal alct_rxdata : std_logic_vector(15 downto 0);  -- Data received
-  signal alct_rxd_valid : std_logic_vector(ALCT_NLINK-1 downto 0);   -- Flag for valid data;
-  signal alct_bad_rx : std_logic_vector(ALCT_NLINK-1 downto 0);   -- Flag for valid data;
-  signal alct_rxready : std_logic; -- Flag for rx reset done
-  signal mgta_data_valid : std_logic_vector(4 downto 1);   -- Flag for valid data;
-  signal mgta_bad_rx : std_logic_vector(4 downto 1);   -- Flag for fiber errors;
-  signal mgta_rxready : std_logic; -- Flag for rx reset done
-  signal mgta_reset : std_logic;
-  signal mgt_reset : std_logic := '0';
-
-  signal alct_prbs_rx_en : std_logic_vector(ALCT_NLINK-1 downto 0);
+  -- signal alct_prbs_rx_en : std_logic_vector(ALCT_NLINK-1 downto 0);
   signal alct_prbs_tst_cnt : std_logic_vector(15 downto 0);
   signal alct_prbs_err_cnt : std_logic_vector(15 downto 0) := (others => '0');
 
-  signal daq8_rxdata  : std_logic_vector(15 downto 0);  -- Data received
-  signal daq9_rxdata  : std_logic_vector(15 downto 0);  -- Data received
-  signal daq10_rxdata : std_logic_vector(15 downto 0);  -- Data received
+  signal mgt_reset : std_logic := '0';
 
   --------------------------------------
   -- Miscellaneous
@@ -1068,7 +595,7 @@ begin
   -------------------------------------------------------------------------------------------
   -- Handle incoming data from OTMB/ALCT/DCFEBs
   -------------------------------------------------------------------------------------------
-  MBD : odmb_data
+  MBD : entity work.odmb_data
     generic map (
       NCFEB => NCFEB
       )
@@ -1111,8 +638,9 @@ begin
   -------------------------------------------------------------------------------------------
   -- Handle clock synthesizer signals and generate clocks
   -------------------------------------------------------------------------------------------
-  MBK : odmb_clocking
+  MBK : entity work.odmb_clocking
     port map (
+      -- Input clock signals
       CMS_CLK_FPGA_P => CMS_CLK_FPGA_P,
       CMS_CLK_FPGA_N => CMS_CLK_FPGA_N,
       GP_CLK_6_P     => GP_CLK_6_P,
@@ -1133,6 +661,7 @@ begin
       CLK_125_REF_N  => CLK_125_REF_N,
       EMCCLK         => EMCCLK,
       LF_CLK         => LF_CLK,
+      -- Output clocks
       mgtrefclk0_224 => mgtrefclk0_224,
       mgtrefclk0_225 => mgtrefclk0_225,
       mgtrefclk0_226 => mgtrefclk0_226,
@@ -1384,12 +913,11 @@ begin
                  opt_rst_reg;
   opt_reset <= opt_rst_reg(31) or pon_reset or mgt_reset;  -- Optical reset
 
-
   -------------------------------------------------------------------------------------------
   -- Sub-modules
   -------------------------------------------------------------------------------------------
 
-  MBV : ODMB_VME
+  MBV : entity work.ODMB_VME
     generic map (
       NCFEB => NCFEB
       )
@@ -1516,7 +1044,7 @@ begin
       PON_RESET => pon_reset
       );
 
-  MBC : ODMB_CTRL
+  MBC : entity work.ODMB_CTRL
     generic map (
       NCFEB => NCFEB,
       CAFIFO_SIZE => 32
@@ -1612,7 +1140,7 @@ begin
   -- Constant driver for firefly selector/reset pins
   -------------------------------------------------------------------------------------------
 
-  MBS : odmb_status
+  MBS : entity work.odmb_status
     generic map (
       NCFEB => NCFEB
       )
@@ -1675,7 +1203,7 @@ begin
   spy_rx_p <= DAQ_SPY_RX_P when SPY_SEL = '1' else '0';
 
   -- Connet to DDU via the spy ports
-  GTH_DDU : mgt_spy
+  GTH_DDU : entity work.mgt_spy
     port map (
       mgtrefclk       => mgtrefclk0_226, -- for 1.6 Gb/s DDU transmission, mgtrefclk1_226 is sourced from the 125 MHz crystal
       txusrclk        => usrclk_spy_tx,  -- 80 MHz for 1.6 Gb/s with 8b/10b encoding, 62.5 MHz for 1.25 Gb/s
@@ -1702,13 +1230,13 @@ begin
       reset           => opt_reset
       );
 
-  GTH_DCFEB : mgt_cfeb
+  GTH_DCFEB : entity work.mgt_cfeb
     generic map (
-      NLINK     => 7,  -- number of links
-      DATAWIDTH => 16  -- user data width
+      NLINK        => 7,  -- number of links
+      DATAWIDTH    => 16  -- user data width
       )
     port map (
-      mgtrefclk    => mgtrefclk0_225,
+      mgtrefclk    => mgtrefclk0_224,
       rxusrclk     => usrclk_mgtc,
       sysclk       => sysclk80,
       daq_rx_n     => DAQ_RX_N(6 downto 0),
@@ -1728,5 +1256,76 @@ begin
       prbs_err_cnt => dcfeb_prbs_err_cnt,
       reset        => opt_reset
       );
+
+
+  --=============================================--
+  -- ALCT receiver with GBT format (ODMB7 only)  --
+  --=============================================--
+  GBT_ALCT : entity work.mgt_gbt
+    generic map(
+      NUM_LINKS         => 1,
+      LINK_TYPE         => 0,   -- 0: ALCT, 1: BCK_PRS
+      GBT_ENCODING      => 1    -- 0: GBT_FRAME, 1: WIDE_BUS, 2: GBT_DYNAMIC
+      )
+    port map (
+
+      --==============--
+      -- Clocks       --
+      --==============--
+      MGT_REFCLK        => mgtrefclk0_225, -- 120.24 MHz
+      GBT_FRAMECLK      => cmsclk,         -- 40.079 MHz
+      MGT_DRP_CLK       => mgtclk4,        -- 120.24 MHz derived from mgtrefclk0_225
+
+      GBT_TXUSRCLK_o(1) => open,
+      GBT_RXUSRCLK_o(1) => usrclk_mgta,
+      GBT_TXCLKEN_o(1)  => open,           -- from pattern generator, to be evaluated
+      GBT_RXCLKEN_o(1)  => alct_rxclken,   -- to pattern checker, to be evaluated
+
+      --==============--
+      -- Serial lanes --
+      --==============--
+      MGT_RX_P(1)       => DAQ_RX_P(7),
+      MGT_RX_N(1)       => DAQ_RX_N(7),
+      MGT_TX_P(1)       => open,
+      MGT_TX_N(1)       => open,
+
+      --==============--
+      -- Data         --
+      --==============--
+      GBT_TXDATA_i(1)   => (others => '0'),
+      GBT_RXDATA_o(1)   => alct_rxdata_gbt,
+      WB_TXDATA_i(1)    => (others => '0'),
+      WB_RXDATA_o(1)    => alct_rxdata_wb,
+
+      TXD_VALID_i(1)    => '0',
+      RXD_VALID_o(1)    => alct_rxd_valid,
+
+      --==============--
+      -- TX/RX Status --
+      --==============--
+      MGT_TXREADY_o(1)  => open,
+      MGT_RXREADY_o(1)  => alct_mgt_rxready,
+      GBT_TXREADY_o(1)  => open,
+      GBT_RXREADY_o(1)  => alct_gbt_rxready,
+      GBT_BAD_RX_o(1)   => alct_bad_rx,
+
+      --==============--
+      -- Reset        --
+      --==============--
+      RESET_i           => opt_reset
+      );
+
+  alct_rxdata <= alct_rxdata_wb & alct_rxdata_gbt(79 downto 0);
+  alct_rxready <= alct_mgt_rxready and alct_gbt_rxready;
+
+  ila_alct_rx_inst : ila_gbt_exde
+    port map (
+      clk => usrclk_mgta,
+      probe0 => alct_rxdata_gbt,
+      probe1 => alct_rxdata_wb,
+      probe2(0) => alct_rxready,
+      probe3(0) => alct_rxclken
+      );
+
 
 end Behavioral;
