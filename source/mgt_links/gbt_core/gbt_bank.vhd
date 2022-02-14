@@ -184,7 +184,7 @@ begin                 --========####   Architecture Body   ####========--
   end generate;
   
   --! Instantiation of the transceiver module (MGT and FrameAligner)
-  mgt_inst: entity work.mgt
+  mgt_inst: entity work.gbt_mgt
     generic map (
       NUM_LINKS                    => NUM_LINKS,
       LINK_TYPE                    => LINK_TYPE

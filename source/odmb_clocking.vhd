@@ -30,7 +30,6 @@ entity odmb_clocking is
     REF_CLK_5_N : in std_logic;         --! refclk1 to 227
     CLK_125_REF_P : in std_logic;       --! refclk1 to 226
     CLK_125_REF_N : in std_logic;       --! refclk1 to 226
-    EMCCLK : in std_logic;              --! Low frequency, 133 MHz for SPI programing clock
     LF_CLK : in std_logic;              --! Low frequency, 10 kHz
 
     --------------------
@@ -52,7 +51,6 @@ entity odmb_clocking is
     clk_sysclk80 : out std_logic;
     clk_sysclk160 : out std_logic;
     clk_cmsclk : out std_logic;
-    clk_emcclk : out std_logic;
     clk_lfclk : out std_logic;
     clk_gp6 : out std_logic;
     clk_gp7 : out std_logic;
@@ -190,7 +188,6 @@ begin
   u_bufg_gp7 : BUFG port map (I => clk_gp7_unbuf, O => clk_gp7);
   u_bufg_gp6 : BUFG port map (I => clk_gp6_unbuf, O => clk_gp6);
   u_bufg_cms : BUFG port map (I => clk_cmsclk_unbuf, O => clk_cmsclk);
-  u_bufg_emc : BUFG port map (I => EMCCLK, O => clk_emcclk);
   u_bufg_lfc : BUFG port map (I => LF_CLK, O => clk_lfclk);
 
   -- BUFG for GT clocks

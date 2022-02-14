@@ -17,9 +17,11 @@ package ucsb_types is
   type t_done_state_arr is array (integer range <>) of t_done_state;
 
   -- For various counter
-  type t_twobyte_arr is array (integer range <>) of std_logic_vector(15 downto 0);
-  type t_devdata_arr is array (integer range <>) of std_logic_vector(17 downto 0);
-  type t_fourbyte_arr is array (integer range <>) of std_logic_vector(31 downto 0);
+  type t_std14_array is array (integer range <>) of std_logic_vector(13 downto 0);
+  type t_std16_array is array (integer range <>) of std_logic_vector(15 downto 0);
+  type t_std18_array is array (integer range <>) of std_logic_vector(17 downto 0);
+  type t_std32_array is array (integer range <>) of std_logic_vector(31 downto 0);
+  type t_std84_array is array (integer range <>) of std_logic_vector(83 downto 0);
 
   ---- Flag for synthesis/simulation
   -- For simulation

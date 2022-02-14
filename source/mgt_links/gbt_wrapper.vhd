@@ -16,11 +16,12 @@ use work.vendor_specific_gbt_bank_package.all;
 --#######################################   Entity   ##############################################--
 --=================================================================================================--
 
-entity mgt_gbt is
+entity gbt_wrapper is
   generic (
     NUM_LINKS                                    : integer := 1;
     LINK_TYPE                                    : integer := 0; --! LINK_TYPE: select the proper gtwizard IP, with 0: ALCT, 1: BCK_PRS
-    GBT_ENCODING                                 : integer range 0 to 2 := GBT_FRAME --! 0: GBT_FRAME, 1: WIDE_BUS, 2: GBT_DYNAMIC
+    TX_ENCODING                                  : integer range 0 to 2 := GBT_FRAME; --! 0: GBT_FRAME, 1: WIDE_BUS, 2: GBT_DYNAMIC
+    RX_ENCODING                                  : integer range 0 to 2 := GBT_FRAME  --! 0: GBT_FRAME, 1: WIDE_BUS, 2: GBT_DYNAMIC
     );
   port (
 
@@ -69,13 +70,13 @@ entity mgt_gbt is
     --==============--
     RESET_i                                      : in  std_logic
     );
-end mgt_gbt;
+end gbt_wrapper;
 
 --=================================================================================================--
 --####################################   Architecture   ###########################################--
 --=================================================================================================--
 
-architecture mgt_gbt_inst of mgt_gbt is
+architecture gbt_wrapper_inst of gbt_wrapper is
 
   --===========--
   -- Constants --
@@ -118,15 +119,15 @@ architecture mgt_gbt_inst of mgt_gbt is
   -- Debug --
   signal ila_data_mgt                    : std_logic_vector(83 downto 0);
 
-  component ila_gbt_exde is
-    port (
-      clk: in std_logic;
-      probe0: in std_logic_vector(83 downto 0);
-      probe1: in std_logic_vector(31 downto 0);
-      probe2: in std_logic_vector(0 downto 0);
-      probe3: in std_logic_vector(0 downto 0)
-      );
-  end component;
+  -- component ila_gbt_exde is
+  --   port (
+  --     clk: in std_logic;
+  --     probe0: in std_logic_vector(83 downto 0);
+  --     probe1: in std_logic_vector(31 downto 0);
+  --     probe2: in std_logic_vector(0 downto 0);
+  --     probe3: in std_logic_vector(0 downto 0)
+  --     );
+  -- end component;
 
 --=================================================================================================--
 begin                 --========####   Architecture Body   ####========--
@@ -278,8 +279,8 @@ begin                 --========####   Architecture Body   ####========--
       LINK_TYPE                => LINK_TYPE,
       TX_OPTIMIZATION          => TX_OPTIMIZATION,
       RX_OPTIMIZATION          => RX_OPTIMIZATION,
-      TX_ENCODING              => GBT_ENCODING,
-      RX_ENCODING              => GBT_ENCODING
+      TX_ENCODING              => TX_ENCODING,
+      RX_ENCODING              => RX_ENCODING
       )
     port map(
 
@@ -357,7 +358,7 @@ begin                 --========####   Architecture Body   ####========--
 
       );
 
-  -- ila_mgt_gbt : ila_gbt_exde
+  -- ila_gbt_wrapper : ila_gbt_exde
   --   port map (
   --     clk => MGT_DRP_CLK,        -- original 300 MHz
   --     probe0 => ila_data_mgt,
@@ -367,7 +368,7 @@ begin                 --========####   Architecture Body   ####========--
   --     );
 
 --=====================================================================================--
-end mgt_gbt_inst;
+end gbt_wrapper_inst;
 --=================================================================================================--
 --#################################################################################################--
 --=================================================================================================--

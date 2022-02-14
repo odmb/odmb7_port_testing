@@ -22,7 +22,7 @@ use work.vendor_specific_gbt_bank_package.all;
 --! @details
 --! The MGT module provides the interface to the transceivers to send the GBT-links via
 --! high speed links (@4.8Gbps)
-entity mgt is
+entity gbt_mgt is
   generic (
     NUM_LINKS                    : integer := 1;
     LINK_TYPE                    : integer := 0   --! To select the proper gtwizard IP, with 0: ALCT, 1: BCK_PRS
@@ -73,13 +73,13 @@ entity mgt is
     MGT_DEVSPEC_o                : out mgtDeviceSpecific_o_R
 
     );
-end mgt;
+end gbt_mgt;
 
 --! @brief MGT - Transceiver
 --! @details The MGT module implements all the logic required to send the GBT frame on high speed
 --! links: resets modules for the transceiver, Tx PLL and alignement logic to align the received word with the
 --! GBT frame header.
-architecture structural of mgt is
+architecture structural of gbt_mgt is
   --================================ Signal Declarations ================================--
 
   --==============================--
@@ -145,7 +145,7 @@ architecture structural of mgt is
   signal rx_headerlocked_s            : std_logic_vector(1 to NUM_LINKS);
   signal rx_bitslipIsEven_s           : std_logic_vector(1 to NUM_LINKS);
 
-  component gtwiz_gbt_d1
+  component gtwiz_fed_d1
     port (
       gtwiz_userclk_tx_active_in : in std_logic_vector(0 downto 0);
       gtwiz_userclk_rx_active_in : in std_logic_vector(0 downto 0);
@@ -416,7 +416,7 @@ begin                 --========####   Architecture Body   ####========--
     end generate;
 
     u_mgt_bckprs : if LINK_TYPE = 1 generate
-      xlx_ku_mgt_std_i : gtwiz_gbt_d1
+      xlx_ku_mgt_std_i : gtwiz_fed_d1
         port map (
           rxusrclk_in(0)                         => rx_usrclk_sig(i),
           rxusrclk2_in(0)                        => rx_usrclk_sig(i),

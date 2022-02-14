@@ -59,18 +59,18 @@ architecture ODMB_STATUS_ARCH of odmb_status is
   -- ODMB status signals
   --------------------------------------
   -- Counter arrays (maximum length has to be used)
-  signal goodcrc_cnt         : t_twobyte_arr(7 downto 1);
-  signal dcfeb_bad_rx_cnt    : t_twobyte_arr(7 downto 1);
-  signal dcfeb_dvalid_cnt    : t_twobyte_arr(7 downto 1); -- replacement for cafifo dav count
-  signal dcfeb_badcrc_cnt    : t_twobyte_arr(7 downto 1);
+  signal goodcrc_cnt         : t_std16_array(7 downto 1);
+  signal dcfeb_bad_rx_cnt    : t_std16_array(7 downto 1);
+  signal dcfeb_dvalid_cnt    : t_std16_array(7 downto 1); -- replacement for cafifo dav count
+  signal dcfeb_badcrc_cnt    : t_std16_array(7 downto 1);
 
-  signal into_fifo_dav_cnt   : t_twobyte_arr(9 downto 1);
-  signal l1a_match_cnt       : t_twobyte_arr(9 downto 1);
-  signal data_fifo_re_cnt    : t_twobyte_arr(9 downto 1);
-  signal eof_data_cnt        : t_twobyte_arr(9 downto 1);
-  signal cafifo_l1a_dav_cnt  : t_twobyte_arr(9 downto 1);
-  signal lct_l1a_gap         : t_twobyte_arr(9 downto 1);
-  signal raw_lct_cnt         : t_twobyte_arr(9 downto 1);
+  signal into_fifo_dav_cnt   : t_std16_array(9 downto 1);
+  signal l1a_match_cnt       : t_std16_array(9 downto 1);
+  signal data_fifo_re_cnt    : t_std16_array(9 downto 1);
+  signal eof_data_cnt        : t_std16_array(9 downto 1);
+  signal cafifo_l1a_dav_cnt  : t_std16_array(9 downto 1);
+  signal lct_l1a_gap         : t_std16_array(9 downto 1);
+  signal raw_lct_cnt         : t_std16_array(9 downto 1);
 
   signal fifo_re             : std_logic_vector(NCFEB+2 downto 1);
   signal odmb_data           : std_logic_vector(15 downto 0);

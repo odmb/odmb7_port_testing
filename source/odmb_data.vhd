@@ -10,12 +10,15 @@ use work.ucsb_types.all;
 
 entity odmb_data is
   generic (
-    NCFEB               : integer range 1 to 7 := 7  -- Number of DCFEBS, 7 for ME1/1, 5
+    NCFEB               : integer range 1 to 7 := 7;  -- Number of DCFEBS, 7 for ME1/1, 5
+    RUN4SCHEME          : integer range 0 to 3 := 0   -- 0: ALCT from backpane, 1: ALCT from optical, 2: OTMB data at 36 bit
   );
   port (
     CMSCLK              : in std_logic;
     DDUCLK              : in std_logic;
     DCFEBCLK            : in std_logic;
+    ALCTCLK             : in std_logic;
+    ALCT_RXCLKEN        : in std_logic;
     RESET               : in std_logic;
     L1ACNT_RST          : in std_logic;
     KILL                : in std_logic_vector(NCFEB+2 downto 1);
@@ -34,9 +37,10 @@ entity odmb_data is
     EOF_DATA            : out std_logic_vector(NCFEB+2 downto 1);
     INTO_FIFO_DAV       : out std_logic_vector(NCFEB+2 downto 1);
 
-    OTMB_DATA_IN        : in std_logic_vector(17 downto 0);
-    ALCT_DATA_IN        : in std_logic_vector(17 downto 0);
-    DCFEB_DATA_IN       : in t_twobyte_arr(NCFEB downto 1);
+    OTMB_DATA_IN        : in std_logic_vector(35 downto 0);
+    ALCT_DATA_IN        : in std_logic_vector(71 downto 0);
+    ALCT_DAV_IN         : in std_logic;
+    DCFEB_DATA_IN       : in t_std16_array(NCFEB downto 1);
     DCFEB_DAV_IN        : in std_logic_vector(NCFEB downto 1);
 
     GEN_DCFEB_SEL       : in std_logic;
@@ -74,6 +78,23 @@ architecture ODMB_DATA_ARCH of odmb_data is
       wr_clk : in std_logic;
       rd_clk : in std_logic;
       din : in std_logic_vector(17 downto 0);
+      wr_en : in std_logic;
+      rd_en : in std_logic;
+      dout : out std_logic_vector(17 downto 0);
+      full : out std_logic;
+      empty : out std_logic;
+      prog_full : out std_logic;
+      wr_rst_busy : out std_logic;
+      rd_rst_busy : out std_logic
+      );
+  end component;
+
+  component datafifo_alct_gbt
+    port (
+      srst : in std_logic;
+      wr_clk : in std_logic;
+      rd_clk : in std_logic;
+      din : in std_logic_vector(71 downto 0);
       wr_en : in std_logic;
       rd_en : in std_logic;
       dout : out std_logic_vector(17 downto 0);
@@ -155,8 +176,7 @@ architecture ODMB_DATA_ARCH of odmb_data is
 
   signal gen_alct_data       : std_logic_vector(15 downto 0);
   signal alct_data           : std_logic_vector(15 downto 0);
-  signal alct_q              : std_logic_vector(17 downto 0);
-  signal alct_qq             : std_logic_vector(17 downto 0);
+  signal alct_rxdata         : std_logic_vector(71 downto 0);
 
   signal alct_fifo_data_valid : std_logic;
   signal alct_fifo_data_in    : std_logic_vector(17 downto 0);
@@ -169,8 +189,8 @@ architecture ODMB_DATA_ARCH of odmb_data is
 
   signal otmb_data           : std_logic_vector(15 downto 0);
   signal gen_otmb_data       : std_logic_vector(15 downto 0);
-  signal otmb_q              : std_logic_vector(17 downto 0);
-  signal otmb_qq             : std_logic_vector(17 downto 0);
+  signal otmb_q              : std_logic_vector(35 downto 0);
+  signal otmb_qq             : std_logic_vector(35 downto 0);
 
   signal otmb_fifo_data_valid : std_logic;
   signal otmb_fifo_data_in    : std_logic_vector(17 downto 0);
@@ -185,8 +205,8 @@ architecture ODMB_DATA_ARCH of odmb_data is
   constant push_dly    : integer := 63;  -- It needs to be > alct/otmb_push_dly
   constant push_dlyp4  : integer := push_dly+4;  -- push_dly+4
 
-  signal gen_dcfeb_data : t_twobyte_arr(NCFEB downto 1);
-  signal rx_dcfeb_data  : t_twobyte_arr(NCFEB downto 1);
+  signal gen_dcfeb_data : t_std16_array(NCFEB downto 1);
+  signal rx_dcfeb_data  : t_std16_array(NCFEB downto 1);
 
   signal gen_dcfeb_data_valid                 : std_logic_vector(NCFEB downto 1);
   signal dcfeb_data_valid_d, dcfeb_data_valid : std_logic_vector(NCFEB downto 1);
@@ -202,17 +222,21 @@ architecture ODMB_DATA_ARCH of odmb_data is
 
   signal gen_tdo : std_logic_vector(NCFEB downto 1) := (others => '0');
 
-  signal dcfeb_fifo_in : t_twobyte_arr(NCFEB downto 1);
-  signal dcfeb_data    : t_twobyte_arr(NCFEB downto 1);
+  signal dcfeb_fifo_in : t_std16_array(NCFEB downto 1);
+  signal dcfeb_data    : t_std16_array(NCFEB downto 1);
 
-  signal eofgen_dcfeb_fifo_in    : t_devdata_arr(NCFEB downto 1);
+  signal eofgen_dcfeb_fifo_in    : t_std18_array(NCFEB downto 1);
   signal eofgen_dcfeb_data_valid : std_logic_vector(NCFEB downto 1);
-  signal dcfeb_fifo_out          : t_devdata_arr(NCFEB downto 1);
+  signal dcfeb_fifo_out          : t_std18_array(NCFEB downto 1);
   signal alct_fifo_data_out      : std_logic_vector(17 downto 0);
   signal otmb_fifo_data_out      : std_logic_vector(17 downto 0);
 
-  signal data_fifo_re            : std_logic_vector (NCFEB+2 downto 1);
-  signal data_fifo_we            : std_logic_vector (NCFEB+2 downto 1);
+  signal dcfeb_fifo_rden         : std_logic_vector (NCFEB downto 1);
+  signal dcfeb_fifo_wren         : std_logic_vector (NCFEB downto 1);
+  signal alct_fifo_wren          : std_logic;
+  signal alct_fifo_rden          : std_logic;
+  signal otmb_fifo_wren          : std_logic;
+  signal otmb_fifo_rden          : std_logic;
   signal pulse_eof40, pulse_eof160  : std_logic_vector(NCFEB downto 1);
 
   -- signal l1acnt_rst       : std_logic := '0';
@@ -252,86 +276,119 @@ begin
   ALCT_OTMB_SYNC : process (CMSCLK)
   begin
     if rising_edge(CMSCLK) then
-      alct_q <= alct_data_in;
-      otmb_q <= otmb_data_in;
-      alct_qq <= alct_q;
+      otmb_q <= OTMB_DATA_IN;
       otmb_qq <= otmb_q;
     end if;
   end process;
 
-  rx_alct_data_valid <= not alct_qq(17);
-  alct_data_valid    <= '0' when KILL(9) = '1' else
-                        rx_alct_data_valid when (GEN_DCFEB_SEL = '0') else
-                        gen_alct_data_valid;
+  -- =========== --
+  -- ALCT data   --
+  -- =========== --
 
-  alct_data <= alct_qq(15 downto 0) when (GEN_DCFEB_SEL = '0') else gen_alct_data;
+  ALCT_DATA_SRC0 : if RUN4SCHEME = 0 generate
+    rx_alct_data_valid <= not otmb_qq(35);
+    alct_data <= otmb_qq(33 downto 18) when (GEN_DCFEB_SEL = '0') else gen_alct_data;
+    alct_data_valid <= '0' when KILL(9) = '1' else
+                       rx_alct_data_valid when (GEN_DCFEB_SEL = '0') else
+                       gen_alct_data_valid;
 
-  rx_otmb_data_valid <= not otmb_qq(17);
-  otmb_data_valid    <= '0' when KILL(8) = '1' else
-                        rx_otmb_data_valid when (GEN_DCFEB_SEL = '0') else
-                        gen_otmb_data_valid;
+    ALCT_EOFGEN_PM : EOFGEN
+      port map (
+        clk => cmsclk,
+        rst => reset,
 
-  otmb_data <= otmb_qq(15 downto 0) when (GEN_DCFEB_SEL = '0') else gen_otmb_data;
+        dv_in   => alct_data_valid,
+        data_in => alct_data,
 
-  ALCT_EOFGEN_PM : EOFGEN
-    port map (
-      clk => cmsclk,
-      rst => reset,
+        dv_out   => alct_fifo_data_valid,
+        data_out => alct_fifo_data_in
+        );
 
-      dv_in   => alct_data_valid,
-      data_in => alct_data,
+    datafifo_alct_pm : datafifo_40mhz
+      port map(
+        srst      => l1acnt_fifo_rst,
+        wr_clk    => CMSCLK,
+        rd_clk    => DDUCLK,
+        din       => alct_fifo_data_in,
+        wr_en     => alct_fifo_wren,
+        rd_en     => alct_fifo_rden,
+        dout      => alct_fifo_data_out,
+        full      => alct_fifo_full,
+        empty     => FIFO_EMPTY(NCFEB+2),
+        prog_full => FIFO_HALF_FULL(NCFEB+2)
+        );
 
-      dv_out   => alct_fifo_data_valid,
-      data_out => alct_fifo_data_in
-      );
+    alct_fifo_wren <= alct_fifo_data_valid and datafifo_mask;
 
-  OTMB_EOFGEN_PM : EOFGEN
-    port map (
-      clk => cmsclk,
-      rst => reset,
+    -- eof_data
+    PULSEEOFALCT : PULSE2SAME port map(DOUT => EOF_DATA(NCFEB+2), CLK_DOUT => CMSCLK, RST => RESET, DIN => alct_fifo_data_in(17));
+  end generate;
 
-      dv_in   => otmb_data_valid,
-      data_in => otmb_data,
+  ALCT_DATA_SRC1 : if RUN4SCHEME > 0 generate
+    -- Assume the words are in format {4'b1000, bits[9:0], 5'b00000, bits[18:10]}
 
-      dv_out   => otmb_fifo_data_valid,
-      data_out => otmb_fifo_data_in
-      );
+    alct_fifo_wren <= ALCT_DAV_IN and ALCT_RXCLKEN;
 
-  data_fifo_we(NCFEB+2) <= alct_fifo_data_valid and datafifo_mask;
-  data_fifo_we(NCFEB+1) <= otmb_fifo_data_valid and datafifo_mask;
+    datafifo_alct_gbt_pm : datafifo_alct_gbt
+      port map (
+        srst      => l1acnt_fifo_rst,
+        wr_clk    => ALCTCLK,
+        rd_clk    => DDUCLK,
+        din       => ALCT_DATA_IN,
+        wr_en     => alct_fifo_wren,
+        rd_en     => alct_fifo_rden,
+        dout      => alct_fifo_data_out,
+        full      => alct_fifo_full,
+        empty     => FIFO_EMPTY(NCFEB+2),
+        prog_full => FIFO_HALF_FULL(NCFEB+2)
+        );
 
-  -- datafifo for alct and otmb
-  datafifo_alct_pm : datafifo_40mhz
-    port map(
-      srst      => l1acnt_fifo_rst,
-      wr_clk    => CMSCLK,
-      rd_clk    => DDUCLK,
-      din       => alct_fifo_data_in,
-      wr_en     => data_fifo_we(NCFEB+2),
-      rd_en     => data_fifo_re(NCFEB+2),
-      dout      => alct_fifo_data_out,
-      full      => alct_fifo_full,
-      empty     => FIFO_EMPTY(NCFEB+2),
-      prog_full => FIFO_HALF_FULL(NCFEB+2)
-      );
+  end generate;
 
-  datafifo_otmb_pm : datafifo_40mhz
-    port map(
-      srst      => l1acnt_fifo_rst,
-      wr_clk    => CMSCLK,
-      rd_clk    => DDUCLK,
-      din       => otmb_fifo_data_in,
-      wr_en     => data_fifo_we(NCFEB+1),
-      rd_en     => data_fifo_re(NCFEB+1),
-      dout      => otmb_fifo_data_out,
-      full      => otmb_fifo_full,
-      empty     => FIFO_EMPTY(NCFEB+1),
-      prog_full => FIFO_HALF_FULL(NCFEB+1)
-      );
+  -- =========== --
+  -- OTMB data   --
+  -- =========== --
 
-  -- eof_data
-  PULSEEOFALCT : PULSE2SAME port map(DOUT => EOF_DATA(NCFEB+2), CLK_DOUT => CMSCLK, RST => RESET, DIN => alct_fifo_data_in(17));
-  PULSEEOFOTMB : PULSE2SAME port map(DOUT => EOF_DATA(NCFEB+1), CLK_DOUT => CMSCLK, RST => RESET, DIN => otmb_fifo_data_in(17));
+  OTMB_DATA_SRC0 : if RUN4SCHEME < 2 generate
+    rx_otmb_data_valid <= not otmb_qq(17);
+    otmb_data_valid    <= '0' when KILL(8) = '1' else
+                          rx_otmb_data_valid when (GEN_DCFEB_SEL = '0') else
+                          gen_otmb_data_valid;
+    otmb_data <= otmb_qq(15 downto 0) when (GEN_DCFEB_SEL = '0') else gen_otmb_data;
+
+    OTMB_EOFGEN_PM : EOFGEN
+      port map (
+        clk => cmsclk,
+        rst => reset,
+
+        dv_in   => otmb_data_valid,
+        data_in => otmb_data,
+
+        dv_out   => otmb_fifo_data_valid,
+        data_out => otmb_fifo_data_in
+        );
+
+    otmb_fifo_wren <= otmb_fifo_data_valid and datafifo_mask;
+
+    -- datafifo for OTMB data
+    datafifo_otmb_pm : datafifo_40mhz
+      port map(
+        srst      => l1acnt_fifo_rst,
+        wr_clk    => CMSCLK,
+        rd_clk    => DDUCLK,
+        din       => otmb_fifo_data_in,
+        wr_en     => otmb_fifo_wren,
+        rd_en     => otmb_fifo_rden,
+        dout      => otmb_fifo_data_out,
+        full      => otmb_fifo_full,
+        empty     => FIFO_EMPTY(NCFEB+1),
+        prog_full => FIFO_HALF_FULL(NCFEB+1)
+        );
+
+    -- eof_data
+    PULSEEOFOTMB : PULSE2SAME port map(DOUT => EOF_DATA(NCFEB+1), CLK_DOUT => CMSCLK, RST => RESET, DIN => otmb_fifo_data_in(17));
+  end generate;
+
 
   GEN_DCFEB : for I in NCFEB downto 1 generate
   begin
@@ -396,7 +453,7 @@ begin
         data_out => eofgen_dcfeb_fifo_in(I)
         );
 
-    data_fifo_we(I) <= eofgen_dcfeb_data_valid(I) and datafifo_mask and not dcfeb_fifo_rst(I);
+    dcfeb_fifo_wren(I) <= eofgen_dcfeb_data_valid(I) and datafifo_mask and not dcfeb_fifo_rst(I);
 
     datafifo_dcfeb_pm : datafifo_dcfeb
       port map(
@@ -406,8 +463,8 @@ begin
         wr_clk    => DCFEBCLK,
         rd_clk    => DDUCLK,
         din       => eofgen_dcfeb_fifo_in(I),
-        wr_en     => data_fifo_we(I),
-        rd_en     => data_fifo_re(I),
+        wr_en     => dcfeb_fifo_wren(I),
+        rd_en     => dcfeb_fifo_rden(I),
         dout      => dcfeb_fifo_out(I),
         full      => dcfeb_fifo_full(I),
         empty     => FIFO_EMPTY(I),
@@ -425,10 +482,12 @@ begin
   INTO_FIFO_DAV(NCFEB+1)        <= otmb_fifo_data_valid;
   INTO_FIFO_DAV(NCFEB downto 1) <= eofgen_dcfeb_data_valid;
 
-  GENFIFORE : for index in 1 to NCFEB+2 generate
+  GENFIFORE : for index in 1 to NCFEB generate
   begin
-    data_fifo_re(index) <= datafifo_mask and not fifo_re_b(index);
+    dcfeb_fifo_rden(index) <= datafifo_mask and not fifo_re_b(index);
   end generate GENFIFORE;
+  otmb_fifo_rden <= datafifo_mask and not fifo_re_b(NCFEB+1);
+  alct_fifo_rden <= datafifo_mask and not fifo_re_b(NCFEB+2);
 
   -------------------------------------------------------------------------------------------
   -- Handle data readout

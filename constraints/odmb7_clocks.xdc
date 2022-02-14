@@ -7,12 +7,10 @@
 create_clock -name cms_clk  -period 25    [get_ports CMS_CLK_FPGA_P]
 create_clock -name gp_clk_6 -period 12.5  [get_ports GP_CLK_6_P]
 create_clock -name gp_clk_7 -period 12.5  [get_ports GP_CLK_7_P]
-create_clock -name emcclk   -period  7.5  [get_ports EMCCLK]
 create_clock -name lf_clk -period 100000  [get_ports LF_CLK]
 set_clock_groups -group [get_clocks cms_clk -include_generated_clocks] -asynchronous
 set_clock_groups -group [get_clocks gp_clk_6 -include_generated_clocks] -asynchronous
 set_clock_groups -group [get_clocks gp_clk_7 -include_generated_clocks] -asynchronous
-set_clock_groups -group [get_clocks emcclk -include_generated_clocks] -asynchronous
 set_clock_groups -group [get_clocks lf_clk -include_generated_clocks] -asynchronous
 
 # ----------------------------------

@@ -40,7 +40,6 @@ entity odmb7_ucsb_dev is
     REF_CLK_5_N    : in std_logic;                         --! From clock synthesizer, refclk1 to GTH quad 227.
     CLK_125_REF_P  : in std_logic;                         --! From clock synthesizer, refclk1 to GTH quad 226.
     CLK_125_REF_N  : in std_logic;                         --! From clock synthesizer, refclk1 to GTH quad 226.
-    EMCCLK         : in std_logic;                         --! From clock synthesizer, 133 MHz. Clock for programming FPGA from PROM. Connected to bank 65.
     LF_CLK         : in std_logic;                         --! From clock synthesizer, 10 kHz. General purpose low frequency clock, currently unused. Connected to bank 45.
 
     --------------------
@@ -161,6 +160,8 @@ entity odmb7_ucsb_dev is
 
     SPY_TX_P     : out std_logic;                          --! Finisar (spy) optical TX output to PC.
     SPY_TX_N     : out std_logic;                          --! Finisar (spy) optical TX output to PC.
+    DAQ_TX_P     : out std_logic_vector(1 downto 1);       --! Temporary: B04 optical TX1, output to ALCT.
+    DAQ_TX_N     : out std_logic_vector(1 downto 1);       --! Temporary: B04 optical TX1, output to ALCT.
     -- DAQ_TX_P     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
     -- DAQ_TX_N     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
 
@@ -234,13 +235,13 @@ architecture Behavioral of odmb7_ucsb_dev is
 
   constant NCFEB  : integer range 1 to 7 := 7;  -- Number of DCFEBS, 7 for ODMB7
 
-  component ila_gbt_exde is
+  component ila_gbt is
     port (
       clk: in std_logic;
-      probe0: in std_logic_vector(83 downto 0);
-      probe1: in std_logic_vector(31 downto 0);
-      probe2: in std_logic_vector(0 downto 0);
-      probe3: in std_logic_vector(0 downto 0)
+      probe0: in std_logic_vector(111 downto 0);
+      probe1: in std_logic_vector(71 downto 0);
+      probe2: in std_logic_vector(31 downto 0);
+      probe3: in std_logic
       );
   end component;
 
@@ -262,7 +263,6 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal sysclk80 : std_logic;
   signal sysclk160 : std_logic;
   signal cmsclk : std_logic;
-  signal clk_emcclk : std_logic;
   signal clk_lfclk : std_logic;
   signal clk_gp6 : std_logic;
   signal clk_gp7 : std_logic;
@@ -464,27 +464,28 @@ architecture Behavioral of odmb7_ucsb_dev is
   --------------------------------------
   -- MGT signals for FED channels
   --------------------------------------
-  constant FED_NTXLINK : integer := 4;
-  constant FED_NRXLINK : integer := 4;
-  constant FEDTXDWIDTH : integer := 16;
-  constant FEDRXDWIDTH : integer := 16;
+  constant FED_NTXLINK   : integer := 1;
+  constant FED_NRXLINK   : integer := 1;
 
-  signal usrclk_fed_tx : std_logic; -- USRCLK for TX data preparation
-  signal usrclk_fed_rx : std_logic; -- USRCLK for RX data readout
-  signal fed_txdata1 : std_logic_vector(FEDTXDWIDTH-1 downto 0);   -- Data to be transmitted
-  signal fed_txdata2 : std_logic_vector(FEDTXDWIDTH-1 downto 0);   -- Data to be transmitted
-  signal fed_txdata3 : std_logic_vector(FEDTXDWIDTH-1 downto 0);   -- Data to be transmitted
-  signal fed_txdata4 : std_logic_vector(FEDTXDWIDTH-1 downto 0);   -- Data to be transmitted
-  signal fed_txd_valid : std_logic_vector(FED_NTXLINK downto 1);   -- Flag for tx valid data;
-  signal fed_rxdata1 : std_logic_vector(FEDRXDWIDTH-1 downto 0);   -- Data received
-  signal fed_rxdata2 : std_logic_vector(FEDRXDWIDTH-1 downto 0);   -- Data received
-  signal fed_rxdata3 : std_logic_vector(FEDRXDWIDTH-1 downto 0);   -- Data received
-  signal fed_rxdata4 : std_logic_vector(FEDRXDWIDTH-1 downto 0);   -- Data received
-  signal fed_rxd_valid : std_logic_vector(FED_NRXLINK downto 1);   -- Flag for rx valid data;
-  signal fed_bad_rx : std_logic_vector(FED_NRXLINK downto 1);   -- Flag for fiber errors;
-  signal fed_rxready : std_logic; -- Flag for rx reset done
-  signal fed_txready : std_logic; -- Flag for rx reset done
-  signal fed_reset : std_logic;
+  signal usrclk_fed_tx   : std_logic_vector(1 to FED_NTXLINK); -- USRCLK for TX data preparation
+  signal fed_txclken     : std_logic_vector(1 to FED_NTXLINK); -- CLKEN signal for the USRCLK of TX data preparation
+  signal fed_txdata_gbt  : t_std84_array(1 to FED_NTXLINK);   -- Data to be transmitted
+  signal fed_txdata_wb   : t_std32_array(1 to FED_NTXLINK);   -- Data received
+  signal fed_txd_valid   : std_logic_vector(1 to FED_NTXLINK);   -- Flag for tx valid data;
+  signal fed_mgt_txready : std_logic_vector(1 to FED_NTXLINK); -- Flag for rx reset done
+  signal fed_gbt_txready : std_logic_vector(1 to FED_NTXLINK); -- Flag for rx reset done
+  signal fed_txready     : std_logic_vector(1 to FED_NTXLINK); -- Flag for rx reset done
+
+  signal usrclk_fed_rx   : std_logic_vector(1 to FED_NRXLINK); -- USRCLK for RX data readout
+  signal fed_rxclken     : std_logic_vector(1 to FED_NRXLINK); -- CLKEN signal for the USRCLK of RX data readout
+  signal fed_rxdata_gbt  : t_std84_array(1 to FED_NRXLINK);   -- Data received
+  signal fed_rxdata_wb   : t_std32_array(1 to FED_NRXLINK);   -- Data received
+  signal fed_rxd_valid   : std_logic_vector(1 to FED_NRXLINK);   -- Flag for rx valid data;
+  signal fed_bad_rx      : std_logic_vector(1 to FED_NRXLINK);   -- Flag for fiber errors;
+  signal fed_rxready     : std_logic_vector(1 to FED_NRXLINK); -- Flag for rx reset done
+  signal fed_mgt_rxready : std_logic_vector(1 to FED_NRXLINK); -- Flag for rx reset done
+  signal fed_gbt_rxready : std_logic_vector(1 to FED_NRXLINK); -- Flag for rx reset done
+  signal fed_reset       : std_logic;
 
   signal fed_prbs_tx_en : std_logic_vector(4 downto 1);
   signal fed_prbs_rx_en : std_logic_vector(4 downto 1);
@@ -495,7 +496,7 @@ architecture Behavioral of odmb7_ucsb_dev is
   -- MGT signals for DCFEB RX channels
   --------------------------------------
   signal usrclk_mgtc : std_logic;
-  signal dcfeb_rxdata : t_twobyte_arr(NCFEB downto 1);  -- Data received
+  signal dcfeb_rxdata : t_std16_array(NCFEB downto 1);  -- Data received
   signal dcfeb_rxd_valid : std_logic_vector(NCFEB downto 1);   -- Flag for valid data;
   signal dcfeb_crc_valid : std_logic_vector(NCFEB downto 1);   -- Flag for valid data;
   signal dcfeb_bad_rx : std_logic_vector(NCFEB downto 1);   -- Flag for fiber errors;
@@ -513,16 +514,17 @@ architecture Behavioral of odmb7_ucsb_dev is
   --------------------------------------
   -- MGT signals for ALCT RX channels
   --------------------------------------
-  signal usrclk_mgta      : std_logic; -- User clock for ALCT, at 120 MHz
-  signal alct_rxclken     : std_logic; -- Clock enable signal, on for every third clock of the usrclk
-  signal alct_rxdata      : std_logic_vector(111 downto 0); -- Data received from ALCT
-  signal alct_rxdata_gbt  : std_logic_vector(83 downto 0);  -- Data received for GBT Frame
-  signal alct_rxdata_wb   : std_logic_vector(31 downto 0);  -- Extra data for Wide Bus
-  signal alct_rxd_valid   : std_logic; -- Flag for valid data
-  signal alct_mgt_rxready : std_logic; -- Flag for valid mgt status
-  signal alct_gbt_rxready : std_logic; -- Flag for valid gbt sync status
-  signal alct_rxready     : std_logic; -- Flag combined of previous two
-  signal alct_bad_rx      : std_logic; -- Flag for bad receiver packet / fiber error
+  signal usrclk_mgta       : std_logic; -- User clock for ALCT, at 120 MHz
+  signal alct_rxclken      : std_logic; -- Clock enable signal, on for every third clock of the usrclk
+  signal alct_rxdata       : std_logic_vector(71 downto 0);  -- Data received from ALCT
+  signal alct_rxdata_remap : std_logic_vector(111 downto 0); -- Raw widebus reordered data
+  signal alct_rxd_valid    : std_logic; -- Flag for valid data
+  signal alct_mgt_rxready  : std_logic; -- Flag for valid mgt status
+  signal alct_gbt_rxready  : std_logic; -- Flag for valid gbt sync status
+  signal alct_rxready      : std_logic; -- Flag combined of previous two
+  signal alct_bad_rx       : std_logic; -- Flag for bad receiver packet / fiber error
+
+  signal ila_data_alct     : std_logic_vector(31 downto 0);  -- Data received from ALCT
 
   -- signal alct_prbs_rx_en : std_logic_vector(ALCT_NLINK-1 downto 0);
   signal alct_prbs_tst_cnt : std_logic_vector(15 downto 0);
@@ -563,7 +565,7 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal cafifo_l1a_dav       : std_logic_vector(NCFEB+2 downto 1);
   signal cafifo_bx_cnt        : std_logic_vector(11 downto 0);
 
-  -- signal data_fifo_out       : t_devdata_arr(NCFEB+2 downto 1);
+  -- signal data_fifo_out       : t_std18_array(NCFEB+2 downto 1);
   -- signal data_fifo_dav       : std_logic_vector(NCFEB+2 downto 1);
 
   signal eof_data       : std_logic_vector(NCFEB+2 downto 1);
@@ -597,12 +599,15 @@ begin
   -------------------------------------------------------------------------------------------
   MBD : entity work.odmb_data
     generic map (
-      NCFEB => NCFEB
+      NCFEB               => NCFEB, 
+      RUN4SCHEME          => 0  -- 0: ALCT data at OTMB[35:18], 1: ALCT from optical, 2: OTMB data at 36 bit
       )
     port map (
       CMSCLK              => cmsclk,
       DDUCLK              => usrclk_spy_tx,
       DCFEBCLK            => usrclk_mgtc,
+      ALCTCLK             => usrclk_mgta,
+      ALCT_RXCLKEN        => alct_rxclken,
       RESET               => reset,
       L1ACNT_RST          => l1acnt_rst,
       KILL                => kill,
@@ -621,8 +626,9 @@ begin
       EOF_DATA            => eof_data,
       INTO_FIFO_DAV       => into_fifo_dav,
 
-      OTMB_DATA_IN        => OTMB(17 downto 0),
-      ALCT_DATA_IN        => OTMB(35 downto 18),
+      OTMB_DATA_IN        => OTMB,
+      ALCT_DATA_IN        => alct_rxdata,
+      ALCT_DAV_IN         => alct_rxd_valid,
       DCFEB_DATA_IN       => dcfeb_rxdata,
       DCFEB_DAV_IN        => dcfeb_rxd_valid,
 
@@ -659,7 +665,6 @@ begin
       REF_CLK_5_N    => REF_CLK_5_N,
       CLK_125_REF_P  => CLK_125_REF_P,
       CLK_125_REF_N  => CLK_125_REF_N,
-      EMCCLK         => EMCCLK,
       LF_CLK         => LF_CLK,
       -- Output clocks
       mgtrefclk0_224 => mgtrefclk0_224,
@@ -677,7 +682,6 @@ begin
       clk_sysclk80   => sysclk80,
       clk_sysclk160  => sysclk160,
       clk_cmsclk     => cmsclk,
-      clk_emcclk     => clk_emcclk,
       clk_lfclk      => clk_lfclk,
       clk_gp6        => clk_gp6,
       clk_gp7        => clk_gp7,
@@ -1196,13 +1200,13 @@ begin
   SPY_TDIS <= '0';
 
   -------------------------------------------------------------------------------------------
-  -- Optical ports for the SPY channel
+  -- Optical communication with the SPY ports
   -------------------------------------------------------------------------------------------
   DAQ_SPY_SEL <= SPY_SEL; -- set for constant
   spy_rx_n <= DAQ_SPY_RX_N when SPY_SEL = '1' else '0';
   spy_rx_p <= DAQ_SPY_RX_P when SPY_SEL = '1' else '0';
 
-  -- Connet to DDU via the spy ports
+  -- Run3 format: sending DAQ data to DDU via the SPY ports
   GTH_DDU : entity work.mgt_spy
     port map (
       mgtrefclk       => mgtrefclk0_226, -- for 1.6 Gb/s DDU transmission, mgtrefclk1_226 is sourced from the 125 MHz crystal
@@ -1230,6 +1234,9 @@ begin
       reset           => opt_reset
       );
 
+  -------------------------------------------------
+  -- DCFEB receiver for ODMB7
+  -------------------------------------------------
   GTH_DCFEB : entity work.mgt_cfeb
     generic map (
       NLINK        => 7,  -- number of links
@@ -1257,75 +1264,83 @@ begin
       reset        => opt_reset
       );
 
+  -------------------------------------------------
+  -- ALCT receiver with GBT format for ODMB7
+  -------------------------------------------------
+  GTH_ALCT : entity work.gbt_alct
+    port map (
+      mgtrefclk    => mgtrefclk0_225,   -- 120.24 MHz
+      cmsclk       => cmsclk,
+      drpclk       => mgtclk4,
+      rxusrclk     => usrclk_mgta,      -- 120.24 MHz
+      rxclken      => alct_rxclken,
+      daq_rx_n     => DAQ_RX_N(7),
+      daq_rx_p     => DAQ_RX_P(7),
+      rxdata       => alct_rxdata,
+      rxd_valid    => alct_rxd_valid,
+      rxready      => alct_rxready,
+      bad_rx       => alct_bad_rx,
+      kill         => '0',
+      rxdata_remap => alct_rxdata_remap,
+      reset        => opt_reset
+      );
 
-  --=============================================--
-  -- ALCT receiver with GBT format (ODMB7 only)  --
-  --=============================================--
-  GBT_ALCT : entity work.mgt_gbt
+  --===============================================--
+  -- Temporary GBT sender to make ALCT GBTx locked --
+  --===============================================--
+  GBT_FED : entity work.gbt_wrapper
     generic map(
-      NUM_LINKS         => 1,
-      LINK_TYPE         => 0,   -- 0: ALCT, 1: BCK_PRS
-      GBT_ENCODING      => 1    -- 0: GBT_FRAME, 1: WIDE_BUS, 2: GBT_DYNAMIC
+      NUM_LINKS       => 1,
+      LINK_TYPE       => 1,
+      TX_ENCODING     => 0, -- Sending in GBT format
+      RX_ENCODING     => 1  -- Receiving in Wide-bus format
       )
     port map (
+      MGT_REFCLK      => mgtrefclk0_225,
+      GBT_FRAMECLK    => cmsclk,  -- 40.079 MHz
+      MGT_DRP_CLK     => mgtclk4, -- 120.24 MHz from mgtrefclk0_225
 
-      --==============--
-      -- Clocks       --
-      --==============--
-      MGT_REFCLK        => mgtrefclk0_225, -- 120.24 MHz
-      GBT_FRAMECLK      => cmsclk,         -- 40.079 MHz
-      MGT_DRP_CLK       => mgtclk4,        -- 120.24 MHz derived from mgtrefclk0_225
+      GBT_TXUSRCLK_o  => usrclk_fed_tx,
+      GBT_RXUSRCLK_o  => usrclk_fed_rx,
+      GBT_TXCLKEN_o   => fed_txclken,           -- from pattern generator, to be evaluated
+      GBT_RXCLKEN_o   => fed_rxclken,      -- to pattern checker, to be evaluated
 
-      GBT_TXUSRCLK_o(1) => open,
-      GBT_RXUSRCLK_o(1) => usrclk_mgta,
-      GBT_TXCLKEN_o(1)  => open,           -- from pattern generator, to be evaluated
-      GBT_RXCLKEN_o(1)  => alct_rxclken,   -- to pattern checker, to be evaluated
+      MGT_RX_P(1)     => BCK_PRS_P,
+      MGT_RX_N(1)     => BCK_PRS_N,
+      MGT_TX_P(1)     => DAQ_TX_P(1),
+      MGT_TX_N(1)     => DAQ_TX_N(1),
 
-      --==============--
-      -- Serial lanes --
-      --==============--
-      MGT_RX_P(1)       => DAQ_RX_P(7),
-      MGT_RX_N(1)       => DAQ_RX_N(7),
-      MGT_TX_P(1)       => open,
-      MGT_TX_N(1)       => open,
+      GBT_TXDATA_i(1) => fed_txdata_gbt(1),
+      GBT_RXDATA_o(1) => fed_rxdata_gbt(1),
+      WB_TXDATA_i(1)  => fed_txdata_wb(1),
+      WB_RXDATA_o(1)  => fed_rxdata_wb(1),
+      TXD_VALID_i(1)  => fed_txd_valid(1),
+      RXD_VALID_o(1)  => fed_rxd_valid(1),
 
-      --==============--
-      -- Data         --
-      --==============--
-      GBT_TXDATA_i(1)   => (others => '0'),
-      GBT_RXDATA_o(1)   => alct_rxdata_gbt,
-      WB_TXDATA_i(1)    => (others => '0'),
-      WB_RXDATA_o(1)    => alct_rxdata_wb,
-
-      TXD_VALID_i(1)    => '0',
-      RXD_VALID_o(1)    => alct_rxd_valid,
-
-      --==============--
-      -- TX/RX Status --
-      --==============--
-      MGT_TXREADY_o(1)  => open,
-      MGT_RXREADY_o(1)  => alct_mgt_rxready,
-      GBT_TXREADY_o(1)  => open,
-      GBT_RXREADY_o(1)  => alct_gbt_rxready,
-      GBT_BAD_RX_o(1)   => alct_bad_rx,
-
-      --==============--
-      -- Reset        --
-      --==============--
-      RESET_i           => opt_reset
+      MGT_TXREADY_o   => fed_mgt_txready,
+      MGT_RXREADY_o   => fed_mgt_rxready,
+      GBT_TXREADY_o   => fed_gbt_txready,
+      GBT_RXREADY_o   => fed_gbt_rxready,
+      GBT_BAD_RX_o    => fed_bad_rx,
+      RESET_i         => opt_reset
       );
 
-  alct_rxdata <= alct_rxdata_wb & alct_rxdata_gbt(79 downto 0);
-  alct_rxready <= alct_mgt_rxready and alct_gbt_rxready;
+  fed_txdata_gbt(1) <= x"CF00BABEAC1DACDCFFFFF";
+  fed_txdata_wb(1)  <= x"BEEFCAFE";
 
-  ila_alct_rx_inst : ila_gbt_exde
+  ila_data_alct(0) <= int_alct_dav;
+  ila_data_alct(1) <= raw_l1a;
+  ila_data_alct(2) <= cafifo_l1a_match_in(9);
+  ila_data_alct(3) <= int_otmb_dav;
+  ila_data_alct(25 downto 8) <= OTMB(35 downto 18); -- ALCT data from copper
+
+  ila_alct_rx : ila_gbt
     port map (
       clk => usrclk_mgta,
-      probe0 => alct_rxdata_gbt,
-      probe1 => alct_rxdata_wb,
-      probe2(0) => alct_rxready,
-      probe3(0) => alct_rxclken
+      probe0 => alct_rxdata_remap,
+      probe1 => alct_rxdata,
+      probe2 => ila_data_alct,
+      probe3 => alct_rxclken
       );
-
 
 end Behavioral;

@@ -32,7 +32,7 @@ entity mgt_cfeb is
     daq_rx_p    : in  std_logic_vector(NLINK-1 downto 0); --! Connected to differential optical input signals
 
     -- Receiver signals
-    rxdata_cfeb : out t_twobyte_arr(NLINK downto 1);      --! Data received by link with fixed data width
+    rxdata_cfeb : out t_std16_array(NLINK downto 1);      --! Data received by link with fixed data width
     rxd_valid   : out std_logic_vector(NLINK downto 1);   --! Flag for valid data
     crc_valid   : out std_logic_vector(NLINK downto 1);   --! Flag for valid CRC check
     bad_rx      : out std_logic_vector(NLINK downto 1);   --! Flag for fiber errors
@@ -206,8 +206,8 @@ architecture Behavioral of mgt_cfeb is
   signal reset_rxd_ch : std_logic_vector(NLINK-1 downto 0);
   signal rxready_int : std_logic;
 
-  signal rxdata_i_ch  : t_twobyte_arr(NLINK-1 downto 0); -- rx userdata out of mgt wrapper
-  signal rxdata_o_ch  : t_twobyte_arr(NLINK-1 downto 0); -- delayed signal from rx_frame_proc
+  signal rxdata_i_ch  : t_std16_array(NLINK-1 downto 0); -- rx userdata out of mgt wrapper
+  signal rxdata_o_ch  : t_std16_array(NLINK-1 downto 0); -- delayed signal from rx_frame_proc
 
   -- Preset constants
   signal rx8b10ben_int : std_logic_vector(NLINK-1 downto 0) := (others => '1');
