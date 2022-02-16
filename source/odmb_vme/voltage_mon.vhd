@@ -10,21 +10,22 @@ use ieee.std_logic_unsigned.all;
 library unisim;
 use unisim.vcomponents.all;
 
+--! @brief module implementing SPI interface to MAX1271B chips
 entity voltage_mon is
   port (
-    CLK      : in  std_logic;
+    CLK      : in  std_logic;                             --! 1.25MHz clock
     -- CLK_div2 : in  std_logic;
-    CS       : out std_logic;
-    DIN      : out std_logic;
-    SCK      : out std_logic;
-    DOUT     : in  std_logic;
-    DVOUT    : out std_logic;
-    DATADONE : out std_logic;
-    DATA     : out std_logic_vector(11 downto 0);
-    DATAVALIDCNTR     : out std_logic_vector(7 downto 0);
-    CURRENTCHANNELOUT : out std_logic_vector(2 downto 0);
-    CTRLSEQDONE       : out std_logic;
-    startchannelvalid : in std_logic
+    CS       : out std_logic;                             --! SPI chip select to ADCs
+    DIN      : out std_logic;                             --! SPI input to ADCs
+    SCK      : out std_logic;                             --! SPI clock to ADCs
+    DOUT     : in  std_logic;                             --! SPI output from ADCs
+    DVOUT    : out std_logic;                             --! output data to fw valid
+    DATADONE : out std_logic;                             --! indicates data retrieved from ADCs
+    DATA     : out std_logic_vector(11 downto 0);         --! output data to fw
+    DATAVALIDCNTR     : out std_logic_vector(7 downto 0); --! counts bits of data received; debug signal
+    CURRENTCHANNELOUT : out std_logic_vector(2 downto 0); --! current channel being read; debug signal
+    CTRLSEQDONE       : out std_logic;                    --! indicates control sequence has been sent; debug signal
+    startchannelvalid : in std_logic                      --! begins an ADC read
     );
 end voltage_mon;
 

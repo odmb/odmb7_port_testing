@@ -15,12 +15,12 @@ use work.ucsb_types.all;
 --! @details ODMB7 module that processes slow control commands from the VMEbus backplane
 --! This module contains several 'device' submodules dedicated to certain types of commands
 --! The commands for device X take the for XYYY. The devices are:
---! * Device 0 - TESTCTRL - not implemented
+--! * Device 0 - TESTCTRL - NOT IMPLEMENTED
 --! * Device 1 - CFEBJTAG - generates slow control commands in the JTAG protocol for (x)DCFEBs
 --! * Device 2 - ODMBJTAG - generates slow control commands in the JTAG protocol for the ODMB7 FPGA (Kintex Ultrascale)
 --! * Device 3 - VMEMON - used to monitor various registers, set certain settings, and send reset signals
 --! * Device 4 - VMECONFREGS - used to interact with the configuration and constant registers loaded from nonvolatile memory
---! * Device 5 - TESTFIFOS - not implemented
+--! * Device 5 - TESTFIFOS - NOT IMPLEMENTED
 --! * Device 6 - SPI_PORT - used to interact with ODMB7 PROM ICs
 --! * Device 7 - SYSTEM_MON - used to measure temperature, currents, and voltages
 --! * Device 8 - LVDBMON - used to interact with LVMB7 board
@@ -74,12 +74,12 @@ entity ODMB_VME is
     --------------------
     -- JTAG Signals To/From ODMBs
     --------------------
-    ODMB_TCK    : out std_logic;
-    ODMB_TMS    : out std_logic;
-    ODMB_TDI    : out std_logic;
-    ODMB_TDO    : in  std_logic;
-    ODMB_SEL    : out std_logic;
-    ODMB_INITJTAG : in std_logic;   -- TODO: where does this fit in
+    ODMB_TCK    : out std_logic;                                   --! JTAG TCK signal to ODMB7 FPGA from ODMBJTAG module
+    ODMB_TMS    : out std_logic;                                   --! JTAG TMS signal to ODMB7 FPGA from ODMBJTAG module
+    ODMB_TDI    : out std_logic;                                   --! JTAG TDI signal to ODMB7 FPGA from ODMBJTAG module
+    ODMB_TDO    : in  std_logic;                                   --! JTAG TDO signal from ODMB7 FPGA to ODMBJTAG module
+    ODMB_SEL    : out std_logic;                                   --! JTAG select signal from ODMBJTAG module. '1' selects discrete logic/external connection while '0' selects firmware
+    ODMB_INITJTAG : in std_logic;                                  --! Signal to automatically send JTAG reset sequence to ODMB7 FPGA, unused
 
     --------------------
     -- From/To LVMB: ODMB & ODMB7 design, ODMB5 to be seen

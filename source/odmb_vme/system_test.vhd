@@ -1,4 +1,3 @@
--- SYSTEM_TEST: Provides utilities for testing components of ODMB
 
 library ieee;
 library work;
@@ -10,47 +9,65 @@ use ieee.std_logic_unsigned.all;
 use work.ucsb_types.all;
 use unisim.vcomponents.all;
 
+--! @brief SYSTEM_TEST: VME module that provides utilities for testing components of ODMB
+--! @details Supported VME commands:
+--! * W 9000 Start transmitting for backend optical PRBS test 
+--! * W 9004 Read VMEDATA sequences from backend optical PRBS
+--! * R 900C Read number of errors in last backend optical PRBS readback
+--! * W 9100 Start transmitting for PC optical PRBS test
+--! * W 9104 Read VMEDATA sequences from PC optical PRBS
+--! * R 910C Read number of errors in last PC optical PRBS readback
+--! * W 9200 Read VMEDATA*10000 bits from optical PRBS from DCFEB
+--! * W/R 9204 Select or read DCFEB fiber for test
+--! * R 9208 Read number of error edges in last DCFEB optical PRBS test
+--! * R 920C Read number of bit flips in last DCFEB optical PRBS test
+--! * W/R 9300 Select or read PRBS type for all optical tests: 1 PRBS7 2 PRBS15 3 PRBS23 4 PRBS31
+--! * W 9400 Initiate N*10000 bit copper OTMB PRBS test (RX to OTMB and TX from OTMB)
+--! * R 9404 Read number of TX enable PRBS enables sent by OTMB
+--! * R 9408 Read number of good 10000 bits sent by OTMB
+--! * R 940C Read number of bit errors in last OTMB PRBS test
+--! * W 9410 Reset OTMB PRBS error counter
 entity SYSTEM_TEST is
   port (
-    DEVICE  : in std_logic;
-    COMMAND : in std_logic_vector(9 downto 0);
-    INDATA  : in std_logic_vector(15 downto 0);
-    STROBE  : in std_logic;
-    WRITER  : in std_logic;
-    SLOWCLK : in std_logic;
-    CLK     : in std_logic;
-    CLK160  : in std_logic;
-    RST     : in std_logic;
+    DEVICE  : in std_logic;                                   --! Indicates if this is the selected VME device
+    COMMAND : in std_logic_vector(9 downto 0);                --! VME command signal
+    INDATA  : in std_logic_vector(15 downto 0);               --! VME data from backplane
+    STROBE  : in std_logic;                                   --! Indicates VME command ready
+    WRITER  : in std_logic;                                   --! Indicates read (1) or write (0)
+    SLOWCLK : in std_logic;                                   --! 2.5MHz clock
+    CLK     : in std_logic;                                   --! 40MHz clock
+    CLK160  : in std_logic;                                   --! 160MHz clock for PRBS test
+    RST     : in std_logic;                                   --! Soft reset signal
 
-    OUTDATA : out std_logic_vector(15 downto 0);
-    DTACK   : out std_logic;
+    OUTDATA : out std_logic_vector(15 downto 0);              --! VME output data to backplane
+    DTACK   : out std_logic;                                  --! VME data acknowledge to backplane
 
     -- DDU/PC/DCFEB COMMON PRBS
-    MGT_PRBS_TYPE : out std_logic_vector(3 downto 0);
+    MGT_PRBS_TYPE : out std_logic_vector(3 downto 0);         --! DDU/SPY/FE common PRBS type select
 
     -- FED PRBS signals
-    FED_PRBS_TX_EN   : out std_logic;
-    FED_PRBS_RX_EN   : out std_logic;
-    FED_PRBS_TST_CNT : out std_logic_vector(15 downto 0);
-    FED_PRBS_ERR_CNT : in  std_logic_vector(15 downto 0);
+    FED_PRBS_TX_EN   : out std_logic;                         --! DDU PRBS transmitter enable to MGT_DDU
+    FED_PRBS_RX_EN   : out std_logic;                         --! DDU PRBS receiver enable to MGT_DDU
+    FED_PRBS_TST_CNT : out std_logic_vector(15 downto 0);     --! DDU PRBS length to MGT_DDU
+    FED_PRBS_ERR_CNT : in  std_logic_vector(15 downto 0);     --! DDU PRBS error count from MGT_DDU
 
     -- PC PRBS signals
-    SPY_PRBS_TX_EN   : out std_logic;
-    SPY_PRBS_RX_EN   : out std_logic;
-    SPY_PRBS_TST_CNT : out std_logic_vector(15 downto 0);
-    SPY_PRBS_ERR_CNT : in  std_logic_vector(15 downto 0);
+    SPY_PRBS_TX_EN   : out std_logic;                         --! PC PRBS transmitter enable to MGT_SPY
+    SPY_PRBS_RX_EN   : out std_logic;                         --! PC PRBS receiver enable to MGT_SPY
+    SPY_PRBS_TST_CNT : out std_logic_vector(15 downto 0);     --! PC PRBS length to MGT_SPY
+    SPY_PRBS_ERR_CNT : in  std_logic_vector(15 downto 0);     --! PC PRBS error count from MGT_SPY
 
     -- DCFEB PRBS signals
-    DCFEB_PRBS_FIBER_SEL : out std_logic_vector(3 downto 0);
-    DCFEB_PRBS_EN        : out std_logic;
-    DCFEB_PRBS_RST       : out std_logic;
-    DCFEB_PRBS_RD_EN     : out std_logic;
-    DCFEB_RXPRBSERR      : in  std_logic;
-    DCFEB_PRBS_ERR_CNT   : in  std_logic_vector(15 downto 0);
+    DCFEB_PRBS_FIBER_SEL : out std_logic_vector(3 downto 0);  --! DCFEB PRBS fiber select
+    DCFEB_PRBS_EN        : out std_logic;                     --! DCFEB PRBS enable
+    DCFEB_PRBS_RST       : out std_logic;                     --! DCFEB PRBS reset
+    DCFEB_PRBS_RD_EN     : out std_logic;                     --! DCFEB PRBS read enable
+    DCFEB_RXPRBSERR      : in  std_logic;                     --! DCFEB PRBS error
+    DCFEB_PRBS_ERR_CNT   : in  std_logic_vector(15 downto 0); --! DCFEB PRBS error count
 
     -- OTMB PRBS signals
-    OTMB_TX : in  std_logic_vector(48 downto 0);
-    OTMB_RX : out std_logic_vector(5 downto 0)
+    OTMB_TX : in  std_logic_vector(48 downto 0);              --! backplane PRBS signals from OTMB
+    OTMB_RX : out std_logic_vector(5 downto 0)                --! backplane PRBS signals to OTMB
     );
 end SYSTEM_TEST;
 

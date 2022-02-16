@@ -5,36 +5,37 @@ use UNISIM.vcomponents.all;
 library work;
 -- library hdlmacro;
 
+--! @brief module that interprets VME commands for modules in ODMB VME
 entity COMMAND_MODULE is
   port (
 
-    FASTCLK : in std_logic;
-    SLOWCLK : in std_logic;
+    FASTCLK : in std_logic;                      --! 40 MHz clock
+    SLOWCLK : in std_logic;                      --! 2.5 MHz clock
 
-    GAP     : in std_logic;
-    GA      : in std_logic_vector(4 downto 0);
-    ADR     : in std_logic_vector(23 downto 1);
-    AM      : in std_logic_vector(5 downto 0);
+    GAP     : in std_logic;                      --! Geographical address parity, must match GA
+    GA      : in std_logic_vector(4 downto 0);   --! Crate geographical address, checked against command
+    ADR     : in std_logic_vector(23 downto 1);  --! VME ADDR (command), must match GA
+    AM      : in std_logic_vector(5 downto 0);   --! VME address modifier, must be 111X10 or 111X01
 
-    AS      : in std_logic;
-    DS0     : in std_logic;
-    DS1     : in std_logic;
-    LWORD   : in std_logic;
-    WRITER  : in std_logic;  --NOTE: this is the only signal whose name was changed
-    IACK    : in std_logic;
-    BERR    : in std_logic;
-    SYSFAIL : in std_logic;
+    AS      : in std_logic;                      --! Address strobe, indicates AM and ADR can be read
+    DS0     : in std_logic;                      --! Data strobe, indicates data is ready
+    DS1     : in std_logic;                      --! Data strobe, indicates data is ready
+    LWORD   : in std_logic;                      --! VME word length, must be 1
+    WRITER  : in std_logic;                      --! VME read(1)/write(0), only used for debug
+    IACK    : in std_logic;                      --! VME Interrupt acknowledge bar, must be 1
+    BERR    : in std_logic;                      --! VME bus error bar, unused
+    SYSFAIL : in std_logic;                      --! VME system fail bar, must be 1
 
-    DEVICE  : out std_logic_vector(9 downto 0);
-    STROBE  : out std_logic;
-    COMMAND : out std_logic_vector(9 downto 0);
-    ADRS    : out std_logic_vector(17 downto 2);  --NOTE: output of ADRS
+    DEVICE  : out std_logic_vector(9 downto 0);  --! Output to select VME device for command
+    STROBE  : out std_logic;                     --! Signal to initiate interpretation of VME command
+    COMMAND : out std_logic_vector(9 downto 0);  --! VME command output (subset of VME ADDR)
+    ADRS    : out std_logic_vector(17 downto 2); --! Output to select VME device to multiplex to VME
 
-    TOVME_B : out std_logic;
-    DOE_B   : out std_logic;
+    TOVME_B : out std_logic;                     --! Selects VME input/output direction
+    DOE_B   : out std_logic;                     --! VME output enable to ODMB ICs
 
-    DIAGOUT : out std_logic_vector(17 downto 0);
-    LED     : out std_logic_vector(2 downto 0)
+    DIAGOUT : out std_logic_vector(17 downto 0); --! Debug signals
+    LED     : out std_logic_vector(2 downto 0)   --! Debug signals
 
     );
 end COMMAND_MODULE;

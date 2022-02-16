@@ -64,6 +64,7 @@ architecture CFEBJTAG_Arch of CFEBJTAG is
   -- );
   -- end component;
   signal ila_probe : std_logic_vector(511 downto 0);
+  signal prev_vme_cmd, pp_vme_cmd, ppp_vme_cmd, pppp_vme_cmd, ppppp_vme_cmd : std_logic_vector(15 downto 0);
 
   --Command parsing signals
   signal cmddev                                                  : std_logic_vector(15 downto 0);
@@ -191,7 +192,28 @@ begin
   ila_probe(53) <= dtack_rstjtag;
   ila_probe(54) <= dtack_readtdo;
   ila_probe(55) <= load;
-  ila_probe(511 downto 56) <= (others => '0');
+  ila_probe(56) <= strobe_meta;
+  ila_probe(57) <= strobe_sync;
+  ila_probe(73 downto 58) <= prev_vme_cmd;
+  ila_probe(89 downto 74) <= pp_vme_cmd;
+  ila_probe(105 downto 90) <= ppp_vme_cmd;
+  ila_probe(121 downto 106) <= pppp_vme_cmd;
+  ila_probe(137 downto 122) <= ppppp_vme_cmd;
+  ila_probe(511 downto 138) <= (others => '0');
+  
+  process(SLOWCLK)
+  begin
+    if rising_edge(SLOWCLK) then
+      if (new_strobe='1') then
+        ppppp_vme_cmd <= pppp_vme_cmd;
+        pppp_vme_cmd <= ppp_vme_cmd;
+        ppp_vme_cmd <= pp_vme_cmd;
+        pp_vme_cmd <= prev_vme_cmd;
+        prev_vme_cmd <= cmddev;
+      end if;
+    end if;
+  end process;
+  
   
 
                

@@ -121,12 +121,12 @@ architecture Behavioral of mgt_spy is
       );
   end component;
 
-  component ila_1 is
-    port (
-      clk : in std_logic := '0';
-      probe0 : in std_logic_vector(127 downto 0) := (others=> '0')
-      );
-  end component;
+  -- component ila_1 is
+  --   port (
+  --     clk : in std_logic := '0';
+  --     probe0 : in std_logic_vector(127 downto 0) := (others=> '0')
+  --     );
+  -- end component;
 
   constant IDLE : std_logic_vector(DATAWIDTH-1 downto 0) := x"50BC"; -- IDLE word for 16 bit width
 
@@ -371,11 +371,11 @@ begin
   ila_data_rx(33 downto 32)   <= ch0_rxchariscomma;
   ila_data_rx(37 downto 36)   <= ch0_rxnotintable;
 
-  ila_spy_rx_inst : ila_1
-    port map(
-      clk => gtwiz_userclk_rx_usrclk2_int,
-      probe0 => ila_data_rx
-      );
+  -- ila_spy_rx_inst : ila_1
+  --   port map(
+  --     clk => gtwiz_userclk_rx_usrclk2_int,
+  --     probe0 => ila_data_rx
+  --     );
 
   ila_data_tx(15 downto 0)    <= gtwiz_userdata_tx_int;
   ila_data_tx(31 downto 16)   <= txdata;

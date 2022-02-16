@@ -139,11 +139,11 @@ entity odmb7_ucsb_dev is
     --------------------------------
     -- ODMB JTAG
     --------------------------------
-    KUS_TMS       : out std_logic;                         --! ODMB JTAG TMS signals. Connected to Bank 47.
-    KUS_TCK       : out std_logic;                         --! ODMB JTAG TCK signals. Connected to Bank 47.
-    KUS_TDI       : out std_logic;                         --! ODMB JTAG TDI signals. Connected to Bank 47.
-    KUS_TDO       : in std_logic;                          --! ODMB JTAG TDO signals. Connected to Bank 47 as TDO (pin U9).
-    KUS_DL_SEL    : out std_logic;                         --! ODMB JTAG path select, needs to be tied to '1' to allow redbox/DL communication on ODMB7 prototype. Connected to bank 47.
+    KUS_TMS       : out std_logic;                         --! JTAG TMS signal to ODMB FPGA, used by ODMBJTAG in ODMB_VME. Connected to bank 47.
+    KUS_TCK       : out std_logic;                         --! JTAG TCK signal to ODMB FPGA, used by ODMBJTAG in ODMB_VME. Connected to bank 47.
+    KUS_TDI       : out std_logic;                         --! JTAG TDI signal to ODMB FPGA, used by ODMBJTAG in ODMB_VME. Connected to bank 47.
+    KUS_TDO       : in std_logic;                          --! JTAG TDO signal from ODMB FPGA, used by ODMBJTAG in ODMB_VME. Connected to bank 47 as TDO (pin U9).
+    KUS_DL_SEL    : out std_logic;                         --! ODMB JTAG path select, connected to ODMBJTAG module in ODMB_VME. Use 1 for DL/red box and 0 for firmware communication. Connected to bank 47.
 
     --------------------------------
     -- ODMB optical ports
@@ -232,7 +232,6 @@ entity odmb7_ucsb_dev is
 end odmb7_ucsb_dev;
 
 architecture Behavioral of odmb7_ucsb_dev is
-
   constant NCFEB  : integer range 1 to 7 := 7;  -- Number of DCFEBS, 7 for ODMB7
 
   component ila_gbt is
@@ -261,7 +260,6 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal sysclk20 : std_logic;
   signal sysclk40 : std_logic;
   signal sysclk80 : std_logic;
-  signal sysclk160 : std_logic;
   signal cmsclk : std_logic;
   signal clk_lfclk : std_logic;
   signal clk_gp6 : std_logic;
@@ -680,7 +678,6 @@ begin
       clk_sysclk20   => sysclk20,
       clk_sysclk40   => sysclk40,
       clk_sysclk80   => sysclk80,
-      clk_sysclk160  => sysclk160,
       clk_cmsclk     => cmsclk,
       clk_lfclk      => clk_lfclk,
       clk_gp6        => clk_gp6,
@@ -698,8 +695,7 @@ begin
   -------------------------------------------------------------------------------------------
 
   -- Handle VME data direction and output enable lines
-  KUS_VME_DIR <= vme_dir;
-  vme_dir <= not vme_dir_b;
+  KUS_VME_DIR <= not vme_dir_b;
   KUS_VME_OE_B <= vme_oe_b;
 
   GEN_VMEIO_16 : for I in 0 to 15 generate
@@ -860,7 +856,6 @@ begin
 
   raw_lct <= (others => '1') when (test_lct = '1') else RAWLCT;
   raw_l1a <= '1' when test_l1a = '1' else not CCB_L1A_B;
-             --tc_l1a when (testctrl_sel = '1') else
 
   otmb_push_dly_p1 <= otmb_push_dly + 1;
   alct_push_dly_p1 <= alct_push_dly + 1;
@@ -926,7 +921,7 @@ begin
       NCFEB => NCFEB
       )
     port map (
-      CLK160         => sysclk160,
+      CLK160         => mgtclk1,
       CLK40          => cmsclk,
       CLK10          => sysclk10,
       CLK2P5         => sysclk2p5,

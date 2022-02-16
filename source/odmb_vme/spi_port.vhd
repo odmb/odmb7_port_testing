@@ -23,8 +23,7 @@ use work.ucsb_types.all;
 --! * R 6038 read SPI status
 --! * R 603C read BPI timer (16 LSB)
 --! * R 6040 read BPI timer (16 MSB)
---! VME commands to be implemented:
---! Other features to be implemented:
+--! Other features:
 --! * upload CONST and CFG registers on reset
 entity SPI_PORT is
   port (
@@ -103,7 +102,7 @@ architecture SPI_PORT_Arch of SPI_PORT is
   signal spi_cfg_ul_pulse_inner             : std_logic := '0';
   signal spi_cfg_reg_we_inner               : integer := NREGS;
   signal spi_cfg_ul_reg                     : std_logic_vector(15 downto 0) := x"0000";
-  signal cfg_readback_fifo_stall_counter    : unsigned(7 downto 0) := x"1F";
+  signal cfg_readback_fifo_stall_counter    : unsigned(7 downto 0) := x"FF"; --was 1F but read counter got offset
 
   --const register upload signals
   signal const_upload_state                 : cfg_upload_states := S_IDLE;
@@ -114,7 +113,9 @@ architecture SPI_PORT_Arch of SPI_PORT is
   signal spi_const_ul_pulse_inner           : std_logic := '0';
   signal spi_const_reg_we_inner             : integer := NREGS;
   signal spi_const_ul_reg                   : std_logic_vector(15 downto 0) := x"0000";
-  signal const_readback_fifo_stall_counter  : unsigned(7 downto 0) := x"1F";
+  signal const_readback_fifo_stall_counter  : unsigned(7 downto 0) := x"FF";
+
+  signal ul_dl_busy                         : std_logic := '0';
   
   --SPI command command signals
   signal strobe_meta               : std_logic := '0';
@@ -145,13 +146,14 @@ architecture SPI_PORT_Arch of SPI_PORT is
   signal do_read_status               : std_logic := '0';
 
   --signals for uploading registers on reset
-  type rst_upload_states is (S_IDLE, S_WAIT, S_PULSE);
-  signal rst_upload_state : rst_upload_states := S_IDLE;
-  signal rst_meta         : std_logic := '0';
-  signal rst_sync         : std_logic := '0';
-  signal rst_sync_q       : std_logic := '0';
-  signal rst_wait_counter : unsigned(3 downto 0) := x"0";
-  signal startup_cfg_read : std_logic := '0';
+  type rst_upload_states is (S_IDLE, S_WAIT, S_CFG_PULSE, S_CFG_WAIT, S_CONST_PULSE, S_CONST_WAIT);
+  signal rst_upload_state   : rst_upload_states := S_IDLE;
+  signal rst_q              : std_logic := '0';
+  signal rst_pulse          : std_logic := '0';
+  signal rst_sync           : std_logic := '0';
+  signal rst_wait_counter   : unsigned(7 downto 0) := x"00";
+  signal startup_cfg_read   : std_logic := '0';
+  signal startup_const_read : std_logic := '0';
   
   --dtack signals
   signal ce_d_dtack : std_logic := '0'; 
@@ -217,7 +219,7 @@ begin
   strobe_pulse <= (not strobe_qq) and strobe_q;
   
   --handle SPI command command (602C)
-  spi_cmd_fifo_write_en_cmd <= do_spi_cmd and strobe_pulse;
+  spi_cmd_fifo_write_en_cmd <= do_spi_cmd and strobe_pulse and not ul_dl_busy;
   spi_cmd_fifo_in_cmd <= INDATA;
   
   --generate SPI FSM signals (6020, 6024, 6028) (TODO: check that no operation (ex. cfg register write) in progress?)
@@ -232,19 +234,27 @@ begin
                    SPI_TIMER(31 downto 16) when (do_read_timer_msb = '1') else
                    spi_read_data;
   OUTDATA <= outdata_inner; --temp, for debugging
+  
+  ul_dl_busy <= '1' when (cfg_download_state /= S_IDLE) else 
+                '1' when (cfg_upload_state /= S_IDLE) else
+                '1' when (const_download_state /= S_IDLE) else
+                '1' when (const_upload_state /= S_IDLE) else
+                '0';
+                
+  rst_q <= RST when rising_edge(CLK);
+  rst_pulse <= RST and (not rst_q);
+  slowclk_domain_reset : PULSE2SLOW port map(DOUT => rst_sync, CLK_DOUT => SLOWCLK, CLK_DIN => CLK, RST => '0', DIN => rst_pulse);
 
-  --load CFG registers on reset
+  --load registers on reset
   reset_proc : process (SLOWCLK)
   begin
   if rising_edge(SLOWCLK) then
-    rst_meta <= rst;
-    rst_sync <= rst_meta;
-    rst_sync_q <= rst_sync;
     case rst_upload_state is
       when S_IDLE => 
-        rst_wait_counter <= x"0";
+        rst_wait_counter <= x"00";
         startup_cfg_read <= '0';
-        if (rst_sync_q = '0' and rst_sync = '1') then
+        startup_const_read <= '0';
+        if (rst_sync = '1') then
           rst_upload_state <= S_WAIT;
         else
           rst_upload_state <= S_IDLE;
@@ -253,16 +263,52 @@ begin
       when S_WAIT =>
         rst_wait_counter <= rst_wait_counter + 1;
         startup_cfg_read <= '0';
-        if (rst_wait_counter = x"4") then --previously 20 fastclk cycles = 1.25 slowclk cycles
-          rst_upload_state <= S_PULSE;
+        startup_const_read <= '0';
+        if (rst_wait_counter = x"FF") then --previously 20 fastclk cycles = 1.25 slowclk cycles
+          rst_upload_state <= S_CFG_PULSE;
         else
           rst_upload_state <= S_WAIT;
         end if;
 
-      when S_PULSE =>
-        rst_wait_counter <= x"0";
+      when S_CFG_PULSE =>
+        rst_wait_counter <= rst_wait_counter + 1;
         startup_cfg_read <= '1';
-        rst_upload_state <= S_IDLE;
+        startup_const_read <= '0';
+        if (rst_wait_counter = x"01") then --starts on 0
+          rst_upload_state <= S_CFG_WAIT;
+        else
+          rst_upload_state <= S_CFG_PULSE;
+        end if;
+        
+      when S_CFG_WAIT =>
+        rst_wait_counter <= x"00";
+        startup_cfg_read <= '0';
+        startup_const_read <= '0';
+        if (cfg_upload_state = S_IDLE) then
+          rst_upload_state <= S_CONST_PULSE;
+        else
+          rst_upload_state <= S_CFG_WAIT;
+        end if;
+      
+      when S_CONST_PULSE =>
+        rst_wait_counter <= rst_wait_counter + 1;
+        startup_cfg_read <= '0';
+        startup_const_read <= '1';
+        if (rst_wait_counter = x"01") then --starts on 0
+          rst_upload_state <= S_CONST_WAIT;
+        else
+          rst_upload_state <= S_CONST_PULSE;
+        end if;
+
+      when S_CONST_WAIT =>
+        rst_wait_counter <= x"00";
+        startup_cfg_read <= '0';
+        startup_const_read <= '0';
+        if (const_upload_state = S_IDLE) then
+          rst_upload_state <= S_IDLE;
+        else
+          rst_upload_state <= S_CONST_WAIT;
+        end if;
 
       when others =>
         rst_upload_state <= S_IDLE;
@@ -290,7 +336,7 @@ begin
   if rising_edge(SLOWCLK) then
     case cfg_download_state is
     when S_IDLE => 
-      if do_cfg_write='1' then
+      if do_cfg_write='1' and ul_dl_busy='0' then
         spi_cmd_fifo_write_en_cfg_dl <= '1';
         --send CMD to load address 00FE0000
         spi_cmd_fifo_in_cfg_dl <= x"1FD7";
@@ -342,7 +388,7 @@ begin
   if rising_edge(SLOWCLK) then
     case const_download_state is
     when S_IDLE => 
-      if do_const_write='1' then
+      if do_const_write='1' and ul_dl_busy='0' then
         spi_cmd_fifo_write_en_const_dl <= '1';
         --send CMD to load address 00FE0000
         spi_cmd_fifo_in_const_dl <= x"1FB7";
@@ -398,7 +444,7 @@ begin
       spi_cfg_ul_pulse_inner <= '0';
       spi_cfg_reg_we_inner <= NREGS;
       spi_cfg_ul_reg <= x"0000";
-      if (do_cfg_read='1' or startup_cfg_read='1') then
+      if (do_cfg_read='1' or startup_cfg_read='1') and ul_dl_busy='0' then
         spi_cmd_fifo_write_en_cfg_ul <= '1';
         --send CMD to load address 00FE0000
         spi_cmd_fifo_in_cfg_ul <= x"1FD7";
@@ -456,7 +502,7 @@ begin
         end if;
         
     when S_WAIT_READ_STALL => 
-      --need to wait for some reason. FIFO propagation maybe?
+      --wait for empty signal on fifo to go low
       spi_cmd_fifo_write_en_cfg_ul <= '0';
       spi_cfg_ul_pulse_inner <= '0';
       spi_cfg_reg_we_inner <= NREGS;
@@ -475,7 +521,6 @@ begin
   
     when S_READBACK =>
       spi_cmd_fifo_write_en_cfg_ul <= '0';
-      spi_readback_fifo_read_en_cfg_ul <= '1';
       spi_cmd_fifo_in_cfg_ul <= x"0000";
       spi_cfg_ul_pulse_inner <= '1';
       spi_cfg_reg_we_inner <= upload_cfg_reg_index;
@@ -484,9 +529,11 @@ begin
       spi_cmd_fifo_in_cfg_ul <= x"0000";
       if (upload_cfg_reg_index=15) then
         upload_cfg_reg_index <= 0;
+        spi_readback_fifo_read_en_cfg_ul <= '0';
         cfg_upload_State <= S_IDLE;
       else
         upload_cfg_reg_index <= upload_cfg_reg_index + 1;
+        spi_readback_fifo_read_en_cfg_ul <= '1';
         cfg_upload_state <= S_READBACK;
       end if;
   
@@ -504,7 +551,7 @@ begin
       spi_const_ul_pulse_inner <= '0';
       spi_const_reg_we_inner <= NREGS;
       spi_const_ul_reg <= x"0000";
-      if do_const_read='1' then
+      if (do_const_read='1' or startup_const_read='1') and ul_dl_busy='0' then
         spi_cmd_fifo_write_en_const_ul <= '1';
         --send CMD to load address 00FE0000
         spi_cmd_fifo_in_const_ul <= x"1FB7";
@@ -581,7 +628,6 @@ begin
   
     when S_READBACK =>
       spi_cmd_fifo_write_en_const_ul <= '0';
-      spi_readback_fifo_read_en_const_ul <= '1';
       spi_cmd_fifo_in_const_ul <= x"0000";
       spi_const_ul_pulse_inner <= '1';
       spi_const_reg_we_inner <= upload_const_reg_index;
@@ -590,9 +636,11 @@ begin
       spi_cmd_fifo_in_const_ul <= x"0000";
       if (upload_const_reg_index=15) then
         upload_const_reg_index <= 0;
+        spi_readback_fifo_read_en_const_ul <= '0';
         const_upload_State <= S_IDLE;
       else
         upload_const_reg_index <= upload_const_reg_index + 1;
+        spi_readback_fifo_read_en_const_ul <= '1';
         const_upload_state <= S_READBACK;
       end if;
   
@@ -602,14 +650,16 @@ begin
 
 
   --multiplex signals to spi_ctrl
-  SPI_CMD_FIFO_WRITE_EN <= spi_cmd_fifo_write_en_cmd or spi_cmd_fifo_write_en_cfg_dl or spi_cmd_fifo_write_en_cfg_ul;
-  SPI_CMD_FIFO_IN <= spi_cmd_fifo_in_cmd      when (spi_cmd_fifo_write_en_cmd='1') else
-                     spi_cmd_fifo_in_cfg_dl   when (spi_cmd_fifo_write_en_cfg_dl='1') else 
+  SPI_CMD_FIFO_WRITE_EN <= spi_cmd_fifo_write_en_cmd or spi_cmd_fifo_write_en_cfg_dl or spi_cmd_fifo_write_en_cfg_ul or
+                           spi_cmd_fifo_write_en_const_ul or spi_cmd_fifo_write_en_const_dl;
+  SPI_CMD_FIFO_IN <= spi_cmd_fifo_in_cfg_dl   when (spi_cmd_fifo_write_en_cfg_dl='1') else 
                      spi_cmd_fifo_in_const_dl when (spi_cmd_fifo_write_en_const_dl='1') else 
                      spi_cmd_fifo_in_cfg_ul   when (spi_cmd_fifo_write_en_cfg_ul='1') else
                      spi_cmd_fifo_in_const_ul when (spi_cmd_fifo_write_en_const_ul='1') else
+                     spi_cmd_fifo_in_cmd      when (spi_cmd_fifo_write_en_cmd='1') else
                      x"0000";
-  SPI_READBACK_FIFO_READ_EN <= spi_readback_fifo_read_en_cmd or spi_readback_fifo_read_en_cfg_ul or spi_readback_fifo_read_en_const_ul;
+  SPI_READBACK_FIFO_READ_EN <= spi_readback_fifo_read_en_cmd or spi_readback_fifo_read_en_cfg_ul or 
+                               spi_readback_fifo_read_en_const_ul;
 
   
   --signals to VMECONFREGS

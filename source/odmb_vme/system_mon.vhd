@@ -6,26 +6,48 @@ library work;
 use ieee.numeric_std.all;
 use ieee.std_logic_misc.all;
 
+--! @brief VME device controlling access to ODMB board monitoring (currents, voltages, temperature)
+--! @details Supported VME commands:
+--! * R 7XY0 read SYSMON channel XY (see below) - current is result*10 channels 0 and 9 and result*5 for others
+--! * W 73Y0 load data from ADC chip Y (chip 0-4)
+--! * R 74Y0 read loaded ADC for channel Y (channels 1-8) - number is voltage/1000
+--! #Sysmon channels
+--! 00 5V input current
+--! 01 3.3V current 
+--! 02 3.3V optical current
+--! 03 3.3V clock current
+--! 04 3.6V PPIB current
+--! 05 2.5V current
+--! 06 1.2V MGT current
+--! 07 1.0V MGT current
+--! 08 0.95V core current
+--! 09 3.3V input current
+--! 10 1.8V current
+--! 11 1.8V VCC aux current
+--! 12 1.8V MGT current
+--! 13 1.8V VCCO current
+--! 14 1.8V VCCO0_65 current
+--! 15 1.8V clock current
 entity SYSTEM_MON is
   port (
-    OUTDATA   : out std_logic_vector(15 downto 0);
-    DTACK     : out std_logic;
+    OUTDATA   : out std_logic_vector(15 downto 0); --! Output data to VME backplane
+    DTACK     : out std_logic;                     --! Data acknowledge to VME backplane
 
-    ADC_CS_B  : out std_logic_vector(4 downto 0);
-    ADC_DIN   : out std_logic;
-    ADC_SCK   : out std_logic;
-    ADC_DOUT  : in std_logic;
+    ADC_CS_B  : out std_logic_vector(4 downto 0);  --! SPI chip select to ADCs
+    ADC_DIN   : out std_logic;                     --! SPI input to ADCs
+    ADC_SCK   : out std_logic;                     --! SPI clock to ADCs
+    ADC_DOUT  : in std_logic;                      --! SPI output from ADCs
 
-    SLOWCLK   : in std_logic;
-    FASTCLK   : in std_logic;
-    RST       : in std_logic;
-    DEVICE    : in std_logic;
-    STROBE    : in std_logic;
-    COMMAND   : in std_logic_vector(9 downto 0);
-    WRITER    : in std_logic;
+    SLOWCLK   : in std_logic;                      --! 1.25 MHz clock
+    FASTCLK   : in std_logic;                      --! 40 MHz clock
+    RST       : in std_logic;                      --! Soft reset
+    DEVICE    : in std_logic;                      --! Indicates if this is the selected VME device
+    STROBE    : in std_logic;                      --! Indicates VME command ready
+    COMMAND   : in std_logic_vector(9 downto 0);   --! VME command
+    WRITER    : in std_logic;                      --! Indicates if a command is read (1) or write (0)
 
-    VAUXP     : in std_logic_vector(15 downto 0);
-    VAUXN     : in std_logic_vector(15 downto 0)
+    VAUXP     : in std_logic_vector(15 downto 0);  --! Current monitoring analog signals
+    VAUXN     : in std_logic_vector(15 downto 0)   --! Current monitoring analog signals
     );
 end SYSTEM_MON;
 
@@ -166,7 +188,7 @@ begin
   which_chip <= cmddev(7 downto 4) when (w_vol_mon = '1') else x"0";
   which_chan <= cmddev(7 downto 4) when (r_vol_mon = '1') else x"0";
 
-  -- this is the channel
+  -- this is the SYSMON channel
   sysmon_daddr <= cmddev(11 downto 4) when (r_sys_mon = '1') else x"00";
 
   -- when w_vol_mon has a rising edge, trigger a sequence sent to MAX1271

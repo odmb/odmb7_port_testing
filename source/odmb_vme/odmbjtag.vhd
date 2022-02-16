@@ -6,32 +6,42 @@ use work.Latches_Flipflops.all;
 use work.ucsb_types.all;
 use UNISIM.vcomponents.all;
 
+--! @brief module that can send JTAG signals to/from ODMB FPGA
+--! @details Supported VME commands:
+--! * W 2Y00 shift Y+1 data bits with no JTAG header or tailer
+--! * W 2Y04 shift Y+1 data bits with JTAG header 
+--! * W 2Y08 shift Y+1 data bits with JTAG tailer
+--! * W 2Y0C shift Y+1 data bits with JTAG header and tailer
+--! * R 2014 read last data bits shifted into TDO register
+--! * W 2018 send JTAG reset pattern
+--! * W 2Y1C shift Y+1 instruction bits with JTAG header and tailer
+--! * W 2020 Set default polarity of JTAG select (should not use for ODMB7)
 entity ODMBJTAG is
 
   port (
 
-    FASTCLK : in std_logic;
-    SLOWCLK : in std_logic;
-    RST     : in std_logic;
+    FASTCLK : in std_logic;                      --! 40 MHz clock. Unused.
+    SLOWCLK : in std_logic;                      --! 2.5 MHz clock.
+    RST     : in std_logic;                      --! Soft reset.
+                                                
+    DEVICE  : in std_logic;                      --! Indicates if this is the selected VME device.
+    STROBE  : in std_logic;                      --! Indicates a command is ready to execute.
+    COMMAND : in std_logic_vector(9 downto 0);   --! VME command to execute.
+    WRITER  : in std_logic;                      --! Indicates if command is read (1) or write (0).
 
-    DEVICE  : in std_logic;
-    STROBE  : in std_logic;
-    COMMAND : in std_logic_vector(9 downto 0);
-    WRITER  : in std_logic;
+    INDATA  : in  std_logic_vector(15 downto 0); --! Input VME data from backplane.
+    OUTDATA : out std_logic_vector(15 downto 0); --! Output VME data to backplane.
 
-    INDATA  : in  std_logic_vector(15 downto 0);
-    OUTDATA : out std_logic_vector(15 downto 0);
+    DTACK : out std_logic;                       --! VME data acknowledge to backplane.
 
-    DTACK : out std_logic;
+    INITJTAGS : in  std_logic;                   --! Signal to automatically send JTAG reset. Unconnected.
+    TCK       : out std_logic;                   --! TCK signal to Kintex Ultrascale FPGA
+    TDI       : out std_logic;                   --! TDI signal to Kintex Ultrascale FPGA
+    TMS       : out std_logic;                   --! TMS signal to Kintex Ultrascale FPGA
+    ODMBTDO   : in  std_logic;                   --! TDO signal from Kintex Ultrascale FPGA
 
-    INITJTAGS : in  std_logic;
-    TCK       : out std_logic;
-    TDI       : out std_logic;
-    TMS       : out std_logic;
-    ODMBTDO   : in  std_logic;
-
-    JTAGSEL : out std_logic;
-    LED : out std_logic
+    JTAGSEL : out std_logic;                     --! Signal to multiplex JTAG signals. 1 selects external connection/discrete logic while 0 selects firmware (this).
+    LED : out std_logic                          --! Debug signals.
     );
 
 end ODMBJTAG;
