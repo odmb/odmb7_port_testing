@@ -21,7 +21,6 @@ use work.vendor_specific_gbt_bank_package.all;
 entity gbt_bank is 
   generic (   
     NUM_LINKS                 : integer := 1;                            --! NUM_LINKS: number of links instantiated by the core (Altera: up to 6, Xilinx: up to 4)
-    LINK_TYPE                 : integer := 0;                            --! LINK_TYPE: select the proper gtwizard IP, with 0: ALCT, 1: BCK_PRS
     TX_OPTIMIZATION           : integer range 0 to 1 := STANDARD;        --! TX_OPTIMIZATION: Latency mode for the Tx path (STANDARD or LATENCY_OPTIMIZED)
     RX_OPTIMIZATION           : integer range 0 to 1 := STANDARD;        --! RX_OPTIMIZATION: Latency mode for the Rx path (STANDARD or LATENCY_OPTIMIZED)
     TX_ENCODING               : integer range 0 to 2 := GBT_FRAME;       --! TX_ENCODING: Encoding scheme for the Tx datapath (GBT_FRAME or WIDE_BUS)
@@ -32,21 +31,19 @@ entity gbt_bank is
     --========--
     -- Resets --
     --========--
-    MGT_TXRESET_i            : in  std_logic_vector(1 to NUM_LINKS);    --! Reset the TX path of the transceiver (Tx PLL is reset with the first link) [Clock domain: MGT_CLK_i]
-    MGT_RXRESET_i            : in  std_logic_vector(1 to NUM_LINKS);    --! Reset the Rx path of the transceiver [Clock domain: MGT_CLK_i]
     GBT_TXRESET_i            : in  std_logic_vector(1 to NUM_LINKS);    --! Reset the Tx Scrambler/Encoder and the Tx Gearbox [Clock domain: GBT_TXFRAMECLK_i]
     GBT_RXRESET_i            : in  std_logic_vector(1 to NUM_LINKS);    --! Reset the Rx Decoder/Descrambler and the Rx gearbox [Clock domain: GBT_RXFRAMECLK_i]
     
     --========--
     -- Clocks --     
     --========--
-    MGT_CLK_i                : in  std_logic;                           --! Transceiver reference clock
+    MGT_DRP_CLK_i            : in  std_logic;
     GBT_TXFRAMECLK_i         : in  std_logic_vector(1 to NUM_LINKS);    --! Tx datapath's clock (40MHz with GBT_TXCLKEn_i = '1' or MGT_TXWORDCLK_o with GBT_TXCLKEn_i pulsed every 3/6 clock cycles)
     GBT_TXCLKEn_i            : in  std_logic_vector(1 to NUM_LINKS);    --! Rx clock enable signal used when the Rx frameclock is different from 40MHz
     GBT_RXFRAMECLK_i         : in  std_logic_Vector(1 to NUM_LINKS);    --! Rx datapath's clock (40MHz syncrhonous with NGT_RXWORDCLK_o and GBT_RXCLKEn_i = '1' or MGT_RXWORDCLK_o with GBT_RXCLKEn_i connected to the header flag signal)
     GBT_RXCLKEn_i            : in  std_logic_vector(1 to NUM_LINKS);    --! Rx clock enable signal used when the Rx frameclock is different from 40MHz
-    MGT_TXWORDCLK_o          : out std_logic_vector(1 to NUM_LINKS);    --! Tx Wordclock from the transceiver (could be used to clock the core with Clocking enable)
-    MGT_RXWORDCLK_o          : out std_logic_vector(1 to NUM_LINKS);    --! Rx Wordclock from the transceiver (could be used to clock the core with Clocking enable)
+    MGT_TXWORDCLK_i          : in  std_logic_vector(1 to NUM_LINKS);    --! Tx Wordclock from the transceiver (could be used to clock the core with Clocking enable)
+    MGT_RXWORDCLK_i          : in  std_logic_vector(1 to NUM_LINKS);    --! Rx Wordclock from the transceiver (could be used to clock the core with Clocking enable)
     
     --================--
     -- GBT TX Control --
@@ -76,16 +73,18 @@ entity gbt_bank is
     --================--
     -- MGT Control    --
     --================--
-    MGT_DEVSPECIFIC_i        : in  mgtDeviceSpecific_i_R;               --! Device specific record connected to the transceiver, defined into the device specific package
     MGT_RSTONBITSLIPEn_i     : in  std_logic_vector(1 to NUM_LINKS);    --! Enable of the "reset on even or odd bitslip" state machine. It ensures fix latency with a UI precision [Clock domain: MGT_CLK_i]
     MGT_RSTONEVEN_i          : in  std_logic_vector(1 to NUM_LINKS);    --! Configure the "reset on even or odd bitslip": '1' reset when bitslip is even and '0' when is odd [Clock domain: MGT_CLK_i]
+    MGT_RXRESET_i            : in  std_logic_vector(1 to NUM_LINKS);    --! Reset the Rx path of the transceiver [Clock domain: MGT_CLK_i]
+    MGT_RXRESET_DONE_i       : in  std_logic_vector(1 to NUM_LINKS);    --! Reset the Rx path of the transceiver [Clock domain: MGT_CLK_i]
     
+    RXBITSLIP_o              : out std_logic_vector(1 to NUM_LINKS);
+    RXBITSLIP_DONE_o         : out std_logic_vector(1 to NUM_LINKS);
+    RXBITSLIP_TXRESET_o      : out std_logic_vector(1 to NUM_LINKS);    --! Reset the TX path of the transceiver (Tx PLL is reset with the first link) [Clock domain: MGT_CLK_i]
+    RXBITSLIP_RXRESET_o      : out std_logic_vector(1 to NUM_LINKS);    --! Reset the Rx path of the transceiver [Clock domain: MGT_CLK_i]
     --=================--
     -- MGT Status      --
     --=================--
-    MGT_TXREADY_o            : out std_logic_vector(1 to NUM_LINKS);    --! Transceiver tx's path ready signal [Clock domain: MGT_CLK_i]
-    MGT_RXREADY_o            : out std_logic_vector(1 to NUM_LINKS);    --! Transceiver rx's path ready signal [Clock domain: MGT_CLK_i]
-    MGT_DEVSPECIFIC_o        : out mgtDeviceSpecific_o_R;               --! Device specific record connected to the transceiver, defined into the device specific package
     MGT_HEADERFLAG_o         : out std_logic_vector(1 to NUM_LINKS);    --! Pulsed when the MGT word contains the header [Clock domain: MGT_RXWORDCLK_o]
     MGT_HEADERLOCKED_o       : out std_logic_vector(1 to NUM_LINKS);    --! Asserted when the header is locked
     MGT_RSTCNT_o             : out gbt_reg8_A(1 to NUM_LINKS);          --! Number of resets because of a wrong bitslip parity
@@ -95,9 +94,11 @@ entity gbt_bank is
     --========--
     -- Data   --
     --========--
+    MGT_TXWORD_o             : out word_mxnbit_A (1 to NUM_LINKS);      --! Tx word to the transceiver (from the Tx gearbox to the MGT)
+    MGT_RXWORD_i             : in  word_mxnbit_A (1 to NUM_LINKS);      --! Rx word from the transceiver (from the transceiver to the Rx gearbox)
+
     GBT_TXDATA_i             : in  gbt_reg84_A(1 to NUM_LINKS);         --! GBT Data to be encoded and transmit
     GBT_RXDATA_o             : out gbt_reg84_A(1 to NUM_LINKS);         --! GBT Data received and decoded
-    
     WB_TXDATA_i              : in  gbt_reg32_A(1 to NUM_LINKS);         --! (tx) Extra data (32bit) to replace the FEC when the WideBus encoding scheme is selected
     WB_RXDATA_o              : out gbt_reg32_A(1 to NUM_LINKS)          --! (rx) Extra data (32bit) replacing the FEC when the WideBus encoding scheme is selected
     );
@@ -121,8 +122,6 @@ architecture structural of gbt_bank is
   --========--
   signal mgt_txwordclk_s                  : std_logic_vector(1 to NUM_LINKS);   --! Tx wordclock signal used to connect the clock from the transceiver to the Tx gearbox
   signal mgt_rxwordclk_s                  : std_logic_vector(1 to NUM_LINKS);   --! Rx wordclock signal used to connect the clock recovered from the data to the Rx gearbox
-  signal mgt_txword_s                     : word_mxnbit_A (1 to NUM_LINKS);     --! Tx word to the transceiver (from the Tx gearbox to the MGT)
-  signal mgt_rxword_s                     : word_mxnbit_A (1 to NUM_LINKS);     --! Rx word from the transceiver (from the transceiver to the Rx gearbox)
   signal mgt_headerflag_s                 : std_logic_vector(1 to NUM_LINKS);   --! Header flag to provide the header position over the 3/6 MGT word used to make the GBT word
   
   --========--
@@ -179,34 +178,22 @@ begin                 --========####   Architecture Body   ####========--
         TX_PHCOMPUTED_o                        => TX_PHCOMPUTED_o(i),
         
         TX_FRAME_I                             => gbt_txencdata_s(i),
-        TX_WORD_O                              => mgt_txword_s(i)
+        TX_WORD_O                              => MGT_TXWORD_o(i)
         );
   end generate;
   
   --! Instantiation of the transceiver module (MGT and FrameAligner)
-  mgt_inst: entity work.gbt_mgt
+  mgt_inst: entity work.gbt_framealigner
     generic map (
-      NUM_LINKS                    => NUM_LINKS,
-      LINK_TYPE                    => LINK_TYPE
+      NUM_LINKS                    => NUM_LINKS
       )
     port map (            
-      MGT_REFCLK_i                 => MGT_CLK_i,
-      
-      MGT_RXUSRCLK_o               => mgt_rxwordclk_s,
-      MGT_TXUSRCLK_o               => mgt_txwordclk_s,
-      
-      --=============--
-      -- Resets      --
-      --=============--
-      MGT_TXRESET_i                => MGT_TXRESET_i,
-      MGT_RXRESET_i                => MGT_RXRESET_i,
-      
+      MGT_DRP_CLK_i                => MGT_DRP_CLK_i,
+      MGT_RXUSRCLK_i               => mgt_rxwordclk_s,
+
       --=============--
       -- Status      --
       --=============--
-      MGT_TXREADY_o                => MGT_TXREADY_o,
-      MGT_RXREADY_o                => MGT_RXREADY_o,
-
       RX_HEADERLOCKED_o            => MGT_HEADERLOCKED_o,
       RX_HEADERFLAG_o              => mgt_headerflag_s,
       MGT_RSTCNT_o                 => MGT_RSTCNT_o,
@@ -217,24 +204,26 @@ begin                 --========####   Architecture Body   ####========--
       MGT_AUTORSTEn_i              => MGT_RSTONBITSLIPEn_i,
       MGT_AUTORSTONEVEN_i          => MGT_RSTONEVEN_i,
       
+      RXBITSLIP_o                  => RXBITSLIP_o,
+      RXBITSLIP_DONE_o             => RXBITSLIP_DONE_o,
+      RXBITSLIP_TXRESET_o          => RXBITSLIP_TXRESET_o,
+      RXBITSLIP_RXRESET_o          => RXBITSLIP_RXRESET_o,
+
+      MGT_RXRESET_i                => MGT_RXRESET_i,
+      MGT_RXRESET_DONE_i           => MGT_RXRESET_DONE_i,
+
       --==============--
       -- Data         --
       --==============--
-      MGT_USRWORD_i                => mgt_txword_s,
-      MGT_USRWORD_o                => mgt_rxword_s,
+      MGT_USRWORD_i                => MGT_RXWORD_i,
       
-      ILA_DATA_o                   => ila_data_mgt_s,
+      ILA_DATA_o                   => ila_data_mgt_s
 
-      --=============================--
-      -- Device specific connections --
-      --=============================--
-      MGT_DEVSPEC_i                => MGT_DEVSPECIFIC_i,
-      MGT_DEVSPEC_o                => MGT_DEVSPECIFIC_o
       );
   
   MGT_HEADERFLAG_o <= mgt_headerflag_s;
-  MGT_TXWORDCLK_o  <= mgt_txwordclk_s;
-  MGT_RXWORDCLK_o  <= mgt_rxwordclk_s;
+  mgt_txwordclk_s <= MGT_TXWORDCLK_i;
+  mgt_rxwordclk_s <= MGT_RXWORDCLK_i;
   
   ILA_DATA_o(71 downto 0) <= ila_data_mgt_s;
 
@@ -254,7 +243,7 @@ begin                 --========####   Architecture Body   ####========--
         RX_HEADERFLAG_i                        => mgt_headerflag_s(i),
         READY_O                                => gbt_rxgearboxready_s(i),
         ---------------------------------------
-        RX_WORD_I                              => mgt_rxword_s(i),
+        RX_WORD_I                              => MGT_RXWORD_i(i),
         RX_FRAME_O                             => gbt_rxencdata_s(i)
         ); 
   end generate;

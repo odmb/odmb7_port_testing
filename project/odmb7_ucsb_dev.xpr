@@ -37,13 +37,13 @@
     <Option Name="WTVcsLaunchSim" Val="0"/>
     <Option Name="WTRivieraLaunchSim" Val="0"/>
     <Option Name="WTActivehdlLaunchSim" Val="0"/>
-    <Option Name="WTXSimExportSim" Val="162"/>
-    <Option Name="WTModelSimExportSim" Val="162"/>
-    <Option Name="WTQuestaExportSim" Val="162"/>
-    <Option Name="WTIesExportSim" Val="162"/>
-    <Option Name="WTVcsExportSim" Val="162"/>
-    <Option Name="WTRivieraExportSim" Val="162"/>
-    <Option Name="WTActivehdlExportSim" Val="162"/>
+    <Option Name="WTXSimExportSim" Val="163"/>
+    <Option Name="WTModelSimExportSim" Val="163"/>
+    <Option Name="WTQuestaExportSim" Val="163"/>
+    <Option Name="WTIesExportSim" Val="163"/>
+    <Option Name="WTVcsExportSim" Val="163"/>
+    <Option Name="WTRivieraExportSim" Val="163"/>
+    <Option Name="WTActivehdlExportSim" Val="163"/>
     <Option Name="GenerateIPUpgradeLog" Val="TRUE"/>
     <Option Name="XSimRadix" Val="hex"/>
     <Option Name="XSimTimeUnit" Val="ns"/>
@@ -461,12 +461,6 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../source/mgt_links/gbt_core/mgt/xlx_ku_mgt_ip_reset_synchronizer.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
       <File Path="$PPRDIR/../source/mgt_links/gbt_core/mgt/mgt_bitslipctrl.vhd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -479,7 +473,7 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../source/mgt_links/gbt_core/mgt/xlx_ku_mgt.vhd">
+      <File Path="$PPRDIR/../source/mgt_links/gbt_core/mgt/gbt_framealigner.vhd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -599,7 +593,7 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../source/mgt_links/gbt_wrapper.vhd">
+      <File Path="$PPRDIR/../source/mgt_links/gbt_core/mgt/xlx_ku_mgt_ip_reset_synchronizer.vhd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -787,6 +781,20 @@
       </File>
       <File Path="$PPRDIR/../source/odmb7_dev_top.vhd">
         <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../source/mgt_links/gbt_wrapper.vhd">
+        <FileInfo>
+          <Attr Name="AutoDisabled" Val="1"/>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../source/mgt_links/gbt_core/mgt/xlx_ku_mgt.vhd">
+        <FileInfo>
+          <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
@@ -1041,6 +1049,7 @@
     <FileSet Name="gtwiz_fed_d1" Type="BlockSrcs" RelSrcDir="$PSRCDIR/gtwiz_fed_d1">
       <File Path="$PPRDIR/../ip/gtwiz_fed_d1/gtwiz_fed_d1.xci">
         <FileInfo>
+          <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -1138,9 +1147,7 @@
     </Run>
     <Run Id="ila_gbt_synth_1" Type="Ft3:Synth" SrcSet="ila_gbt" Part="xcku035-ffva1156-1-c" ConstrsSet="ila_gbt" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/ila_gbt_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -1150,9 +1157,7 @@
     </Run>
     <Run Id="gtwiz_fed_d1_synth_1" Type="Ft3:Synth" SrcSet="gtwiz_fed_d1" Part="xcku035-ffva1156-1-c" ConstrsSet="gtwiz_fed_d1" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/gtwiz_fed_d1_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -1267,9 +1272,7 @@
     </Run>
     <Run Id="ila_gbt_impl_1" Type="Ft2:EntireDesign" Part="xcku035-ffva1156-1-c" ConstrsSet="ila_gbt" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="ila_gbt_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
@@ -1286,9 +1289,7 @@
     </Run>
     <Run Id="gtwiz_fed_d1_impl_1" Type="Ft2:EntireDesign" Part="xcku035-ffva1156-1-c" ConstrsSet="gtwiz_fed_d1" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="gtwiz_fed_d1_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>

@@ -160,8 +160,8 @@ entity odmb7_ucsb_dev is
 
     SPY_TX_P     : out std_logic;                          --! Finisar (spy) optical TX output to PC.
     SPY_TX_N     : out std_logic;                          --! Finisar (spy) optical TX output to PC.
-    DAQ_TX_P     : out std_logic_vector(1 downto 1);       --! Temporary: B04 optical TX1, output to ALCT.
-    DAQ_TX_N     : out std_logic_vector(1 downto 1);       --! Temporary: B04 optical TX1, output to ALCT.
+    -- DAQ_TX_P     : out std_logic_vector(1 downto 1);       --! Temporary: B04 optical TX1, output to ALCT.
+    -- DAQ_TX_N     : out std_logic_vector(1 downto 1);       --! Temporary: B04 optical TX1, output to ALCT.
     -- DAQ_TX_P     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
     -- DAQ_TX_N     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
 
@@ -1283,45 +1283,45 @@ begin
   --===============================================--
   -- Temporary GBT sender to make ALCT GBTx locked --
   --===============================================--
-  GBT_FED : entity work.gbt_wrapper
-    generic map(
-      NUM_LINKS       => 1,
-      LINK_TYPE       => 1,
-      TX_ENCODING     => 0, -- Sending in GBT format
-      RX_ENCODING     => 1  -- Receiving in Wide-bus format
-      )
-    port map (
-      MGT_REFCLK      => mgtrefclk0_225,
-      GBT_FRAMECLK    => cmsclk,  -- 40.079 MHz
-      MGT_DRP_CLK     => mgtclk4, -- 120.24 MHz from mgtrefclk0_225
+  -- GBT_FED : entity work.gbt_wrapper
+  --   generic map(
+  --     NUM_LINKS       => 1,
+  --     LINK_TYPE       => 1,
+  --     TX_ENCODING     => 0, -- Sending in GBT format
+  --     RX_ENCODING     => 1  -- Receiving in Wide-bus format
+  --     )
+  --   port map (
+  --     MGT_REFCLK      => mgtrefclk0_225,
+  --     GBT_FRAMECLK    => cmsclk,  -- 40.079 MHz
+  --     MGT_DRP_CLK     => mgtclk4, -- 120.24 MHz from mgtrefclk0_225
 
-      GBT_TXUSRCLK_o  => usrclk_fed_tx,
-      GBT_RXUSRCLK_o  => usrclk_fed_rx,
-      GBT_TXCLKEN_o   => fed_txclken,           -- from pattern generator, to be evaluated
-      GBT_RXCLKEN_o   => fed_rxclken,      -- to pattern checker, to be evaluated
+  --     GBT_TXUSRCLK_o  => usrclk_fed_tx,
+  --     GBT_RXUSRCLK_o  => usrclk_fed_rx,
+  --     GBT_TXCLKEN_o   => fed_txclken,           -- from pattern generator, to be evaluated
+  --     GBT_RXCLKEN_o   => fed_rxclken,      -- to pattern checker, to be evaluated
 
-      MGT_RX_P(1)     => BCK_PRS_P,
-      MGT_RX_N(1)     => BCK_PRS_N,
-      MGT_TX_P(1)     => DAQ_TX_P(1),
-      MGT_TX_N(1)     => DAQ_TX_N(1),
+  --     MGT_RX_P(1)     => BCK_PRS_P,
+  --     MGT_RX_N(1)     => BCK_PRS_N,
+  --     MGT_TX_P(1)     => DAQ_TX_P(1),
+  --     MGT_TX_N(1)     => DAQ_TX_N(1),
 
-      GBT_TXDATA_i(1) => fed_txdata_gbt(1),
-      GBT_RXDATA_o(1) => fed_rxdata_gbt(1),
-      WB_TXDATA_i(1)  => fed_txdata_wb(1),
-      WB_RXDATA_o(1)  => fed_rxdata_wb(1),
-      TXD_VALID_i(1)  => fed_txd_valid(1),
-      RXD_VALID_o(1)  => fed_rxd_valid(1),
+  --     GBT_TXDATA_i(1) => fed_txdata_gbt(1),
+  --     GBT_RXDATA_o(1) => fed_rxdata_gbt(1),
+  --     WB_TXDATA_i(1)  => fed_txdata_wb(1),
+  --     WB_RXDATA_o(1)  => fed_rxdata_wb(1),
+  --     TXD_VALID_i(1)  => fed_txd_valid(1),
+  --     RXD_VALID_o(1)  => fed_rxd_valid(1),
 
-      MGT_TXREADY_o   => fed_mgt_txready,
-      MGT_RXREADY_o   => fed_mgt_rxready,
-      GBT_TXREADY_o   => fed_gbt_txready,
-      GBT_RXREADY_o   => fed_gbt_rxready,
-      GBT_BAD_RX_o    => fed_bad_rx,
-      RESET_i         => opt_reset
-      );
+  --     MGT_TXREADY_o   => fed_mgt_txready,
+  --     MGT_RXREADY_o   => fed_mgt_rxready,
+  --     GBT_TXREADY_o   => fed_gbt_txready,
+  --     GBT_RXREADY_o   => fed_gbt_rxready,
+  --     GBT_BAD_RX_o    => fed_bad_rx,
+  --     RESET_i         => opt_reset
+  --     );
 
-  fed_txdata_gbt(1) <= x"CF00BABEAC1DACDCFFFFF";
-  fed_txdata_wb(1)  <= x"BEEFCAFE";
+  -- fed_txdata_gbt(1) <= x"CF00BABEAC1DACDCFFFFF";
+  -- fed_txdata_wb(1)  <= x"BEEFCAFE";
 
   ila_data_alct(0) <= int_alct_dav;
   ila_data_alct(1) <= raw_l1a;
