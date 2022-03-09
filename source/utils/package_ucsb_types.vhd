@@ -12,10 +12,6 @@ package ucsb_types is
 
   type cfg_regs_array is array (0 to 15) of std_logic_vector(15 downto 0);
 
-  type t_done_cnt_arr is array (integer range <>) of integer range 0 to 3;
-  type t_done_state is (DONE_IDLE, DONE_LOW, DONE_COUNTING);
-  type t_done_state_arr is array (integer range <>) of t_done_state;
-
   -- For various counter
   type t_std14_array is array (integer range <>) of std_logic_vector(13 downto 0);
   type t_std16_array is array (integer range <>) of std_logic_vector(15 downto 0);

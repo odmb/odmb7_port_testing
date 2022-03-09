@@ -4,6 +4,7 @@ library UNISIM;
 use UNISIM.vcomponents.all;
 use work.Latches_Flipflops.all;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_misc.all;
 use work.ucsb_types.all;
 
 --! @brief module handling JTAG (slow control) communication to (x)DCFEBs within ODMB VME
@@ -28,9 +29,10 @@ entity CFEBJTAG is
     NCFEB   : integer range 1 to 7 := 7  -- Number of DCFEBS, 7 for ME1/1, 5 for MEX/1
     );
   port (
-    FASTCLK : in std_logic;                           --! 40 MHz clock. Currently unused.
-    SLOWCLK : in std_logic;                           --! 1.25MHz clock (previously 2.5 MHz clock, but this was too fast for some HD50 cables)
-    RST     : in std_logic;                           --! Firmware soft reset signal.
+    FASTCLK   : in std_logic;                         --! 40 MHz clock. Currently unused.
+    SLOWCLK   : in std_logic;                         --! 1.25 MHz clock (previously 2.5 MHz clock, but this was too fast for some HD50 cables)
+    INITCLK   : in std_logic;                         --! 10 MHz clock for 
+    RST       : in std_logic;                         --! Firmware soft reset signal or power-on reset
 
     DEVICE  : in std_logic;                           --! Indicates if this is the selected ODMB VME device.
     STROBE  : in std_logic;                           --! Strobe signal indicating a VME command is ready.
@@ -42,11 +44,12 @@ entity CFEBJTAG is
 
     DTACK : out std_logic;                            --! Data acknowledge, indicates that VME command has been received.
 
-    INITJTAGS : in  std_logic;                        --! Signal generated when (x)DCFEBs finish programming to invoke a reset of the JTAG state machine.
+    -- INITJTAGS : in  std_logic;                        --! Signal generated when (x)DCFEBs finish programming to invoke a reset of the JTAG state machine.
     TCK       : out std_logic_vector(NCFEB downto 1); --! JTAG test clock signal to (x)DCFEBs. One per (x)DCFEB to allow communication with a single board.
     TDI       : out std_logic;                        --! JTAG test data in signal to (x)DCFEBs.
     TMS       : out std_logic;                        --! JTAG test mode select signal to (x)DCFEBs.
-    FEBTDO    : in  std_logic_vector(NCFEB downto 1); --! JTAG test data out signal from (x)DCFEBs.
+    TDO       : in  std_logic_vector(NCFEB downto 1); --! JTAG test data out signal from (x)DCFEBs.
+    DONE      : in  std_logic_vector(NCFEB downto 1); --! Program DONE signal from (x)DCFEBs.
 
     LED     : out std_logic;                          --! Debug signals.
     DIAGOUT : out std_logic_vector(17 downto 0)       --! Debug signals.
@@ -83,11 +86,10 @@ architecture CFEBJTAG_Arch of CFEBJTAG is
   
   --Signals for READTDO command
   signal rdtdodk, dtack_readtdo                                  : std_logic;
-  
-  
+
   --signals for INITJTAGS and RSTJTAG command
-  type reset_jtag_states is (S_RESETJTAG_IDLE, S_RESETJTAG_RESETTING, S_RESETJTAG_DTACK);
-  signal reset_jtag_state : reset_jtag_states := S_RESETJTAG_IDLE;
+  type t_resetjtag_state is (S_RESETJTAG_IDLE, S_RESETJTAG_RESETTING, S_RESETJTAG_DTACK);
+  signal reset_jtag_state : t_resetjtag_state := S_RESETJTAG_IDLE;
   signal resettype                                                              : std_logic;
   --signal d1_resetjtag, q1_resetjtag, q2_resetjtag                               : std_logic;
   --signal q3_resetjtag, clr_resetjtag, resetjtag                                 : std_logic;
@@ -100,6 +102,23 @@ architecture CFEBJTAG_Arch of CFEBJTAG is
   signal q3_resetjtag_tms, q4_resetjtag_tms, q5_resetjtag_tms, q6_resetjtag_tms : std_logic;
   signal dtack_rstjtag                                                          : std_logic;
   
+  -- signals to generate dcfeb_initjtag when DCFEBs are done programming
+  type t_done_cnt_arr is array (integer range <>) of integer range 0 to 250;
+  type t_done_state is (S_DONE_IDLE, S_DONE_LOW, S_DONE_COUNTING);
+  type t_done_state_arr is array (integer range <>) of t_done_state;
+  constant DONE_HOLD_COUNT  : integer range 0 to 500 := 160; -- 400 us for 2.5 MHz SLOWCLK
+
+  signal done_cnt_en        : std_logic_vector(NCFEB downto 1);
+  signal done_cnt_rst       : std_logic_vector(NCFEB downto 1);
+  signal done_cnt           : t_done_cnt_arr(NCFEB downto 1);
+  signal done_next_state    : t_done_state_arr(NCFEB downto 1);
+  signal done_current_state : t_done_state_arr(NCFEB downto 1);
+  signal dcfeb_done_pulse   : std_logic_vector(NCFEB downto 1) := (others => '0');
+  signal init_jtag          : std_logic := '0';
+  signal init_jtag_d        : std_logic := '0';
+  signal init_jtag_dd       : std_logic := '0';
+
+
   --Signals for new_strobe
   signal new_strobe, new_strobe_q, new_strobe_qq             : std_logic;
   signal strobe_meta, strobe_sync : std_logic := '0';
@@ -158,7 +177,7 @@ architecture CFEBJTAG_Arch of CFEBJTAG is
   
   --tdo and output signals
   signal ce_shift1                                                            : std_logic;
-  signal tdo                                                                  : std_logic;
+  signal febtdo                                                               : std_logic;
   signal q_outdata                                                            : std_logic_vector(15 downto 0);
 
 begin
@@ -182,8 +201,8 @@ begin
                    (tailen and d_donedata) when (shdata = '1') else
                    q2_shtail_tms when (shtail = '1') else 'Z'; --tms
   ila_probe(37) <= qv_tdi(0);
-  ila_probe(38) <= tdo;
-  --ila_probe(45 downto 39) <= selfeb;
+  ila_probe(38) <= febtdo;
+  ila_probe(38+NCFEB downto 39) <= selfeb;
   ila_probe(46) <= busy;
   ila_probe(47) <= d_dtack;
   ila_probe(48) <= dtack_shft;
@@ -232,11 +251,79 @@ begin
   readcfeb <= '1' when cmddev = x"1024" else '0';
 
 
+  -- FSM to handle initialization when DONE received from DCFEBs
+  -- Generate init_jtag, odmb_v2 uses clk10khz and pon_reset
+  done_fsm_regs : process (done_next_state, RST, SLOWCLK)
+  begin
+    for dev in 1 to NCFEB loop
+      if (RST = '1') then
+        done_current_state(dev) <= S_DONE_LOW;
+      elsif rising_edge(SLOWCLK) then
+        done_current_state(dev) <= done_next_state(dev);
+        if done_cnt_rst(dev) = '1' then
+          done_cnt(dev) <= 0;
+        elsif done_cnt_en(dev) = '1' then
+          done_cnt(dev) <= done_cnt(dev) + 1;
+        end if;
+      end if;
+    end loop;
+  end process;
 
+  done_fsm_logic : process (done_current_state, DONE, done_cnt)
+  begin
+    for dev in 1 to NCFEB loop
+      case done_current_state(dev) is
+        when S_DONE_IDLE =>
+          done_cnt_en(dev)      <= '0';
+          dcfeb_done_pulse(dev) <= '0';
+          if (DONE(dev) = '0') then
+            done_next_state(dev) <= S_DONE_LOW;
+            done_cnt_rst(dev)    <= '1';
+          else
+            done_next_state(dev) <= S_DONE_IDLE;
+            done_cnt_rst(dev)    <= '0';
+          end if;
+
+        when S_DONE_LOW =>
+          done_cnt_en(dev)      <= '0';
+          dcfeb_done_pulse(dev) <= '0';
+          done_cnt_rst(dev)     <= '0';
+          if (DONE(dev) = '1') then
+            done_next_state(dev) <= S_DONE_COUNTING;
+          else
+            done_next_state(dev) <= S_DONE_LOW;
+          end if;
+
+        when S_DONE_COUNTING =>
+          if (DONE(dev) = '0') then
+            done_next_state(dev)  <= S_DONE_LOW;
+            done_cnt_en(dev)      <= '0';
+            dcfeb_done_pulse(dev) <= '0';
+            done_cnt_rst(dev)     <= '1';
+          elsif (done_cnt(dev) = DONE_HOLD_COUNT) then  -- DONE has to be high at least 400 us to avoid spurious edges
+            done_next_state(dev)  <= S_DONE_IDLE;
+            done_cnt_en(dev)      <= '0';
+            dcfeb_done_pulse(dev) <= '1';
+            done_cnt_rst(dev)     <= '0';
+          else
+            done_next_state(dev)  <= S_DONE_COUNTING;
+            done_cnt_en(dev)      <= '1';
+            dcfeb_done_pulse(dev) <= '0';
+            done_cnt_rst(dev)     <= '0';
+          end if;
+      end case;
+    end loop;
+  end process;
+
+  init_jtag_d <= or_reduce(dcfeb_done_pulse);
+  -- 
+  DS_DCFEB_INITJTAG : DELAY_SIGNAL generic map (NCYCLES_MAX => 64)
+    port map (DOUT => init_jtag, CLK => SLOWCLK, NCYCLES => 40, DIN => init_jtag_d);
+  -- PULSE_DCFEB_INITJTAG : NPULSE2FAST port map(DOUT => init_jtag, CLK_DOUT => sysclk1p25, RST => '0', NPULSE => 5, DIN => init_jtag_d);
 
   -- Handle SELCFEB command (0x1020)
   -- Write SELFEB when SELCFEB=1 on first clock cycle after strobe. (The JTAG initialization should be broadcast)
-  rst_init <= RST or INITJTAGS;
+  rst_init <= RST or init_jtag;
   ce_selfeb <= selcfeb and STROBE;
 
   GEN_FDPE_selfeb : for I in 1 to NCFEB generate
@@ -249,7 +336,6 @@ begin
   strobe_sync <= strobe_meta when rising_edge(SLOWCLK);
   d_dtack_selcfeb <= '1' when (strobe_sync = '1' and selcfeb = '1') else '0';
   FD_selcfebdtack : FD port map(D => d_dtack_selcfeb, C => SLOWCLK, Q => dtack_selcfeb);
-
 
 
   -- Handle RSTJTAG command (0x1018) and INITJTAGS upon startup
@@ -268,8 +354,8 @@ begin
         reset_jtag_state <= S_RESETJTAG_RESETTING;
         resetjtag <= '1';
         resettype <= '0';
-      elsif (INITJTAGS='1') then
-        reset_jtag_state <= S_RESETJTAG_RESETTING;   
+      elsif (rst_init='1') then
+        reset_jtag_state <= S_RESETJTAG_RESETTING;
         resetjtag <= '1';  
         resettype <= '1';   
       else
@@ -499,11 +585,10 @@ begin
   -- Generate TDO and shift into OUTDATA
   GEN_TDO_assign : for I in 1 to NCFEB generate
   begin
-    tdo <= FEBTDO(I) when SELFEB(I) = '1' else 'Z';
+    febtdo <= TDO(I) when SELFEB(I) = '1' else 'Z';
   end generate GEN_TDO_assign;
   ce_shift1            <= shdata and not tck_global;
-  SR16LCE(SLOWCLK, ce_shift1, RST, tdo, q_outdata, q_outdata);
-
+  SR16LCE(SLOWCLK, ce_shift1, RST, febtdo, q_outdata, q_outdata);
 
 
 
@@ -523,12 +608,11 @@ begin
 
 
   -- Handle DTACK
-  DTACK <= '1' when (dtack_selcfeb = '1') or
-                 (dtack_readcfeb = '1') or
-                 (dtack_rstjtag = '1') or
-                 (dtack_readtdo = '1') or
-                 (dtack_shft = '1') else '0';
-
+  DTACK <= '1' when (dtack_selcfeb = '1')  or
+                    (dtack_readcfeb = '1') or
+                    (dtack_rstjtag = '1')  or
+                    (dtack_readtdo = '1')  or
+                    (dtack_shft = '1')     else '0';
 
 
 
@@ -540,7 +624,7 @@ begin
   -- generate DIAGOUT
   DIAGOUT(6 downto 0)  <= selfeb_big(7 downto 1);
   DIAGOUT(7) <= RST;
-  DIAGOUT(8) <= INITJTAGS;
+  -- DIAGOUT(8) <= INITJTAGS;
   DIAGOUT(9) <= readcfeb;
   DIAGOUT(10) <= selcfeb;
   DIAGOUT(11) <= shihead;

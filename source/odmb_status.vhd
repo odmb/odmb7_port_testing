@@ -30,11 +30,13 @@ entity odmb_status is
     RAW_L1A             : in std_logic;
     DCFEB_L1A           : in std_logic;
 
+    DDU_EOF             : in std_logic;
     EOF_DATA            : in std_logic_vector(NCFEB+2 downto 1);
     FIFO_RE_B           : in std_logic_vector(NCFEB+2 downto 1);
     INTO_FIFO_DAV       : in std_logic_vector(NCFEB+2 downto 1);
     CAFIFO_L1A_MATCH    : in std_logic_vector(NCFEB+2 downto 1);
     CAFIFO_L1A_DAV      : in std_logic_vector(NCFEB+2 downto 1);
+    KILL                : in std_logic_vector(NCFEB+2 downto 1);
 
     CAFIFO_L1A_CNT      : in std_logic_vector(23 downto 0);
     CAFIFO_BX_CNT       : in std_logic_vector(11 downto 0);
@@ -46,6 +48,14 @@ entity odmb_status is
     CCB_RSV             : in  std_logic_vector(10 downto 0);
     CCB_OTHER           : in  std_logic_vector(10 downto 0);
 
+    -- Signals for DCFEB Autokill
+    DCFEB_OPT_RST       : out std_logic;
+    CHANGE_REG_DATA     : out std_logic_vector(15 downto 0);
+    CHANGE_REG_INDEX    : out integer range 0 to NREGS := NREGS;
+    CFG_UL_PULSE        : in std_logic;
+    MAX_WORDS_DCFEB     : in std_logic_vector(15 downto 0);      --! MAX words allowed in a DCFEB data packet recieved, used for auto-kill.
+    AUTOKILL_EN         : in std_logic;
+
     L1ACNT_RST          : in std_logic;
     PON_RESET           : in std_logic;
     RESET               : in std_logic  --! Global reset
@@ -54,6 +64,30 @@ end odmb_status;
 
 architecture ODMB_STATUS_ARCH of odmb_status is
 
+  component DCFEB_AUTOKILL is
+    generic (
+      NCFEB               : integer range 1 to 7 := 7  -- Number of DCFEBS, 7 for ME1/1, 5
+      );
+    port (
+      CMSCLK              : in std_logic;
+      DCFEBCLK            : in std_logic;
+
+      DCFEB_RXD_VALID     : in std_logic_vector(NCFEB downto 1);
+      DCFEB_FIBER_ERROR   : in std_logic_vector(NCFEB downto 1);
+      KILL                : in std_logic_vector(NCFEB+2 downto 1);
+
+      AUTOKILLED_ANY      : out std_logic_vector(15 downto 0);
+      AUTOKILLED_FIBER    : out std_logic_vector(15 downto 0);
+      NEW_KILL_REG        : out std_logic_vector(15 downto 0);
+      UPDATE_KILL_REG     : out std_logic;
+      OPTICAL_RESET       : out std_logic;
+
+      CFG_UL_PULSE        : in std_logic;
+      MAX_WORDS_DCFEB     : in std_logic_vector(15 downto 0);      --! MAX words allowed in a DCFEB data packet recieved, used for auto-kill.
+
+      RESET               : in std_logic  --! Global reset
+      );
+  end component;
 
   --------------------------------------
   -- ODMB status signals
@@ -81,14 +115,28 @@ architecture ODMB_STATUS_ARCH of odmb_status is
 
   signal dcfeb_l1a_cnt         : std_logic_vector(15 downto 0);
   signal unsync_l1a_cnt        : std_logic_vector(15 downto 0);
+  signal ddu_eof_cnt           : std_logic_vector(15 downto 0);
 
   -- CCB production test signals
-  signal ccb_cmd_reg     : std_logic_vector(15 downto 0) := (others => '0');
-  signal ccb_data_reg    : std_logic_vector(15 downto 0) := (others => '0');
-  signal ccb_rsv_reg     : std_logic_vector(15 downto 0) := (others => '0');
-  signal ccb_other_reg   : std_logic_vector(15 downto 0) := (others => '0');
-  signal ccb_rsv_reg_b   : std_logic_vector(15 downto 0) := (others => '0');
-  signal ccb_other_reg_b : std_logic_vector(15 downto 0) := (others => '0');
+  signal ccb_cmd_reg           : std_logic_vector(15 downto 0) := (others => '0');
+  signal ccb_data_reg          : std_logic_vector(15 downto 0) := (others => '0');
+  signal ccb_rsv_reg           : std_logic_vector(15 downto 0) := (others => '0');
+  signal ccb_other_reg         : std_logic_vector(15 downto 0) := (others => '0');
+  signal ccb_rsv_reg_b         : std_logic_vector(15 downto 0) := (others => '0');
+  signal ccb_other_reg_b       : std_logic_vector(15 downto 0) := (others => '0');
+
+  --------------------------------------
+  -- Issues DCFEB auto-kill/recover
+  --------------------------------------
+  signal update_kill_reg       : std_logic;
+  signal new_kill_reg          : std_logic_vector(15 downto 0);
+
+  signal autokilled_dcfebs_any   : std_logic_vector(16 downto 1) := (others => '0'); -- 16 bits for readout
+  signal autokilled_dcfebs_fiber : std_logic_vector(16 downto 1) := (others => '0'); -- 16 bits for readout
+
+  signal dcfeb_fiber_error       : std_logic_vector(NCFEB downto 1);
+  signal dcfeb_rxd_valid_d       : std_logic_vector(NCFEB downto 1);
+  signal kill_b                  : std_logic_vector(NCFEB downto 1);
 
 begin
 
@@ -97,9 +145,9 @@ begin
   cafifo_l1a_match_data(NCFEB+1 downto 0) <= CAFIFO_L1A_MATCH;
   cafifo_l1a_dav_data(NCFEB+1 downto 0) <= CAFIFO_L1A_DAV;
 
+  -- Readouts for command R 3XYC from VMEMON, where XY=ODMB_STAT_SEL
   c_odmb_status : process (ODMB_STAT_SEL)
   begin
-
     case ODMB_STAT_SEL is
 
       -- when x"00" => odmb_data <= odmb_status;
@@ -187,7 +235,7 @@ begin
       when x"48" => odmb_data <= into_fifo_dav_cnt(8);
       when x"49" => odmb_data <= into_fifo_dav_cnt(9);
 
-      -- when x"4A" => odmb_data <= ddu_eof_cnt;  -- Number of packets sent to DDU
+      when x"4A" => odmb_data <= ddu_eof_cnt;  -- Number of packets sent to DDU
       -- when x"4B" => odmb_data <= pc_data_valid_cnt;  -- Number of packets sent to PC
       -- --when x"4C" => odmb_data <= data_fifo_oe_cnt(1);  -- from control to FIFOs in top
       -- when x"4D" => odmb_data <= "00" & x"0" & cafifo_l1a_match_out when NCFEB = 7 else
@@ -271,8 +319,8 @@ begin
       when x"B5" => odmb_data <= dcfeb_bad_rx_cnt(5);
       when x"B6" => odmb_data <= dcfeb_bad_rx_cnt(6);
       when x"B7" => odmb_data <= dcfeb_bad_rx_cnt(7);
-      -- when x"B8" => odmb_data <= x"00" & '0' & autokilled_dcfebs; -- DCFEBs auto-killed due to fiber errors or too long packets
-      -- when x"B9" => odmb_data <= x"00" & '0' & autokilled_dcfebs_fiber; -- DCFEBs auto-killed due to fiber errors
+      when x"B8" => odmb_data <= autokilled_dcfebs_any; -- DCFEBs auto-killed due to fiber errors or too long packets
+      when x"B9" => odmb_data <= autokilled_dcfebs_fiber; -- DCFEBs auto-killed due to fiber errors
 
       when others => odmb_data <= (others => '1');
     end case;
@@ -303,6 +351,7 @@ begin
       port map(GAP_COUNT => lct_l1a_gap(dev), CLK => CMSCLK, RST => RESET, SIGNAL1 => RAW_LCT(dev), SIGNAL2 => DCFEB_L1A);
 
     dcfeb_badcrc_cnt(dev) <= std_logic_vector( unsigned(eof_data_cnt(dev)) - unsigned(goodcrc_cnt(dev)) );
+    dcfeb_fiber_error(dev) <= or_reduce(dcfeb_bad_rx_cnt(dev)(15 downto 5));
   end generate DCFEB_RXSTAT_CNT;
 
   -- Counting for OTMB: keep them at position 8
@@ -329,6 +378,9 @@ begin
   DCFEBL1A_CNT   : COUNT_EDGES port map(COUNT => dcfeb_l1a_cnt,  CLK => CMSCLK, RST => L1ACNT_RST, DIN => DCFEB_L1A);
   UNSYNCL1A_CNT  : COUNT_EDGES port map(COUNT => unsync_l1a_cnt, CLK => CMSCLK, RST => PON_RESET,  DIN => DCFEB_L1A);
 
+  -- Counting the number of DDU packets sent
+  DDUEOF_CNT     : COUNT_EDGES port map(COUNT => ddu_eof_cnt,     CLK => DDUCLK, RST => RESET, DIN => DDU_EOF);
+
   -------------------------------------------------------------------------------------------
   -- CCB count generations
   -------------------------------------------------------------------------------------------
@@ -344,5 +396,34 @@ begin
     ccb_rsv_reg_b(index)   <= not ccb_rsv_reg(index);
   end generate GEN_CCB_FD;
 
+  -------------------------------------------------------------------------------------------
+  -- Process internal configuration update (e.g. auto-kill)
+  -------------------------------------------------------------------------------------------
+  dcfeb_autokill_inst : DCFEB_AUTOKILL
+    generic map (
+      NCFEB => NCFEB
+      )
+    port map (
+      CMSCLK              => CMSCLK,
+      DCFEBCLK            => DCFEBCLK,
+
+      DCFEB_RXD_VALID     => DCFEB_RXD_VALID,
+      DCFEB_FIBER_ERROR   => DCFEB_FIBER_ERROR,
+      KILL                => KILL,
+
+      AUTOKILLED_ANY      => autokilled_dcfebs_any,
+      AUTOKILLED_FIBER    => autokilled_dcfebs_fiber,
+      NEW_KILL_REG        => new_kill_reg,
+      UPDATE_KILL_REG     => update_kill_reg,
+      OPTICAL_RESET       => DCFEB_OPT_RST,
+
+      CFG_UL_PULSE        => CFG_UL_PULSE,
+      MAX_WORDS_DCFEB     => MAX_WORDS_DCFEB,
+
+      RESET               => RESET
+      );
+
+  CHANGE_REG_DATA <= new_kill_reg when (update_kill_reg = '1' and AUTOKILL_EN = '1') else (others => '0');
+  CHANGE_REG_INDEX <= 7 when (update_kill_reg = '1' and AUTOKILL_EN = '1') else NREGS;
 
 end ODMB_STATUS_ARCH;

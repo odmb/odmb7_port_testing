@@ -136,13 +136,13 @@ architecture Behavioral of mgt_cfeb is
       );
   end component;
 
-  -- -- Temporary debugging
-  -- component ila_2 is
-  --   port (
-  --     clk : in std_logic := '0';
-  --     probe0 : in std_logic_vector(383 downto 0) := (others=> '0')
-  --     );
-  -- end component;
+  -- Temporary debugging
+  component ila_2 is
+    port (
+      clk : in std_logic := '0';
+      probe0 : in std_logic_vector(383 downto 0) := (others=> '0')
+      );
+  end component;
 
   -- Synchronize the latched link down reset input and the VIO-driven signal into the free-running clock domain
   -- signals passed to wizard
@@ -233,6 +233,8 @@ architecture Behavioral of mgt_cfeb is
   signal ila_data_rx : std_logic_vector(383 downto 0) := (others=> '0');
   type t_ilad_arr is array (integer range <>) of std_logic_vector(47 downto 0);
   signal ila_data_ch : t_ilad_arr(NLINK-1 downto 0);
+
+  signal opt_reset_cnt : unsigned(15 downto 0) := (others => '0');
 
 begin
 
@@ -387,14 +389,20 @@ begin
   end generate ila_data_assign;
 
   -- Input control signals
-  -- ila_data_rx(352 downto 346) <= kill_rxout;
-  -- ila_data_rx(359 downto 353) <= kill_rxpd;
-  -- ila_data_rx(360)            <= reset;
+  ila_data_rx(352 downto 346) <= kill_rxout;
+  ila_data_rx(359 downto 353) <= kill_rxpd;
+  ila_data_rx(360)            <= reset;
+  ila_data_rx(361)            <= gtwiz_userclk_rx_active_int;
+  ila_data_rx(362)            <= gtwiz_reset_rx_done_int;
 
-  -- mgt_cfeb_ila_inst : ila_2
-  --   port map(
-  --     clk => gtwiz_userclk_rx_usrclk2_int,
-  --     probe0 => ila_data_rx
-  --     );
+  ila_data_rx(378 downto 363) <= std_logic_vector(opt_reset_cnt);
+
+  opt_reset_cnt <= opt_reset_cnt +1 when rising_edge(SYSCLK) and RESET = '1';
+      
+  mgt_cfeb_ila_inst : ila_2
+    port map(
+      clk => gtwiz_userclk_rx_usrclk2_int,
+      probe0 => ila_data_rx
+      );
 
 end Behavioral;

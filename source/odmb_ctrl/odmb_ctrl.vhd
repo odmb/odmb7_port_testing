@@ -55,7 +55,7 @@ entity ODMB_CTRL is
     --------------------
     CAL_MODE      : in std_logic;
     PEDESTAL      : in std_logic;
-    PEDESTAL_OTMB   : in  std_logic;
+    PEDESTAL_OTMB : in  std_logic;
 
     --------------------
     -- TRGCNTRL
@@ -105,12 +105,11 @@ entity ODMB_CTRL is
     -- From GigaLinks
     DDU_DATA       : out std_logic_vector(15 downto 0);
     DDU_DATA_VALID : out std_logic;
+    DDU_EOF        : out std_logic;
 
     -- For headers/trailers
-    --DAQMBID : in std_logic_vector(11 downto 0);  -- From CRATEID in SETFEBDLY, and GA
-    GA : in std_logic_vector(4 downto 0);
-    CRATEID : in std_logic_vector(7 downto 0);  -- From CRATEID in SETFEBDLY, and GA
-    AUTOKILLED_DCFEBS  : in std_logic_vector(NCFEB downto 1);
+    GA_B           : in std_logic_vector(4 downto 0);
+    CRATEID        : in std_logic_vector(7 downto 0);  -- From CRATEID in SETFEBDLY, and GA
       
     -- From/To Data FIFOs
     FIFO_RE_B      : out std_logic_vector(NCFEB+2 downto 1);
@@ -260,7 +259,6 @@ architecture Behavioral of ODMB_CTRL is
 
       -- For headers/trailers
       DAQMBID : in std_logic_vector(11 downto 0);  -- From CRATEID in SETFEBDLY, and GA
-      AUTOKILLED_DCFEBS  : in std_logic_vector(NCFEB downto 1);
 
       -- FROM SW1
       GIGAEN : in std_logic;
@@ -349,7 +347,7 @@ architecture Behavioral of ODMB_CTRL is
   -- CONTROL outputs
   signal control_debug_full   : std_logic_vector(143 downto 0);
   signal cafifo_pop           : std_logic := '0';
-  signal eof                  : std_logic := '0';
+  signal ddu_eof_inner        : std_logic := '0';
   signal ddu_data_inner       : std_logic_vector(15 downto 0);
   signal ddu_data_valid_inner : std_logic := 'L';
 
@@ -503,7 +501,6 @@ begin
 
       -- From CONFREG and GA
       DAQMBID => daqmbid,
-      AUTOKILLED_DCFEBS => AUTOKILLED_DCFEBS,
 
       -- FROM SW1
       GIGAEN => LOGICH,
@@ -512,7 +509,7 @@ begin
       FIFO_POP => cafifo_pop,
 
       -- TO PCFIFO
-      EOF => eof,
+      EOF => ddu_eof_inner,
 
       -- DEBUG
       control_debug => control_debug_full,
@@ -559,9 +556,10 @@ begin
 
   DDU_DATA       <= ddu_data_inner;
   DDU_DATA_VALID <= ddu_data_valid_inner;
+  DDU_EOF        <= ddu_eof_inner;
 
-  daqmbid(11 downto 4) <= crateid;
-  daqmbid(3 downto 0)  <= not ga(4 downto 1);  -- GA0 not included so that this is ODMB counter
+  daqmbid(11 downto 4) <= CRATEID;
+  daqmbid(3 downto 0)  <= not GA_B(4 downto 1);  -- GA0 not included so that this is ODMB counter
 
   -- ILA
   ila_data1(3 downto 0)         <= otmb_dav & alct_dav & rawlct(0) & raw_l1a; -- raw signal

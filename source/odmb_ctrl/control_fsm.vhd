@@ -50,7 +50,6 @@ entity CONTROL_FSM is
 
     -- For headers/trailers
     DAQMBID : in std_logic_vector(11 downto 0);
-    AUTOKILLED_DCFEBS  : in std_logic_vector(NCFEB downto 1);
 
     -- FROM SW1
     GIGAEN : in std_logic;

@@ -214,8 +214,8 @@ begin
   PLS_OPTRESET : PULSE2FAST port map(DOUT => OPT_RESET_PULSE, CLK_DOUT => CLK40, RST => RST, DIN => w_opt_rst);
   PLS_L1ARESET : PULSE2FAST port map(DOUT => L1A_RESET_PULSE, CLK_DOUT => CLK40, RST => RST, DIN => w_dcfeb_resync);
   PLS_REPROG   : NPULSE2SAME port map(DOUT => reprog, CLK_DOUT => SLOWCLK, RST => RST, NPULSE => 2, DIN => w_dcfeb_reprog);
-  -- REPROG_B <= not reprog;
-  REPROG_B <= '1';
+  REPROG_B <= not reprog;
+  -- REPROG_B <= '1';
 
   --Local register (+DCFEB done) write/read commands
 
