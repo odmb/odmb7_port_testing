@@ -19,7 +19,7 @@ use UNISIM.VComponents.all;
 use work.gbt_bank_package.all;
 use work.vendor_specific_gbt_bank_package.all;
 
-entity gbt_alct is
+entity mgt_fed is
   generic (
     NLINK       : integer := 1
     );
@@ -28,37 +28,35 @@ entity gbt_alct is
     mgtrefclk   : in  std_logic;  --! Input MGT reference clock signal after buffer
     cmsclk      : in  std_logic;  --! Independent clock signal to drive for the helper block of the MGT IP, 80 MHz
     drpclk      : in  std_logic;  --! DRPCLK for the gtwizard module, 120.24 MHz derived from mgtrefclk0_225
+    txusrclk    : out std_logic;  --! The USRCLK signal for RX data readout 120.24 MHz
+    txclken     : out std_logic;  --! The clock enable signal for the RX data readout, 40.079 MHz, 1/3 duty cycle
     rxusrclk    : out std_logic;  --! The USRCLK signal for RX data readout 120.24 MHz
     rxclken     : out std_logic;  --! The clock enable signal for the RX data readout, 40.079 MHz, 1/3 duty cycle
 
     -- Serial data ports for transceiver at bank 224-225
-    daq_rx_n    : in std_logic; --! Connected to differential optical input signals
-    daq_rx_p    : in std_logic; --! Connected to differential optical input signals
+    daq_rx_n    : in  std_logic_vector(NLINK downto 1); --! Connected to differential optical input signals
+    daq_rx_p    : in  std_logic_vector(NLINK downto 1); --! Connected to differential optical input signals
+    daq_tx_n    : out std_logic_vector(NLINK downto 1); --! Connected to differential optical input signals
+    daq_tx_p    : out std_logic_vector(NLINK downto 1); --! Connected to differential optical input signals
 
-    -- Receiver signals
-    rxdata      : out std_logic_vector(71 downto 0); --! 4 words
-    rxd_valid   : out std_logic; --! Flag for valid data
-    bad_rx      : out std_logic; --! Flag for fiber errors
-    rxready     : out std_logic; --! Flag for rx reset done
-    kill        : in  std_logic; --! Kill signal for ALCT readout
-
-    -- -- Data FIFO full signals
-    -- fifo_full   : in std_logic_vector(NLINK downto 1);    --! Flag for ALCT data FIFO full
-    -- fifo_afull  : in std_logic_vector(NLINK downto 1);    --! Flag for ALCT data FIFO almost full
-
-    -- Temporary for debug
-    rxdata_remap : out std_logic_vector(111 downto 0);
+    -- Tranceiver signals
+    txdata      : in  t_std68_array(NLINK downto 1);    --! User TX data, after x"CF00"
+    txd_valid   : in  std_logic_vector(NLINK downto 1); --! Flag for valid data
+    rxdata      : out t_std84_array(NLINK downto 1);    --! Full RX gbt data
+    rxd_valid   : out std_logic_vector(NLINK downto 1); --! Flag for valid data
+    bad_rx      : out std_logic_vector(NLINK downto 1); --! Flag for fiber errors
+    rxready     : out std_logic;                        --! Flag for rx reset done
 
     -- Reset
-    reset        : in  std_logic                          --! The Global reset signal
+    reset       : in  std_logic                         --! The Global reset signal
     );
-end gbt_alct;
+end mgt_fed;
 
-architecture Behavioral of gbt_alct is
+architecture Behavioral of mgt_fed is
 
   constant NUM_LINKS    : integer := NLINK;
 
-  component gtwiz_alct_r1
+  component gtwiz_fed_d1
     port (
       gtwiz_userclk_tx_active_in : in std_logic_vector(0 downto 0);
       gtwiz_userclk_rx_active_in : in std_logic_vector(0 downto 0);
@@ -156,14 +154,12 @@ architecture Behavioral of gbt_alct is
   signal rxbitslip_done_s                : std_logic_vector(1 to NUM_LINKS);
   signal mgt_headerflag_s                : std_logic_vector(1 to NUM_LINKS);
 
-
   --===========--
   -- GBT Tx/Rx --
   --===========--
-  -- signal gbt_txreset_s                   : std_logic_vector(1 to NUM_LINKS);
-  -- signal gbt_rxreset_s                   : std_logic_vector(1 to NUM_LINKS);
-  -- signal gbt_txisdata_s                  : std_logic_vector(1 to NUM_LINKS);
-  -- signal gbt_rxisdata_s                  : std_logic_vector(1 to NUM_LINKS);
+  signal gbt_rxclken                     : std_logic; -- Clock enable signal, on for every third clock of the usrclk
+  signal gbt_txclken                     : std_logic; -- Clock enable signal, on for every third clock of the usrclk
+
   signal gbt_txclken_s                   : std_logic_vector(1 to NUM_LINKS);
   signal gbt_rxclken_s                   : std_logic_vector(1 to NUM_LiNKS);
   signal mgt_txword_s                    : word_mxnbit_A(1 to NUM_LINKS);     --! Tx word to the transceiver (from the Tx gearbox to the MGT)
@@ -172,76 +168,38 @@ architecture Behavioral of gbt_alct is
   signal gbt_rxerror_s                   : std_logic_vector(1 to NUM_LINKS);
   signal gbt_rxready_s                   : std_logic_vector(1 to NUM_LINKS);
 
-  --===== GBT Rx Phase Aligner =====--
-  signal gbt_rxusrclk      : std_logic; -- User clock for ALCT, at 120 MHz
-  signal gbt_rxclken       : std_logic; -- Clock enable signal, on for every third clock of the usrclk
-  signal alct_rxdata_gbt   : std_logic_vector(83 downto 0);  -- Data received for GBT Frame
-  signal alct_rxdata_wb    : std_logic_vector(31 downto 0);  -- Extra data for Wide Bus
-  signal alct_rxdata_raw   : std_logic_vector(111 downto 0);
+  -- Focus only on case when only 1 link is used for GBT
+  signal fed_rxdata_gbt    : std_logic_vector(83 downto 0);  -- Data received for GBT Frame
+  signal fed_rxdata_wb     : std_logic_vector(31 downto 0);  -- Extra data for Wide Bus
+  signal fed_txdata_gbt    : std_logic_vector(83 downto 0);  -- Data received for GBT Frame
+  signal fed_txdata_wb     : std_logic_vector(31 downto 0);  -- Extra data for Wide Bus
+  signal fed_rxd_valid     : std_logic; -- Flag for valid data
 
-  signal alct_data_word    : t_std18_array(4 downto 0);
-  signal alct_rxdata_pkt   : t_std14_array(7 downto 0);
-  signal alct_halfword_reg : std_logic_vector(13 downto 0); -- latched for the last packet
+  signal fed_data_word    : t_std18_array(4 downto 0);
+  signal fed_rxdata_pkt   : t_std14_array(7 downto 0);
+  signal fed_halfword_reg : std_logic_vector(13 downto 0); -- latched for the last packet
 
   -- Debugging signals --
   signal ila_data_mgt      : std_logic_vector(83 downto 0);
 
-  --===== Helper function =====--
-  function extract_alct_word_from_frame (data  : std_logic_vector(111 downto 0);
-                                         index : integer)
-    return std_logic_vector is
-  begin
-    return (data(104 + index) & data(96 + index) & data(88 + index) & data(80 + index) &
-            data( 72 + index) & data(64 + index) & data(56 + index) & data(48 + index) &
-            data( 40 + index) & data(32 + index) & data(24 + index) & data(16 + index) &
-            data(  8 + index) & data( 0 + index));
-  end;
-
 begin
 
-  --========================================--
-  -- ALCT data handling (subject to change) --
-  --========================================--
-  RXDATA <= alct_data_word(3) & alct_data_word(2) & alct_data_word(1) & alct_data_word(0);
-
-  -- gbt_txisdata_s(1) <= TXD_VALID;
-  alct_rxdata_raw <= alct_rxdata_wb & alct_rxdata_gbt(79 downto 0);
-
-  rxdata_pkt_gen: for i in 0 to 7 generate
-    alct_rxdata_pkt(i) <= extract_alct_word_from_frame(alct_rxdata_raw, i);
-  end generate;
-
-  alct_word_assemble : process (gbt_rxusrclk, gbt_rxclken)
-  begin
-    if (rising_edge(gbt_rxusrclk) and gbt_rxclken = '1') then
-      if (alct_rxdata_pkt(0)(13) = '1') then
-        alct_data_word(0) <= alct_rxdata_pkt(1)(8) & alct_rxdata_pkt(1)(6 downto 0) & alct_rxdata_pkt(0)(9 downto 0);
-        alct_data_word(1) <= alct_rxdata_pkt(3)(8) & alct_rxdata_pkt(3)(6 downto 0) & alct_rxdata_pkt(2)(9 downto 0);
-        alct_data_word(2) <= alct_rxdata_pkt(5)(8) & alct_rxdata_pkt(5)(6 downto 0) & alct_rxdata_pkt(4)(9 downto 0);
-        alct_data_word(3) <= alct_rxdata_pkt(7)(8) & alct_rxdata_pkt(7)(6 downto 0) & alct_rxdata_pkt(6)(9 downto 0);
-      else
-        alct_data_word(0) <= alct_rxdata_pkt(0)(8) & alct_rxdata_pkt(0)(6 downto 0) & alct_halfword_reg(9 downto 0);
-        alct_data_word(1) <= alct_rxdata_pkt(2)(8) & alct_rxdata_pkt(2)(6 downto 0) & alct_rxdata_pkt(1)(9 downto 0);
-        alct_data_word(2) <= alct_rxdata_pkt(4)(8) & alct_rxdata_pkt(4)(6 downto 0) & alct_rxdata_pkt(3)(9 downto 0);
-        alct_data_word(3) <= alct_rxdata_pkt(6)(8) & alct_rxdata_pkt(6)(6 downto 0) & alct_rxdata_pkt(5)(9 downto 0);
-        alct_halfword_reg <= alct_rxdata_pkt(7);
-      end if;
-    end if;
-  end process;
+  RXDATA(1) <= fed_rxdata_gbt;
+  fed_txdata_gbt <= x"CF00" & TXDATA(1);
 
   --====================--
   -- Rx/Tx Status flags --
   --====================--
   RXREADY <= and_reduce(rxready_int);
-  BAD_RX <= rxerror_int(0);
+  BAD_RX <= rxerror_int;
 
   --============--
   -- Clocks     --
   --============--
-  RXUSRCLK  <= rxusrclk_int;
-  RXCLKEN   <= gbt_rxclken;
-  -- TXUSRCLK  <= txusrclk_int; -- for FULL_MGTFREQ clocking scheme
-  -- TXCLKEN   <= gbt_txclken_s(1);
+  RXUSRCLK <= rxusrclk_int;
+  TXUSRCLK <= txusrclk_int; -- for FULL_MGTFREQ clocking scheme
+  RXCLKEN <= gbt_rxclken;
+  TXCLKEN <= gbt_txclken;
 
   --=============--
   -- GBT Wrapper --
@@ -249,8 +207,8 @@ begin
   gbt_inst : entity work.gbt_wrapper
     generic map (
       NUM_LINKS                => NLINK,
-      TX_ENCODING              => WIDE_BUS,   -- 0: GBT_FRAME, 1: WIDE_BUS, 2: GBT_DYNAMIC
-      RX_ENCODING              => WIDE_BUS    -- 0: GBT_FRAME, 1: WIDE_BUS, 2: GBT_DYNAMIC
+      TX_ENCODING              => GBT_FRAME,   -- 0: GBT_FRAME, 1: WIDE_BUS, 2: GBT_DYNAMIC
+      RX_ENCODING              => GBT_FRAME    -- 0: GBT_FRAME, 1: WIDE_BUS, 2: GBT_DYNAMIC
       )
     port map (
       --==============--
@@ -262,20 +220,20 @@ begin
 
       GBT_TXUSRCLK_i           => txusrclk_int,
       GBT_RXUSRCLK_i           => rxusrclk_int,
-      GBT_TXCLKEN_o            => open,
+      GBT_TXCLKEN_o            => gbt_txclken,
       GBT_RXCLKEN_o            => gbt_rxclken,
 
       --==============--
       -- Data          --
       --==============--
-      GBT_TXDATA_i(1)          => (others => '0'),
-      GBT_RXDATA_o(1)          => alct_rxdata_gbt,
+      GBT_TXDATA_i(1)          => fed_txdata_gbt,
+      GBT_RXDATA_o(1)          => fed_rxdata_gbt,
 
-      WB_TXDATA_i(1)           => (others => '0'),
-      WB_RXDATA_o(1)           => alct_rxdata_wb,
+      WB_TXDATA_i(1)           => fed_txdata_wb,
+      WB_RXDATA_o(1)           => fed_rxdata_wb,
 
-      TX_ISDATA_i(1)           => '0',
-      RX_ISDATA_o(1)           => RXD_VALID,
+      TX_ISDATA_i(1)           => TXD_VALID(1),
+      RX_ISDATA_o(1)           => RXD_VALID(1),
 
       MGT_TXWORD_o             => mgt_txword_s,
       MGT_RXWORD_i             => mgt_rxword_s,
@@ -327,8 +285,6 @@ begin
 
   mgt_txready <= gtwiz_reset_tx_done_int and gtwiz_buffbypass_tx_done_int;
   mgt_rxready <= gtwiz_reset_rx_done_int and gtwiz_buffbypass_rx_done_int and and_reduce(rxbitslip_done_s);
-
-  mgt_rxreset_done <= gtwiz_reset_rx_done_int and gtwiz_buffbypass_rx_done_int;
 
   rxBuffBypassRst <= not(gtwiz_userclk_rx_active_int) or not(gtwiz_buffbypass_tx_done_int);
 
@@ -393,13 +349,12 @@ begin
         );
   end generate;
 
-
-  gtwiz_alct_inst : gtwiz_alct_r1
+  gtwiz_fed_inst : gtwiz_fed_d1
     port map (
-      gthrxn_in(0)                           => DAQ_RX_N,
-      gthrxp_in(0)                           => DAQ_RX_P,
-      gthtxn_out(0)                          => open,
-      gthtxp_out(0)                          => open,
+      gthrxn_in                              => DAQ_RX_N,
+      gthrxp_in                              => DAQ_RX_P,
+      gthtxn_out                             => DAQ_TX_N,
+      gthtxp_out                             => DAQ_TX_P,
 
       gtrefclk0_in(0)                        => MGTREFCLK,
 
@@ -465,10 +420,5 @@ begin
       txpmaresetdone_out                     => txpmaresetdone_int
       );
 
-  ---------------------------------------------------------------------------------------------------------------------
-  -- Debugging
-  ---------------------------------------------------------------------------------------------------------------------
-  RXDATA_REMAP <= alct_rxdata_pkt(7) & alct_rxdata_pkt(6) & alct_rxdata_pkt(5) & alct_rxdata_pkt(4) &
-                  alct_rxdata_pkt(3) & alct_rxdata_pkt(2) & alct_rxdata_pkt(1) & alct_rxdata_pkt(0);
 
 end Behavioral;

@@ -2,6 +2,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.std_logic_misc.all;
 
 -- Xilinx devices library:
 library unisim;
@@ -19,7 +20,6 @@ use work.vendor_specific_gbt_bank_package.all;
 entity gbt_wrapper is
   generic (
     NUM_LINKS                                    : integer := 1;
-    LINK_TYPE                                    : integer := 0; --! LINK_TYPE: select the proper gtwizard IP, with 0: ALCT, 1: BCK_PRS
     TX_ENCODING                                  : integer range 0 to 2 := GBT_FRAME; --! 0: GBT_FRAME, 1: WIDE_BUS, 2: GBT_DYNAMIC
     RX_ENCODING                                  : integer range 0 to 2 := GBT_FRAME  --! 0: GBT_FRAME, 1: WIDE_BUS, 2: GBT_DYNAMIC
     );
@@ -29,21 +29,13 @@ entity gbt_wrapper is
     -- Clocks       --
     --==============--
     MGT_REFCLK                                   : in  std_logic;
-    GBT_FRAMECLK                                 : in  std_logic; -- 40 MHz
+    GBT_CLK                                      : in  std_logic; -- use CMSCLK, 40 MHz
     MGT_DRP_CLK                                  : in  std_logic;
 
-    GBT_TXUSRCLK_o                               : out std_logic_vector(1 to NUM_LINKS);
-    GBT_RXUSRCLK_o                               : out std_logic_vector(1 to NUM_LINKS);
-    GBT_TXCLKEN_o                                : out std_logic_vector(1 to NUM_LINKS);
-    GBT_RXCLKEN_o                                : out std_logic_vector(1 to NUM_LINKS);
-
-    --==============--
-    -- Serial lanes --
-    --==============--
-    MGT_RX_P                                     : in  std_logic_vector(1 to NUM_LINKS);
-    MGT_RX_N                                     : in  std_logic_vector(1 to NUM_LINKS);
-    MGT_TX_P                                     : out std_logic_vector(1 to NUM_LINKS);
-    MGT_TX_N                                     : out std_logic_vector(1 to NUM_LINKS);
+    GBT_TXUSRCLK_i                               : in  std_logic;
+    GBT_RXUSRCLK_i                               : in  std_logic;
+    GBT_TXCLKEN_o                                : out std_logic;
+    GBT_RXCLKEN_o                                : out std_logic;
 
     --==============--
     -- Data          --
@@ -53,20 +45,31 @@ entity gbt_wrapper is
     WB_TXDATA_i                                  : in  gbt_reg32_A(1 to NUM_LINKS);
     WB_RXDATA_o                                  : out gbt_reg32_A(1 to NUM_LINKS);
 
-    TXD_VALID_i                                  : in  std_logic_vector(1 to NUM_LINKS);
-    RXD_VALID_o                                  : out std_logic_vector(1 to NUM_LINKS);
+    TX_ISDATA_i                                  : in  std_logic_vector(1 to NUM_LINKS);
+    RX_ISDATA_o                                  : out std_logic_vector(1 to NUM_LINKS);
+
+    MGT_TXWORD_o                                 : out word_mxnbit_A(1 to NUM_LINKS);
+    MGT_RXWORD_i                                 : in  word_mxnbit_A(1 to NUM_LINKS);
+
+    --================--
+    -- MGT Control    --
+    --================--
+    RXBITSLIP_o                                  : out std_logic_vector(1 to NUM_LINKS);
+    RXBITSLIP_DONE_o                             : out std_logic_vector(1 to NUM_LINKS);
+    MGT_TXRESET_o                                : out std_logic;    --! Reset the TX path of the transceiver (Tx PLL is reset with the first link)
+    MGT_RXRESET_o                                : out std_logic;    --! Reset the Rx path of the transceiver
+    MGT_RXRESET_DONE_i                           : in  std_logic;    --! Reset the Rx path of the transceiver
 
     --==============--
     -- TX/RX Status --
     --==============--
-    MGT_TXREADY_o                                : out std_logic_vector(1 to NUM_LINKS);
-    MGT_RXREADY_o                                : out std_logic_vector(1 to NUM_LINKS);
-    GBT_TXREADY_o                                : out std_logic_vector(1 to NUM_LINKS);
+    MGT_TXREADY_i                                : in  std_logic;
+    MGT_RXREADY_i                                : in  std_logic;
     GBT_RXREADY_o                                : out std_logic_vector(1 to NUM_LINKS);
-    GBT_BAD_RX_o                                 : out std_logic_vector(1 to NUM_LINKS);
+    GBT_RXERROR_o                                : out std_logic_vector(1 to NUM_LINKS);
 
     --==============--
-    -- Reset        --
+    -- Reset signal --
     --==============--
     RESET_i                                      : in  std_logic
     );
@@ -86,14 +89,13 @@ architecture gbt_wrapper_inst of gbt_wrapper is
   constant CLOCKING_SCHEME               : integer range 0 to 1 := 1; -- 0: BC_CLOCK, 1: FULL_MGTFREQ
 
   --==========--
-  -- NGT      --
+  -- MGT      --
   --==========--
   signal mgt_txwordclk_s                 : std_logic_vector(1 to NUM_LINKS);
   signal mgt_rxwordclk_s                 : std_logic_vector(1 to NUM_LINKS);
   signal mgt_txreset_s                   : std_logic_vector(1 to NUM_LINKS);
   signal mgt_rxreset_s                   : std_logic_vector(1 to NUM_LINKS);
-  signal mgt_txready_s                   : std_logic_vector(1 to NUM_LINKS);
-  signal mgt_rxready_s                   : std_logic_vector(1 to NUM_LINKS);
+  signal mgt_rxreset_done_s              : std_logic_vector(1 to NUM_LINKS);
 
   signal mgt_headerflag_s                : std_logic_vector(1 to NUM_LINKS);
   signal mgt_devspecific_to_s            : mgtDeviceSpecific_i_R;
@@ -113,6 +115,10 @@ architecture gbt_wrapper_inst of gbt_wrapper is
   signal gbt_rxready_s                   : std_logic_vector(1 to NUM_LINKS);
   --===== GBT Rx Phase Aligner =====--
   signal rx_syncShiftReg                 : gbt_devspec_reg3_A(1 to NUM_LINKS);
+
+  signal rxbitslip_reset_tx_s            : std_logic_vector(1 to NUM_LINKS);
+  signal rxbitslip_reset_rx_s            : std_logic_vector(1 to NUM_LINKS);
+  signal rxbitslip_done_s                : std_logic_vector(1 to NUM_LINKS);
 
   --=====================================================================================--
 
@@ -138,17 +144,15 @@ begin                 --========####   Architecture Body   ####========--
   --============--
   -- Clocks     --
   --============--
-
-  GBT_TXUSRCLK_o     <= mgt_txwordclk_s; -- for FULL_MGTFREQ clocking scheme
-  GBT_RXUSRCLK_o     <= mgt_rxwordclk_s; -- for FULL_MGTFREQ clocking scheme
-
-  GBT_TXCLKEN_o      <= gbt_txclken_s;
-  GBT_RXCLKEN_o      <= gbt_rxclkenLogic_s; -- necessity to be evaluated
+  GBT_TXCLKEN_o      <= gbt_txclken_s(1);
+  GBT_RXCLKEN_o      <= gbt_rxclkenLogic_s(1); -- necessity to be evaluated
   gbt_rxclken_s      <= mgt_headerflag_s;
 
   gbtBank_Clk_gen: for i in 1 to NUM_LINKS generate
 
     -- Generate the TX Clock Enable signal every thrid clock --
+    mgt_txwordclk_s(i) <= GBT_TXUSRCLK_i;  -- for FULL_MGTFREQ clocking scheme
+
     txclken_gen: process(RESET_i, mgt_txwordclk_s(i))
       variable flagCnterV : integer range 0 to GBT_WORD_RATIO;
     begin
@@ -172,14 +176,15 @@ begin                 --========####   Architecture Body   ####========--
     end process;
 
     -- Generate the RX Clock Enable signal from headerflag --
+    mgt_rxwordclk_s(i) <= GBT_RXUSRCLK_i;  -- for FULL_MGTFREQ clocking scheme
     rx_syncShiftReg(i)(0) <= mgt_headerflag_s(i);
     gbt_rxclkenLogic_s(i) <= rx_syncShiftReg(i)(2);
 
     -- Timing issue: flip-flop stages (configurable)
     rxSyncShiftReg_gen: for j in 1 to 2 generate
-      ssr_flipflop_proc: process(mgt_rxready_s(i), mgt_rxwordclk_s(i))
+      ssr_flipflop_proc: process(MGT_RXREADY_i, mgt_rxwordclk_s(i))
       begin
-        if mgt_rxready_s(i) = '0' then
+        if MGT_RXREADY_i = '0' then
           rx_syncShiftReg(i)(j) <= '0';
 
         elsif rising_edge(mgt_rxwordclk_s(i)) then
@@ -195,6 +200,9 @@ begin                 --========####   Architecture Body   ####========--
   --============--
   -- Resets     --
   --============--
+  MGT_RXRESET_o <= or_reduce(mgt_rxreset_s) or or_reduce(rxbitslip_reset_rx_s);
+  MGT_TXRESET_o <= or_reduce(mgt_txreset_s) or or_reduce(rxbitslip_reset_tx_s);
+
   gbtBank_rst_gen: for i in 1 to NUM_LINKS generate
 
     gbtBank_gbtBankRst: entity work.gbt_bank_reset
@@ -202,7 +210,7 @@ begin                 --========####   Architecture Body   ####========--
         INITIAL_DELAY                          => 1 * 40e6   --          * 1s
         )
       port map (
-        GBT_CLK_I                              => GBT_FRAMECLK,
+        GBT_CLK_I                              => GBT_CLK,
         TX_FRAMECLK_I                          => mgt_txwordclk_s(i),
         TX_CLKEN_I                             => gbt_txclken_s(i),
         RX_FRAMECLK_I                          => mgt_rxwordclk_s(i),
@@ -221,99 +229,60 @@ begin                 --========####   Architecture Body   ####========--
         GBT_TX_RESET_O                         => gbt_txreset_s(i),
         GBT_RX_RESET_O                         => gbt_rxreset_s(i),
 
-        MGT_TX_RSTDONE_I                       => mgt_txready_s(i),
-        MGT_RX_RSTDONE_I                       => mgt_rxready_s(i)
+        MGT_TX_RSTDONE_I                       => MGT_TXREADY_i,
+        MGT_RX_RSTDONE_I                       => MGT_RXREADY_i
         );
 
-    GBT_TXREADY_o(i) <= not(gbt_txreset_s(i));
+    mgt_rxreset_done_s(i) <= MGT_RXRESET_DONE_i;
+
   end generate;
 
-  MGT_TXREADY_o <= mgt_txready_s;
-  MGT_RXREADY_o <= mgt_rxready_s;
   GBT_RXREADY_o <= gbt_rxready_s;
-
-  --=============--
-  -- Transceiver --
-  --=============--
-  gbtBank_mgt_gen: for i in 1 to NUM_LINKS generate
-
-    mgt_devspecific_to_s.drp_addr(i)               <= "000000000";
-    mgt_devspecific_to_s.drp_en(i)                 <= '0';
-    mgt_devspecific_to_s.drp_di(i)                 <= x"0000";
-    mgt_devspecific_to_s.drp_we(i)                 <= '0';
-    mgt_devspecific_to_s.drp_clk(i)                <= MGT_DRP_CLK;
-
-    mgt_devspecific_to_s.prbs_txSel(i)             <= "000";
-    mgt_devspecific_to_s.prbs_rxSel(i)             <= "000";
-    mgt_devspecific_to_s.prbs_txForceErr(i)        <= '0';
-    mgt_devspecific_to_s.prbs_rxCntReset(i)        <= '0';
-
-    mgt_devspecific_to_s.conf_diffCtrl(i)          <= "1000";    -- Comment: 807 mVppd
-    mgt_devspecific_to_s.conf_postCursor(i)        <= "00000";   -- Comment: 0.00 dB (default)
-    mgt_devspecific_to_s.conf_preCursor(i)         <= "00000";   -- Comment: 0.00 dB (default)
-    mgt_devspecific_to_s.conf_txPol(i)             <= '0';       -- Comment: Not inverted
-    mgt_devspecific_to_s.conf_rxPol(i)             <= '0';       -- Comment: Not inverted
-
-    mgt_devspecific_to_s.loopBack(i)               <= (others => '0');
-
-    mgt_devspecific_to_s.rx_p(i)                   <= MGT_RX_P(i);
-    mgt_devspecific_to_s.rx_n(i)                   <= MGT_RX_N(i);
-
-    mgt_devspecific_to_s.reset_freeRunningClock(i) <= MGT_DRP_CLK;
-
-    MGT_TX_P(i)                                    <= mgt_devspecific_from_s.tx_p(i);
-    MGT_TX_N(i)                                    <= mgt_devspecific_from_s.tx_n(i);
-
-    resetOnBitslip_s(i)                            <= '1' when RX_OPTIMIZATION = LATENCY_OPTIMIZED else '0';
-
-  -- gbt_txencoding_s(i)                            <= '1'; -- Not used. Select encoding in dynamic mode ('1': GBT / '0': WideBus)
-  -- gbt_rxencoding_s(i)                            <= '1'; -- Not used. Select encoding in dynamic mode ('1': GBT / '0': WideBus)
-  end generate;
 
   --============--
   -- GBT Bank   --
   --============--
   gbt_inst: entity work.gbt_bank
-    generic map(
+    generic map (
       NUM_LINKS                => NUM_LINKS,
-      LINK_TYPE                => LINK_TYPE,
-      TX_OPTIMIZATION          => TX_OPTIMIZATION,
-      RX_OPTIMIZATION          => RX_OPTIMIZATION,
-      TX_ENCODING              => TX_ENCODING,
-      RX_ENCODING              => RX_ENCODING
+      TX_OPTIMIZATION          => STANDARD,     -- 0: STANDARD, 1: LATENCY_OPTIMIZED
+      RX_OPTIMIZATION          => STANDARD,     -- 0: STANDARD, 1: LATENCY_OPTIMIZED
+      TX_ENCODING              => TX_ENCODING,  -- 0: GBT_FRAME, 1: WIDE_BUS, 2: GBT_DYNAMIC
+      RX_ENCODING              => TX_ENCODING   -- 0: GBT_FRAME, 1: WIDE_BUS, 2: GBT_DYNAMIC
       )
-    port map(
+    port map (
 
       --========--
       -- Resets --
       --========--
-      MGT_TXRESET_i            => mgt_txreset_s,
       MGT_RXRESET_i            => mgt_rxreset_s,
+      MGT_RXRESET_DONE_i       => mgt_rxreset_done_s,
       GBT_TXRESET_i            => gbt_txreset_s,
       GBT_RXRESET_i            => gbt_rxreset_s,
+
 
       --========--
       -- Clocks --
       --========--
-      MGT_CLK_i                => MGT_REFCLK,
+      MGT_DRP_CLK_i            => MGT_DRP_CLK,
       GBT_TXFRAMECLK_i         => mgt_txwordclk_s,
       GBT_TXCLKEn_i            => gbt_txclken_s,
       GBT_RXFRAMECLK_i         => mgt_rxwordclk_s,
       GBT_RXCLKEn_i            => gbt_rxclken_s,
-      MGT_TXWORDCLK_o          => mgt_txwordclk_s,
-      MGT_RXWORDCLK_o          => mgt_rxwordclk_s,
+      MGT_TXWORDCLK_i          => mgt_txwordclk_s,
+      MGT_RXWORDCLK_i          => mgt_rxwordclk_s,
 
       --================--
       -- GBT TX Control --
       --================--
-      GBT_ISDATAFLAG_i         => TXD_VALID_i,
+      GBT_ISDATAFLAG_i         => TX_ISDATA_i,
       TX_ENCODING_SEL_i        => gbt_txencoding_s,    --! Select the Tx encoding in dynamic mode ('1': GBT / '0': WideBus)
 
       --=================--
       -- GBT TX Status   --
       --=================--
-      TX_PHALIGNED_o          => open,
-      TX_PHCOMPUTED_o         => open,
+      TX_PHALIGNED_o           => open,
+      TX_PHCOMPUTED_o          => open,
 
       --================--
       -- GBT RX Control --
@@ -324,23 +293,24 @@ begin                 --========####   Architecture Body   ####========--
       -- GBT RX Status   --
       --=================--
       GBT_RXREADY_o            => gbt_rxready_s,
-      GBT_ISDATAFLAG_o         => RXD_VALID_o,
-      GBT_ERRORDETECTED_o      => GBT_BAD_RX_o,
+      GBT_ISDATAFLAG_o         => RX_ISDATA_o,
+      GBT_ERRORDETECTED_o      => GBT_RXERROR_o,
       GBT_ERRORFLAG_o          => open,
 
       --================--
       -- MGT Control    --
       --================--
-      MGT_DEVSPECIFIC_i        => mgt_devspecific_to_s,
-      MGT_RSTONBITSLIPEn_i     => resetOnBitslip_s,
+      MGT_RSTONBITSLIPEn_i     => (others => '0'),     --! '1' when RX_OPTIMIZATION = LATENCY_OPTIMIZED
       MGT_RSTONEVEN_i          => (others => '0'),
+
+      RXBITSLIP_o              => RXBITSLIP_o,
+      RXBITSLIP_DONE_o         => RXBITSLIP_DONE_o,
+      RXBITSLIP_TXRESET_o      => rxbitslip_reset_tx_s,
+      RXBITSLIP_RXRESET_o      => rxbitslip_reset_rx_s,
 
       --=================--
       -- MGT Status      --
       --=================--
-      MGT_TXREADY_o            => mgt_txready_s, --GBTBANK_LINK_TX_READY_O,
-      MGT_RXREADY_o            => mgt_rxready_s, --GBTBANK_LINK_RX_READY_O,
-      MGT_DEVSPECIFIC_o        => mgt_devspecific_from_s,
       MGT_HEADERFLAG_o         => mgt_headerflag_s,
       MGT_HEADERLOCKED_o       => open,
       MGT_RSTCNT_o             => open,
@@ -350,6 +320,9 @@ begin                 --========####   Architecture Body   ####========--
       --========--
       -- Data   --
       --========--
+      MGT_TXWORD_o             => MGT_TXWORD_o,
+      MGT_RXWORD_i             => MGT_RXWORD_i,
+
       GBT_TXDATA_i             => GBT_TXDATA_i,
       GBT_RXDATA_o             => GBT_RXDATA_o,
 
