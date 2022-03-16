@@ -175,7 +175,7 @@ begin
   control_fsm_la_data(55+NCFEB downto 54) <= renfifo_b_inner; -- [62:54]
   control_fsm_la_data(53 downto 38)       <= dout_inner; -- [53:38]
   control_fsm_la_data(37 downto 35)       <= '0' & hdr_tail_cnt_en & dev_cnt_en; -- [37:35]
-  control_fsm_la_data(17+NCFEB downto 26) <= CAFIFO_L1A_DAV; -- [34:26]
+  control_fsm_la_data(27+NCFEB downto 26) <= CAFIFO_L1A_DAV; -- [34:26]
   control_fsm_la_data(18+NCFEB downto 17) <= CAFIFO_L1A_MATCH; -- [25:17]
   control_fsm_la_data(16 downto 15)       <= q_datain_last & expect_pckt; -- [16:15]
   control_fsm_la_data(14 downto 5)        <= hdr_tail_cnt_svl & dev_cnt_svl; -- [14:5]

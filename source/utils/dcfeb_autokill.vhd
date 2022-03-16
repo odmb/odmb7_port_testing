@@ -177,10 +177,10 @@ begin
   AUTOKILLED_FIBER <= autokilled_dcfebs_fiber;
 
   UPDATE_KILL_REG <= '1' when or_reduce(bad_dcfeb_pulse) = '1' or or_reduce(good_dcfeb_pulse) = '1' else '0';
-  NEW_KILL_REG(15 downto NCFEB+3) <= (others => '0');
-  NEW_KILL_REG(NCFEB+2 downto NCFEB+1) <= kill(NCFEB+2 downto NCFEB+1);
-  NEW_KILL_REG(NCFEB downto 1) <= new_cfeb_kill;
 
+  NEW_KILL_REG(15 downto NCFEB+2)    <= (others => '0');
+  NEW_KILL_REG(NCFEB+1 downto NCFEB) <= kill(NCFEB+2 downto NCFEB+1);
+  NEW_KILL_REG(NCFEB-1 downto 0)     <= new_cfeb_kill;
   new_cfeb_kill <= (kill(NCFEB downto 1) or bad_dcfeb_pulse) and not good_dcfeb_pulse;
 
   OPTICAL_RESET <= '0';
