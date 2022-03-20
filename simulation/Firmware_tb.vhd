@@ -268,7 +268,7 @@ architecture Behavioral of Firmware_tb is
   signal lut_input1_dout_c : std_logic_vector(bw_input1-1 downto 0) := (others=> '0');
   signal lut_input2_dout_c : std_logic_vector(bw_input2-1 downto 0) := (others=> '0');
 
-  --signals for generating input to VME
+  -- signals for generating input to VME
   signal cmddev    : std_logic_vector(15 downto 0) := (others=> '0');
   attribute mark_debug of cmddev : signal is "true";
   signal nextcmd   : std_logic := '1';
@@ -276,6 +276,18 @@ architecture Behavioral of Firmware_tb is
   attribute mark_debug of cack : signal is "true";
   signal cack_reg  : std_logic := 'H';
   signal cack_i    : std_logic := '1';
+
+  -- Signals for optical loopback
+  signal daq_rx_p     : std_logic_vector(10 downto 0) := (others => '0');
+  signal daq_rx_n     : std_logic_vector(10 downto 0) := (others => '0');
+  signal daq_spy_rx_p : std_logic := '0';
+  signal daq_spy_rx_n : std_logic := '0';
+  signal b04_rx_p     : std_logic_vector(4 downto 2);
+  signal b04_rx_n     : std_logic_vector(4 downto 2);
+  signal bck_prs_p    : std_logic;
+  signal bck_prs_n    : std_logic;
+  signal daq_tx_p     : std_logic_vector(1 downto 1);
+  signal daq_tx_n     : std_logic_vector(1 downto 1);
 
   -- Checker bit
   signal checker  : std_logic := '0';
@@ -421,6 +433,12 @@ begin
     VME_BUF : IOBUF port map(O => vme_data_io_out_buf(I), IO => vme_data_io(I), I => vme_data_io_in_buf(I), T => vme_oe_b);
   end generate VCC_GEN_15;
 
+  -- Optical loopback signals -------------------
+  bck_prs_p <= daq_tx_p(1);
+  bck_prs_n <= daq_tx_n(1);
+  daq_rx_p(7) <= daq_tx_p(1);
+  daq_rx_n(7) <= daq_tx_n(1);
+
   -- ODMB Firmware module
   odmb_i: entity work.ODMB7_UCSB_DEV
     port map(
@@ -443,7 +461,6 @@ begin
       REF_CLK_5_N          => cmsclk160_n,
       CLK_125_REF_P        => oscclk125_p,
       CLK_125_REF_N        => oscclk125_n,
-      EMCCLK               => oscclk125_p, -- Low frequency, 133 MHz for SPI programing clock, use 160 for now...
       LF_CLK               => cmsclk10, -- Low frequency, 10 kHz, use clk10 for now
 
       VME_DATA             => vme_data_io,
@@ -532,18 +549,18 @@ begin
       KUS_TDO              => '0',
       KUS_DL_SEL           => open,
 
-      DAQ_RX_P             => "00000000000",
-      DAQ_RX_N             => "00000000000",
-      DAQ_SPY_RX_P         => '0',
-      DAQ_SPY_RX_N         => '0',
-      B04_RX_P             => "000",
-      B04_RX_N             => "000",
-      BCK_PRS_P            => '0',
-      BCK_PRS_N            => '0',
+      DAQ_RX_P             => daq_rx_p,
+      DAQ_RX_N             => daq_rx_n,
+      DAQ_SPY_RX_P         => daq_spy_rx_p,
+      DAQ_SPY_RX_N         => daq_spy_rx_n,
+      B04_RX_P             => b04_rx_p,
+      B04_RX_N             => b04_rx_n,
+      BCK_PRS_P            => bck_prs_p,
+      BCK_PRS_N            => bck_prs_n,
       SPY_TX_P             => open,
       SPY_TX_N             => open,
-      -- DAQ_TX_P             => open,
-      -- DAQ_TX_N             => open,
+      DAQ_TX_P             => daq_tx_p,
+      DAQ_TX_N             => daq_tx_n,
       DAQ_SPY_SEL          => open,
       RX12_I2C_ENA         => open,
       RX12_SDA             => open,

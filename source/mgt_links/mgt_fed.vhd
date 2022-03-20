@@ -42,6 +42,7 @@ entity mgt_fed is
     -- Tranceiver signals
     txdata      : in  t_std68_array(NLINK downto 1);    --! User TX data, after x"CF00"
     txd_valid   : in  std_logic_vector(NLINK downto 1); --! Flag for valid data
+    txready     : out std_logic;                        --! Flag for rx reset done
     rxdata      : out t_std84_array(NLINK downto 1);    --! Full RX gbt data
     rxd_valid   : out std_logic_vector(NLINK downto 1); --! Flag for valid data
     bad_rx      : out std_logic_vector(NLINK downto 1); --! Flag for fiber errors
@@ -55,6 +56,17 @@ end mgt_fed;
 architecture Behavioral of mgt_fed is
 
   constant NUM_LINKS    : integer := NLINK;
+
+  -- Temporary for debug
+  component ila_gbt is
+    port (
+      clk: in std_logic;
+      probe0: in std_logic_vector(111 downto 0);
+      probe1: in std_logic_vector(71 downto 0);
+      probe2: in std_logic_vector(63 downto 0);
+      probe3: in std_logic_vector(0 downto 0)
+      );
+  end component;
 
   component gtwiz_fed_d1
     port (
@@ -139,7 +151,9 @@ architecture Behavioral of mgt_fed is
   signal gtwiz_buffbypass_rx_done_int    : std_logic := '0';
   signal gtwiz_tx_reset_int              : std_logic := '0';
   signal gtwiz_rx_reset_int              : std_logic := '0';
+  signal gtwiz_reset_rx_cdr_stable_int   : std_logic := '0';
   signal rxBuffBypassRst                 : std_logic := '0';
+  signal drprdy_int                      : std_logic := '0';
 
   signal gtwiz_userdata_tx_int           : std_logic_vector(40*NLINK-1 downto 0);
   signal gtwiz_userdata_rx_int           : std_logic_vector(40*NLINK-1 downto 0);
@@ -180,7 +194,10 @@ architecture Behavioral of mgt_fed is
   signal fed_halfword_reg : std_logic_vector(13 downto 0); -- latched for the last packet
 
   -- Debugging signals --
-  signal ila_data_mgt      : std_logic_vector(83 downto 0);
+  signal ila_data_0     : std_logic_vector(111 downto 0);
+  signal ila_data_1     : std_logic_vector(71 downto 0);
+  signal ila_data_2     : std_logic_vector(63 downto 0);
+
 
 begin
 
@@ -190,6 +207,7 @@ begin
   --====================--
   -- Rx/Tx Status flags --
   --====================--
+  TXREADY <= mgt_txready;
   RXREADY <= and_reduce(rxready_int);
   BAD_RX <= rxerror_int;
 
@@ -387,7 +405,7 @@ begin
 
       gtwiz_reset_rx_pll_and_datapath_in(0)  => '0', -- Same PLL is used for TX and RX !
       gtwiz_reset_rx_datapath_in(0)          => gtwiz_rx_reset_int,
-      gtwiz_reset_rx_cdr_stable_out(0)       => open,
+      gtwiz_reset_rx_cdr_stable_out(0)       => gtwiz_reset_rx_cdr_stable_int,
 
       gtwiz_reset_tx_done_out(0)             => gtwiz_reset_tx_done_int,
       gtwiz_reset_rx_done_out(0)             => gtwiz_reset_rx_done_int,
@@ -401,7 +419,7 @@ begin
       drpen_in(0)                            => '0',
       drpwe_in(0)                            => '0',
       drpdo_out                              => open,
-      drprdy_out(0)                          => open,
+      drprdy_out(0)                          => drprdy_int,
 
       loopback_in                            => (others => '0'),
       rxpolarity_in(0)                       => '0',       -- Comment: Not inverted
@@ -418,6 +436,28 @@ begin
 
       rxpmaresetdone_out                     => rxpmaresetdone_int,
       txpmaresetdone_out                     => txpmaresetdone_int
+      );
+
+
+  ila_data_0(83 downto 0) <= fed_txdata_gbt;
+  ila_data_0(84) <= mgt_txready;
+  ila_data_0(85) <= mgt_rxready;
+  ila_data_0(86) <= gbt_rxready_s(1);
+  ila_data_0(87) <= gbt_rxerror_s(1);
+  ila_data_0(88) <= gtwiz_reset_tx_done_int;
+  ila_data_0(89) <= gtwiz_buffbypass_tx_done_int;
+  ila_data_0(90) <= txusrclk_int;
+
+
+  ila_data_1(39 downto 0) <= mgt_txword_s(1);
+
+  ila_fed_rx : ila_gbt
+    port map (
+      clk => DRPCLK,
+      probe0 => ila_data_0,
+      probe1 => ila_data_1,
+      probe2 => ila_data_2,
+      probe3(0) => gbt_rxclken
       );
 
 

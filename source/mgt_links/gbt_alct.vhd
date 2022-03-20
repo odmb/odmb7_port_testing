@@ -123,6 +123,8 @@ architecture Behavioral of gbt_alct is
   signal rx_usrclk_int                   : std_logic_vector(NLINK-1 downto 0);
   signal tx_usrclk_int                   : std_logic_vector(NLINK-1 downto 0);
 
+  signal gthtxp_int                      : std_logic;
+  signal gthtxn_int                      : std_logic;
   signal rxusrclk_int                    : std_logic;
   signal txusrclk_int                    : std_logic;
   signal mgt_txready                     : std_logic := '0';
@@ -141,7 +143,9 @@ architecture Behavioral of gbt_alct is
   signal gtwiz_buffbypass_rx_done_int    : std_logic := '0';
   signal gtwiz_tx_reset_int              : std_logic := '0';
   signal gtwiz_rx_reset_int              : std_logic := '0';
+  signal gtwiz_reset_rx_cdr_stable_int   : std_logic := '0';
   signal rxBuffBypassRst                 : std_logic := '0';
+  signal drprdy_int                      : std_logic := '0';
 
   signal gtwiz_userdata_tx_int           : std_logic_vector(40*NLINK-1 downto 0);
   signal gtwiz_userdata_rx_int           : std_logic_vector(40*NLINK-1 downto 0);
@@ -155,7 +159,6 @@ architecture Behavioral of gbt_alct is
   signal rxbitslip_s                     : std_logic_vector(1 to NUM_LINKS);
   signal rxbitslip_done_s                : std_logic_vector(1 to NUM_LINKS);
   signal mgt_headerflag_s                : std_logic_vector(1 to NUM_LINKS);
-
 
   --===========--
   -- GBT Tx/Rx --
@@ -398,8 +401,8 @@ begin
     port map (
       gthrxn_in(0)                           => DAQ_RX_N,
       gthrxp_in(0)                           => DAQ_RX_P,
-      gthtxn_out(0)                          => open,
-      gthtxp_out(0)                          => open,
+      gthtxn_out(0)                          => gthtxn_int,
+      gthtxp_out(0)                          => gthtxp_int,
 
       gtrefclk0_in(0)                        => MGTREFCLK,
 
@@ -432,7 +435,7 @@ begin
 
       gtwiz_reset_rx_pll_and_datapath_in(0)  => '0', -- Same PLL is used for TX and RX !
       gtwiz_reset_rx_datapath_in(0)          => gtwiz_rx_reset_int,
-      gtwiz_reset_rx_cdr_stable_out(0)       => open,
+      gtwiz_reset_rx_cdr_stable_out(0)       => gtwiz_reset_rx_cdr_stable_int,
 
       gtwiz_reset_tx_done_out(0)             => gtwiz_reset_tx_done_int,
       gtwiz_reset_rx_done_out(0)             => gtwiz_reset_rx_done_int,
@@ -446,7 +449,7 @@ begin
       drpen_in(0)                            => '0',
       drpwe_in(0)                            => '0',
       drpdo_out                              => open,
-      drprdy_out(0)                          => open,
+      drprdy_out(0)                          => drprdy_int,
 
       loopback_in                            => (others => '0'),
       rxpolarity_in(0)                       => '0',       -- Comment: Not inverted

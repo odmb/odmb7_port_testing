@@ -240,7 +240,7 @@ architecture Behavioral of odmb7_ucsb_dev is
       probe0: in std_logic_vector(111 downto 0);
       probe1: in std_logic_vector(71 downto 0);
       probe2: in std_logic_vector(63 downto 0);
-      probe3: in std_logic
+      probe3: in std_logic_vector(0 downto 0)
       );
   end component;
 
@@ -532,6 +532,7 @@ architecture Behavioral of odmb7_ucsb_dev is
   --------------------------------------
   signal vme_diagout   : std_logic_vector(17 downto 0) := (others => '0');
   signal ila_data_alct : std_logic_vector(63 downto 0);  -- ILA data related to ALCT
+  signal ila_data_fed0 : std_logic_vector(111 downto 0);  -- ILA data related to ALCT
   signal pon_reset_cnt : unsigned(7 downto 0) := (others => '0');
 
   --------------------------------------
@@ -1282,9 +1283,9 @@ begin
       NLINK        => 1
       )
     port map (
-      mgtrefclk    => mgtrefclk1_227,   -- 120.24 MHz
+      mgtrefclk    => mgtrefclk0_225,   -- 120.24 MHz
       cmsclk       => cmsclk,
-      drpclk       => mgtclk4,
+      drpclk       => mgtclk4,          -- 120.24 MHz
       txusrclk     => usrclk_fed_tx,    -- 120.24 MHz
       txclken      => fed_txclken,
       rxusrclk     => usrclk_fed_rx,    -- 120.24 MHz
@@ -1295,6 +1296,7 @@ begin
       daq_tx_p     => DAQ_TX_P,
       txdata       => fed_txdata,
       txd_valid    => fed_txd_valid,
+      txready      => fed_txready,
       rxdata       => fed_rxdata,
       rxd_valid    => fed_rxd_valid,
       rxready      => fed_rxready,
@@ -1304,6 +1306,7 @@ begin
 
 
   fed_txdata(1) <= x"BABEAC1DACDCFFFFF"; -- Fix pattern
+  fed_txd_valid(1) <= '0';
 
   ila_data_alct(0) <= int_alct_dav;
   ila_data_alct(1) <= raw_l1a;
@@ -1321,7 +1324,7 @@ begin
       probe0 => alct_rxdata_remap,
       probe1 => alct_rxdata,
       probe2 => ila_data_alct,
-      probe3 => alct_rxclken
+      probe3(0) => alct_rxclken
       );
 
 end Behavioral;
