@@ -226,5 +226,18 @@ package ucsb_types is
       );
   end component;
 
+  component TIME_AVERAGE is
+    generic (
+      NCYCLES   : integer := 16;
+      THRESHOLD : integer := 1
+      );
+    port (
+      DOUT : out std_logic;               --! whether DIN is '1' for >= THRESHOLD cycles
+      CLK  : in  std_logic;               --! clock for counting
+      RST  : in  std_logic;               --! synchronized reset
+      DIN  : in  std_logic                --! input signal
+      );
+  end component;
+
 end ucsb_types;
 

@@ -277,6 +277,7 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal mgtclk5 : std_logic;
   signal mgtclk125 : std_logic;
   signal led_clkfreqs : std_logic_vector(7 downto 0);
+  signal clkwiz_locked : std_logic;
 
   --------------------------------------
   -- VME signals
@@ -541,6 +542,7 @@ architecture Behavioral of odmb7_ucsb_dev is
   -- Debug signals
   --------------------------------------
   signal diagout_inner : std_logic_vector(17 downto 0) := (others => '0');
+  signal pon_reset_cnt : unsigned(7 downto 0) := (others => '0');
 
   --------------------------------------
   -- DAQ related signals
@@ -682,16 +684,9 @@ begin
       clk_mgtclk4    => mgtclk4,
       clk_mgtclk5    => mgtclk5,
       clk_mgtclk125  => mgtclk125,
+      clkwiz_locked  => clkwiz_locked,
       led_clkfreqs   => led_clkfreqs
       );
-
-  -- Make LED lights blink to reflect clock frequencies
-  LEDS_CFV(0)  <= led_clkfreqs(0);  -- cmsclk   :  40 MHz = led at 40/33.5 ~ 1.2 Hz
-  LEDS_CFV(2)  <= led_clkfreqs(1);  -- mgtclk1  : 160 MHz = led at 160/134 ~ 1.2 Hz
-  LEDS_CFV(4)  <= led_clkfreqs(3);  -- mgtclk3  : 160 MHz = led at 160/134 ~ 1.2 Hz
-  LEDS_CFV(6)  <= led_clkfreqs(4);  -- mgtclk4  : 120 MHz = led at 120/134 ~ 0.9 Hz
-  LEDS_CFV(8)  <= led_clkfreqs(6);  -- mgtclk125: 125 MHz = led at 125/134 ~ 0.9 Hz
-  LEDS_CFV(10) <= led_clkfreqs(7);  -- clk_gp7  :  80 MHz = led at 80/67.1 ~ 1.2 Hz
 
   -------------------------------------------------------------------------------------------
   -- Handle VME signals
@@ -826,11 +821,11 @@ begin
 
   -- original: reset <= fw_rst_reg(31) or pon_rst_reg(31) or not pb0_q;
   -- pon_rst_reg used to be reset from pll lock
-  pon_rst_reg <= pon_rst_reg(30 downto 0) & '0' when rising_edge(cmsclk) else
+  pon_rst_reg <= pon_rst_reg(30 downto 0) & '0' when rising_edge(cmsclk) and clkwiz_locked = '1' else
                  pon_rst_reg;
   pon_reset <= pon_rst_reg(31);
 
-  reset <= fw_rst_reg(31) or pon_rst_reg(31);   -- Firmware reset
+  reset <= fw_rst_reg(31) or pon_reset;   -- Firmware reset
 
   FD_OPT_RESET : FD port map(Q => opt_reset_pulse_q, C => cmsclk, D => opt_reset_pulse);
   opt_rst_reg <= x"3FFFF000" when (opt_reset_pulse_q = '0' and opt_reset_pulse = '1') else
@@ -1083,9 +1078,6 @@ begin
       DDUCLK           => usrclk_spy_tx,
       DCFEBCLK         => usrclk_mgtc,
 
-      DCFEB_CRC_VALID  => dcfeb_crc_valid,
-      DCFEB_RXD_VALID  => dcfeb_rxd_valid,
-      DCFEB_BAD_RX     => dcfeb_bad_rx,
       RAW_LCT          => raw_lct,
       OTMB_DAV         => int_otmb_dav,
       ALCT_DAV         => int_alct_dav,
@@ -1109,12 +1101,19 @@ begin
       CCB_RSV          => ccb_rsv,
       CCB_OTHER        => ccb_other,
 
-      DCFEB_OPT_RST    => open,
+      DCFEB_CRC_VALID  => dcfeb_crc_valid,
+      DCFEB_RXD_VALID  => dcfeb_rxd_valid,
+      DCFEB_BAD_RX     => dcfeb_bad_rx,
+      DCFEB_RXREADY    => dcfeb_rxready,
+      DCFEB_OPT_RST    => mgtc_reset,
       CHANGE_REG_DATA  => change_reg_data,
       CHANGE_REG_INDEX => change_reg_index,
       CFG_UL_PULSE     => cfg_ul_pulse,
       MAX_WORDS_DCFEB  => max_words_dcfeb,
       AUTOKILL_EN      => autokill_enable,
+
+      LED_CLKFREQS     => led_clkfreqs,
+      LEDS_CFV         => LEDS_CFV,
 
       L1ACNT_RST       => l1acnt_rst,
       PON_RESET        => pon_reset,
@@ -1197,7 +1196,8 @@ begin
       prbs_rx_en   => dcfeb_prbs_rx_en,
       prbs_tst_cnt => dcfeb_prbs_tst_cnt,
       prbs_err_cnt => dcfeb_prbs_err_cnt,
-      reset        => opt_reset
+      reset        => (opt_reset or mgtc_reset)
       );
+
 
 end Behavioral;

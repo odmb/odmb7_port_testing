@@ -21,9 +21,6 @@ entity odmb_status is
     DDUCLK              : in std_logic;
     DCFEBCLK            : in std_logic;
 
-    DCFEB_CRC_VALID     : in std_logic_vector(NCFEB downto 1);
-    DCFEB_RXD_VALID     : in std_logic_vector(NCFEB downto 1);
-    DCFEB_BAD_RX        : in std_logic_vector(NCFEB downto 1);
     RAW_LCT             : in std_logic_vector(NCFEB downto 0);
     ALCT_DAV            : in std_logic;
     OTMB_DAV            : in std_logic;
@@ -41,21 +38,30 @@ entity odmb_status is
     CAFIFO_L1A_CNT      : in std_logic_vector(23 downto 0);
     CAFIFO_BX_CNT       : in std_logic_vector(11 downto 0);
 
-    CCB_CMD_BXEV        : in  std_logic_vector(7 downto 0);
-    CCB_CMD_S           : in  std_logic;       -- ccbcmnd(6) - from J3
-    CCB_DATA            : in  std_logic_vector(7 downto 0);  -- ccbdata(7 downto 0) - from J3
-    CCB_DATA_S          : in  std_logic;       -- ccbdata(8) - from J3
-    CCB_RSV             : in  std_logic_vector(10 downto 0);
-    CCB_OTHER           : in  std_logic_vector(10 downto 0);
+    CCB_CMD_BXEV        : in std_logic_vector(7 downto 0);
+    CCB_CMD_S           : in std_logic;       -- ccbcmnd(6) - from J3
+    CCB_DATA            : in std_logic_vector(7 downto 0);  -- ccbdata(7 downto 0) - from J3
+    CCB_DATA_S          : in std_logic;       -- ccbdata(8) - from J3
+    CCB_RSV             : in std_logic_vector(10 downto 0);
+    CCB_OTHER           : in std_logic_vector(10 downto 0);
 
     -- Signals for DCFEB Autokill
+    DCFEB_CRC_VALID     : in  std_logic_vector(NCFEB downto 1);
+    DCFEB_RXD_VALID     : in  std_logic_vector(NCFEB downto 1);
+    DCFEB_BAD_RX        : in  std_logic_vector(NCFEB downto 1);
+    DCFEB_RXREADY       : in  std_logic;
     DCFEB_OPT_RST       : out std_logic;
     CHANGE_REG_DATA     : out std_logic_vector(15 downto 0);
     CHANGE_REG_INDEX    : out integer range 0 to NREGS := NREGS;
-    CFG_UL_PULSE        : in std_logic;
-    MAX_WORDS_DCFEB     : in std_logic_vector(15 downto 0);      --! MAX words allowed in a DCFEB data packet recieved, used for auto-kill.
-    AUTOKILL_EN         : in std_logic;
+    CFG_UL_PULSE        : in  std_logic;
+    MAX_WORDS_DCFEB     : in  std_logic_vector(15 downto 0);    --! MAX words allowed in a DCFEB data packet recieved, used for auto-kill.
+    AUTOKILL_EN         : in  std_logic;
 
+    -- LED distribution
+    LED_CLKFREQS        : in  std_logic_vector(7 downto 0);     --! LED pulses coming from odmb_clocking
+    LEDS_CFV            : out std_logic_vector(11 downto 0);    --! Front panel LEDs. Connected to bank 65.
+
+    -- Reset signals
     L1ACNT_RST          : in std_logic;
     PON_RESET           : in std_logic;
     RESET               : in std_logic  --! Global reset
@@ -73,7 +79,8 @@ architecture ODMB_STATUS_ARCH of odmb_status is
       DCFEBCLK            : in std_logic;
 
       DCFEB_RXD_VALID     : in std_logic_vector(NCFEB downto 1);
-      DCFEB_FIBER_ERROR   : in std_logic_vector(NCFEB downto 1);
+      DCFEB_BAD_RX        : in std_logic_vector(NCFEB downto 1);
+      DCFEB_RXREADY       : in std_logic;
       KILL                : in std_logic_vector(NCFEB+2 downto 1);
 
       AUTOKILLED_ANY      : out std_logic_vector(15 downto 0);
@@ -408,7 +415,8 @@ begin
       DCFEBCLK            => DCFEBCLK,
 
       DCFEB_RXD_VALID     => DCFEB_RXD_VALID,
-      DCFEB_FIBER_ERROR   => DCFEB_FIBER_ERROR,
+      DCFEB_BAD_RX        => DCFEB_BAD_RX,
+      DCFEB_RXREADY       => DCFEB_RXREADY,
       KILL                => KILL,
 
       AUTOKILLED_ANY      => autokilled_dcfebs_any,
@@ -425,5 +433,17 @@ begin
 
   CHANGE_REG_DATA <= new_kill_reg when (update_kill_reg = '1' and AUTOKILL_EN = '1') else (others => '0');
   CHANGE_REG_INDEX <= 7 when (update_kill_reg = '1' and AUTOKILL_EN = '1') else NREGS;
+
+  -------------------------------------------------------------------------------------------
+  -- LED distribution
+  -------------------------------------------------------------------------------------------
+
+  -- Make LED lights blink to reflect clock frequencies
+  LEDS_CFV(0)  <= led_clkfreqs(0);  -- cmsclk   :  40 MHz = led at 40/33.5 ~ 1.2 Hz
+  LEDS_CFV(2)  <= led_clkfreqs(1);  -- mgtclk1  : 160 MHz = led at 160/134 ~ 1.2 Hz
+  LEDS_CFV(4)  <= led_clkfreqs(3);  -- mgtclk3  : 160 MHz = led at 160/134 ~ 1.2 Hz
+  LEDS_CFV(6)  <= led_clkfreqs(4);  -- mgtclk4  : 120 MHz = led at 120/134 ~ 0.9 Hz
+  LEDS_CFV(8)  <= led_clkfreqs(6);  -- mgtclk125: 125 MHz = led at 125/134 ~ 0.9 Hz
+  LEDS_CFV(10) <= led_clkfreqs(7);  -- clk_gp7  :  80 MHz = led at 80/67.1 ~ 1.2 Hz
 
 end ODMB_STATUS_ARCH;

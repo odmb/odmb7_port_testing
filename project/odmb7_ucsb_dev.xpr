@@ -37,13 +37,13 @@
     <Option Name="WTVcsLaunchSim" Val="0"/>
     <Option Name="WTRivieraLaunchSim" Val="0"/>
     <Option Name="WTActivehdlLaunchSim" Val="0"/>
-    <Option Name="WTXSimExportSim" Val="151"/>
-    <Option Name="WTModelSimExportSim" Val="151"/>
-    <Option Name="WTQuestaExportSim" Val="151"/>
-    <Option Name="WTIesExportSim" Val="151"/>
-    <Option Name="WTVcsExportSim" Val="151"/>
-    <Option Name="WTRivieraExportSim" Val="151"/>
-    <Option Name="WTActivehdlExportSim" Val="151"/>
+    <Option Name="WTXSimExportSim" Val="152"/>
+    <Option Name="WTModelSimExportSim" Val="152"/>
+    <Option Name="WTQuestaExportSim" Val="152"/>
+    <Option Name="WTIesExportSim" Val="152"/>
+    <Option Name="WTVcsExportSim" Val="152"/>
+    <Option Name="WTRivieraExportSim" Val="152"/>
+    <Option Name="WTActivehdlExportSim" Val="152"/>
     <Option Name="GenerateIPUpgradeLog" Val="TRUE"/>
     <Option Name="XSimRadix" Val="hex"/>
     <Option Name="XSimTimeUnit" Val="ns"/>
@@ -490,6 +490,12 @@
         </FileInfo>
       </File>
       <File Path="$PPRDIR/../source/odmb_vme/system_test.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../source/utils/time_average.vhd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="simulation"/>

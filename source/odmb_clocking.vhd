@@ -61,6 +61,8 @@ entity odmb_clocking is
     clk_mgtclk5 : out std_logic;        --! buffered clock from MGT quad 227 clock 1, from REF_CLK_5
     clk_mgtclk125 : out std_logic;      --! buffered clock from MGT quad 226 clock 1, from CLK_125_REF
 
+    clkwiz_locked : out std_logic;      --! locked signal from the clocking wizard
+
     led_clkfreqs : out std_logic_vector(7 downto 0) --! blinking signals at ~1Hz for the input clocks
 
     );
@@ -75,7 +77,8 @@ architecture Clocking_Arch of odmb_clocking is
       clk_out10 : out std_logic;
       clk_out20 : out std_logic;
       clk_out40 : out std_logic;
-      clk_out80 : out std_logic
+      clk_out80 : out std_logic;
+      locked    : out std_logic
       );
   end component;
 
@@ -288,7 +291,8 @@ begin
       clk_out10 => clk_sysclk10,     -- output 10 MHz
       clk_out20 => clk_sysclk20,     -- output 20 MHz
       clk_out40 => clk_sysclk40,     -- output 40 MHz
-      clk_out80 => clk_sysclk80      -- output 80 MHz
+      clk_out80 => clk_sysclk80,     -- output 80 MHz
+      locked    => clkwiz_locked
       );
 
 

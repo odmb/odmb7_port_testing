@@ -158,7 +158,7 @@ architecture Behavioral of mgt_cfeb is
   signal gtwiz_userclk_rx_reset_int : std_logic := '0';
   signal gtwiz_userclk_rx_srcclk_int : std_logic := '0';
   signal gtwiz_userclk_rx_usrclk_int : std_logic := '0';
-  signal gtwiz_userclk_rx_usrclk2_int : std_logic := '0';
+  signal rxusrclk_int : std_logic := '0';
   signal gtwiz_userclk_rx_active_int : std_logic := '0';
   signal gtwiz_reset_clk_freerun_int : std_logic := '0';
   signal gtwiz_reset_all_int : std_logic;
@@ -200,7 +200,8 @@ architecture Behavioral of mgt_cfeb is
 
   -- internal signals based on channel number
   signal rxd_valid_ch : std_logic_vector(NLINK-1 downto 0);
-  signal bad_rx_ch : std_logic_vector(NLINK-1 downto 0);
+  signal bad_rx_o_ch : std_logic_vector(NLINK-1 downto 0);
+  signal bad_rx_i_ch : std_logic_vector(NLINK-1 downto 0);
   signal good_crc_ch : std_logic_vector(NLINK-1 downto 0);
   signal crc_valid_ch : std_logic_vector(NLINK-1 downto 0);
   signal reset_rxd_ch : std_logic_vector(NLINK-1 downto 0);
@@ -234,8 +235,6 @@ architecture Behavioral of mgt_cfeb is
   type t_ilad_arr is array (integer range <>) of std_logic_vector(47 downto 0);
   signal ila_data_ch : t_ilad_arr(NLINK-1 downto 0);
 
-  signal opt_reset_cnt : unsigned(15 downto 0) := (others => '0');
-
 begin
 
   ---------------------------------------------------------------------------------------------------------------------
@@ -245,7 +244,7 @@ begin
 
   RXD_VALID <= rxd_valid_ch and (not KILL_RXOUT) when rxready_int = '1' else (others => '0');
   CRC_VALID <= crc_valid_ch and (not KILL_RXOUT) when rxready_int = '1' else (others => '0');
-  BAD_RX <= bad_rx_ch;
+  BAD_RX <= bad_rx_o_ch;
 
   gen_rx_quality : for I in 0 to NLINK-1 generate
   begin
@@ -255,7 +254,9 @@ begin
     rxchariscomma_ch(I) <= rxctrl2_int(8*I+DATAWIDTH/8-1 downto 8*I);
     rxnotintable_ch(I)  <= rxctrl3_int(8*I+DATAWIDTH/8-1 downto 8*I);
 
-    bad_rx_ch(I) <= '1' when (rxbyteisaligned_int(I) = '0') or (rxbyterealign_int(I) = '1') or (or_reduce(rxdisperr_ch(I)) = '1') else '0';
+    -- rxd_bad_ch(I) <= '1' when (rxbyteisaligned_int(I) = '0') or (rxbyterealign_int(I) = '1') or (or_reduce(rxdisperr_ch(I)) = '1') else '0';
+    bad_rx_i_ch(I) <= '1' when (or_reduce(rxnotintable_ch(I)) = '1') or (or_reduce(rxdisperr_ch(I)) = '1') else '0';
+    bad_rx_gen : TIME_AVERAGE port map (DOUT => bad_rx_o_ch(I), CLK => rxusrclk_int, RST => RESET, DIN => bad_rx_i_ch(I));
 
     -- Power down the RX for killed DCFEB
     rxpd_int(2*I+1 downto 2*I) <= "11" when KILL_RXPD(I+1) = '1' else "00";
@@ -264,7 +265,7 @@ begin
     -- Module for RXDATA validity checks, working for 16 bit datawidth only
     rx_data_check_i : rx_frame_proc
       port map (
-        CLK => gtwiz_userclk_rx_usrclk2_int,
+        CLK => rxusrclk_int,
         RST => reset_rxd_ch(I),
         RXDATA => rxdata_i_ch(I),
         RX_IS_K => rxcharisk_ch(I),
@@ -287,7 +288,7 @@ begin
 
   -- MGT reference clk connections
   gtrefclk0_int <= (others => MGTREFCLK);
-  RXUSRCLK <= gtwiz_userclk_rx_usrclk2_int;
+  RXUSRCLK <= rxusrclk_int;
 
   -- For GTH core configurations which utilize the transceiver channel CPLL, the drpclk_in port must be driven by
   -- the free-running clock at the exact frequency specified during core customization, for reliable bring-up
@@ -323,7 +324,7 @@ begin
       gtwiz_userclk_rx_reset_in          => gtwiz_userclk_rx_reset_int,
       gtwiz_userclk_rx_srcclk_out        => gtwiz_userclk_rx_srcclk_int,
       gtwiz_userclk_rx_usrclk_out        => gtwiz_userclk_rx_usrclk_int,
-      gtwiz_userclk_rx_usrclk2_out       => gtwiz_userclk_rx_usrclk2_int,
+      gtwiz_userclk_rx_usrclk2_out       => rxusrclk_int,
       gtwiz_userclk_rx_active_out        => gtwiz_userclk_rx_active_int,
       gtwiz_reset_clk_freerun_in         => SYSCLK,
       gtwiz_reset_all_in                 => gtwiz_reset_all_int,
@@ -377,7 +378,7 @@ begin
     ila_data_ch(I)(34)           <= rxd_valid_ch(I);
     ila_data_ch(I)(35)           <= crc_valid_ch(I);
     ila_data_ch(I)(36)           <= good_crc_ch(I);
-    ila_data_ch(I)(37)           <= bad_rx_ch(I);
+    ila_data_ch(I)(37)           <= bad_rx_o_ch(I);
     ila_data_ch(I)(38)           <= rxbyteisaligned_int(I);
     ila_data_ch(I)(39)           <= rxbyterealign_int(I);
     ila_data_ch(I)(41 downto 40) <= rxcharisk_ch(I);
@@ -395,13 +396,9 @@ begin
   ila_data_rx(361)            <= gtwiz_userclk_rx_active_int;
   ila_data_rx(362)            <= gtwiz_reset_rx_done_int;
 
-  ila_data_rx(378 downto 363) <= std_logic_vector(opt_reset_cnt);
-
-  opt_reset_cnt <= opt_reset_cnt +1 when rising_edge(SYSCLK) and RESET = '1';
-      
   mgt_cfeb_ila_inst : ila_2
     port map(
-      clk => gtwiz_userclk_rx_usrclk2_int,
+      clk => rxusrclk_int,
       probe0 => ila_data_rx
       );
 
