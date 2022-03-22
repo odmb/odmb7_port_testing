@@ -13,8 +13,9 @@ use UNISIM.VComponents.all;
 
 use ieee.std_logic_misc.all;
 
-entity mgt_spy is
+entity mgt_ddu is
   generic (
+    CHANN_IDX : integer := 11;   --! 11: SPY port, 14: B04 - link3
     DATAWIDTH : integer := 16    --! User data width
     );
   port (
@@ -25,10 +26,10 @@ entity mgt_spy is
     sysclk      : in  std_logic; --! Independent clock signal to drive for the helper block of the MGT IP
 
     -- Serial data ports for transceiver at bank 226
-    spy_rx_n    : in  std_logic; --! Connected to differential optical input signals
-    spy_rx_p    : in  std_logic; --! Connected to differential optical input signals
-    spy_tx_n    : out std_logic; --! Connected to differential optical input signals
-    spy_tx_p    : out std_logic; --! Connected to differential optical input signals
+    daq_rx_n    : in  std_logic; --! Connected to differential optical input signals
+    daq_rx_p    : in  std_logic; --! Connected to differential optical input signals
+    daq_tx_n    : out std_logic; --! Connected to differential optical input signals
+    daq_tx_p    : out std_logic; --! Connected to differential optical input signals
 
     -- Clock active signals
     txready     : out std_logic; --! Flag for TX reset done
@@ -55,15 +56,20 @@ entity mgt_spy is
     -- Clock for the gtwizard system
     reset           : in  std_logic                           --! The Global reset signal
     );
-end mgt_spy;
+end mgt_ddu;
 
-architecture Behavioral of mgt_spy is
+architecture MGT_DDU_INST of mgt_ddu is
+
   constant NLINK : integer range 1 to 20 := 1;  --! Number of links
+  constant IDLE  : std_logic_vector(DATAWIDTH-1 downto 0) := x"50BC"; -- IDLE word for 16 bit width
 
   --------------------------------------------------------------------------
   -- Component declaration for the GTH transceiver container
   --------------------------------------------------------------------------
-  component gtwiz_spy_ddu_example_wrapper
+  component gtwiz_ddu_example_wrapper
+    generic (
+      P_CHANN_IDX : integer := 11
+      );
     port (
       gthrxn_in : in std_logic_vector(NLINK-1 downto 0);
       gthrxp_in : in std_logic_vector(NLINK-1 downto 0);
@@ -127,8 +133,6 @@ architecture Behavioral of mgt_spy is
   --     probe0 : in std_logic_vector(127 downto 0) := (others=> '0')
   --     );
   -- end component;
-
-  constant IDLE : std_logic_vector(DATAWIDTH-1 downto 0) := x"50BC"; -- IDLE word for 16 bit width
 
   -- Synchronize the latched link down reset input and the VIO-driven signal into the free-running clock domain
   -- signals passed to wizard
@@ -221,10 +225,10 @@ architecture Behavioral of mgt_spy is
 begin
 
   -- Serial ports connection
-  gthrxn_int(0) <= spy_rx_n;
-  gthrxp_int(0) <= spy_rx_p;
-  spy_tx_n <= gthtxn_int(0);
-  spy_tx_p <= gthtxp_int(0);
+  gthrxn_int(0) <= daq_rx_n;
+  gthrxp_int(0) <= daq_rx_p;
+  daq_tx_n <= gthtxn_int(0);
+  daq_tx_p <= gthtxp_int(0);
 
   ---------------------------------------------------------------------------------------------------------------------
   -- User data ports
@@ -298,7 +302,10 @@ begin
   ---------------------------------------------------------------------------------------------------------------------
   -- EXAMPLE WRAPPER INSTANCE
   ---------------------------------------------------------------------------------------------------------------------
-  spy_wrapper_inst : gtwiz_spy_ddu_example_wrapper
+  ddu_wrapper_inst : gtwiz_ddu_example_wrapper
+    generic map (
+      P_CHANN_IDX                        => CHANN_IDX
+      )
     port map (
       gthrxn_in                          => gthrxn_int,
       gthrxp_in                          => gthrxp_int,
@@ -388,4 +395,4 @@ begin
   --     );
 
 
-end Behavioral;
+end MGT_DDU_INST;

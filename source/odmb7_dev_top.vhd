@@ -809,7 +809,7 @@ begin
                   & CCB_CLKEN & CCB_EVCNTRES_B & CCB_CMD_S & CCB_DATA_S;
 
   -------------------------------------------------------------------------------------------
-  -- Handle reset signals
+  -- Handle initial reset signals
   -------------------------------------------------------------------------------------------
 
   FD_CCB_SOFTRST : FD generic map(INIT => '1') port map (Q => ccb_softrst_b_q, C => cmsclk, D => CCB_SOFT_RST_B);
@@ -1142,16 +1142,19 @@ begin
   spy_rx_p <= DAQ_SPY_RX_P when SPY_SEL = '1' else '0';
 
   -- Run3 format: sending DAQ data to DDU via the SPY ports
-  GTH_DDU : entity work.mgt_spy
+  GTH_DDU : entity work.mgt_ddu
+    generic map (
+      CHANN_IDX       => 11    --! 11: SPY port, 14: B04 - link3
+      )
     port map (
       mgtrefclk       => mgtrefclk0_226, -- for 1.6 Gb/s DDU transmission, mgtrefclk1_226 is sourced from the 125 MHz crystal
       txusrclk        => usrclk_spy_tx,  -- 80 MHz for 1.6 Gb/s with 8b/10b encoding, 62.5 MHz for 1.25 Gb/s
       rxusrclk        => usrclk_spy_rx,
       sysclk          => cmsclk,    -- maximum DRP clock frequency 62.5 MHz for 1.25 Gb/s line rate
-      spy_rx_n        => spy_rx_n,
-      spy_rx_p        => spy_rx_p,
-      spy_tx_n        => SPY_TX_N,
-      spy_tx_p        => SPY_TX_P,
+      daq_rx_n        => spy_rx_n,
+      daq_rx_p        => spy_rx_p,
+      daq_tx_n        => SPY_TX_N,
+      daq_tx_p        => SPY_TX_P,
       txready         => spy_txready,
       rxready         => spy_rxready,
       txdata          => ddu_data, --spy_txdata,

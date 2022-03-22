@@ -54,7 +54,7 @@
 // the core, connects them as appropriate, and maps enabled ports
 // =====================================================================================================================
 
-module gtwiz_spy_ddu_example_wrapper (
+module gtwiz_ddu_example_wrapper (
   input  wire [0:0] gthrxn_in
  ,input  wire [0:0] gthrxp_in
  ,output wire [0:0] gthtxn_out
@@ -114,13 +114,9 @@ module gtwiz_spy_ddu_example_wrapper (
   // ===================================================================================================================
   // PARAMETERS AND FUNCTIONS
   // ===================================================================================================================
+  parameter integer P_CHANN_IDX = 11;
 
   // Declare and initialize local parameters and functions used for HDL generation
-  localparam [191:0] P_CHANNEL_ENABLE = 192'b000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000;
-  `include "gtwiz_example_wrapper_functions.v"
-  localparam integer P_TX_MASTER_CH_PACKED_IDX = f_calc_pk_mc_idx(11);
-  localparam integer P_RX_MASTER_CH_PACKED_IDX = f_calc_pk_mc_idx(11);
-
 
   // ===================================================================================================================
   // HELPER BLOCKS
@@ -141,7 +137,7 @@ module gtwiz_spy_ddu_example_wrapper (
   // and which drives TXUSRCLK and TXUSRCLK2 for all channels
 
   // The source clock is TXOUTCLK from the master transmitter channel
-  assign gtwiz_userclk_tx_srcclk_out = txoutclk_int[P_TX_MASTER_CH_PACKED_IDX];
+  assign gtwiz_userclk_tx_srcclk_out = txoutclk_int[0];
 
   // Instantiate a single instance of the transmitter user clocking network helper block
   gtwiz_example_gtwiz_userclk_tx gtwiz_userclk_tx_inst (
@@ -168,7 +164,7 @@ module gtwiz_spy_ddu_example_wrapper (
   // and which drives RXUSRCLK and RXUSRCLK2 for all channels
 
   // The source clock is RXOUTCLK from the master receiver channel
-  assign gtwiz_userclk_rx_srcclk_out = rxoutclk_int[P_RX_MASTER_CH_PACKED_IDX];
+  assign gtwiz_userclk_rx_srcclk_out = rxoutclk_int[0];
 
   // Instantiate a single instance of the receiver user clocking network helper block
   gtwiz_example_gtwiz_userclk_rx gtwiz_userclk_rx_inst (
@@ -214,58 +210,118 @@ module gtwiz_spy_ddu_example_wrapper (
   // ===================================================================================================================
 
   // Instantiate the core, mapping its enabled ports to example design ports and helper blocks as appropriate
-  gtwiz_spy_ddu gtwiz_spy_ddu_inst (
-    .gthrxn_in                               (gthrxn_in)
-   ,.gthrxp_in                               (gthrxp_in)
-   ,.gthtxn_out                              (gthtxn_out)
-   ,.gthtxp_out                              (gthtxp_out)
-   ,.gtwiz_userclk_tx_active_in              (gtwiz_userclk_tx_active_out)
-   ,.gtwiz_userclk_rx_active_in              (gtwiz_userclk_rx_active_out)
-   ,.gtwiz_reset_clk_freerun_in              (gtwiz_reset_clk_freerun_in)
-   ,.gtwiz_reset_all_in                      (gtwiz_reset_all_in)
-   ,.gtwiz_reset_tx_pll_and_datapath_in      (gtwiz_reset_tx_pll_and_datapath_in)
-   ,.gtwiz_reset_tx_datapath_in              (gtwiz_reset_tx_datapath_in)
-   ,.gtwiz_reset_rx_pll_and_datapath_in      (gtwiz_reset_rx_pll_and_datapath_in)
-   ,.gtwiz_reset_rx_datapath_in              (gtwiz_reset_rx_datapath_in)
-   ,.gtwiz_reset_rx_cdr_stable_out           (gtwiz_reset_rx_cdr_stable_out)
-   ,.gtwiz_reset_tx_done_out                 (gtwiz_reset_tx_done_out)
-   ,.gtwiz_reset_rx_done_out                 (gtwiz_reset_rx_done_out)
-   ,.gtwiz_userdata_tx_in                    (gtwiz_userdata_tx_in)
-   ,.gtwiz_userdata_rx_out                   (gtwiz_userdata_rx_out)
-   ,.drpclk_in                               (drpclk_in)
-   ,.gtrefclk0_in                            (gtrefclk0_in)
-   ,.rx8b10ben_in                            (rx8b10ben_in)
-   ,.rxcommadeten_in                         (rxcommadeten_in)
-   ,.rxmcommaalignen_in                      (rxmcommaalignen_in)
-   ,.rxpcommaalignen_in                      (rxpcommaalignen_in)
-   ,.rxpd_in                                 (rxpd_in)
-   ,.rxprbscntreset_in                       (rxprbscntreset_in)
-   ,.rxprbssel_in                            (rxprbssel_in)
-   ,.rxusrclk_in                             (rxusrclk_int)
-   ,.rxusrclk2_in                            (rxusrclk2_int)
-   ,.tx8b10ben_in                            (tx8b10ben_in)
-   ,.txctrl0_in                              (txctrl0_int)
-   ,.txctrl1_in                              (txctrl1_int)
-   ,.txctrl2_in                              (txctrl2_in)
-   ,.txpd_in                                 (txpd_in)
-   ,.txprbsforceerr_in                       (txprbsforceerr_in)
-   ,.txprbssel_in                            (txprbssel_in)
-   ,.txusrclk_in                             (txusrclk_int)
-   ,.txusrclk2_in                            (txusrclk2_int)
-   ,.gtpowergood_out                         (gtpowergood_int)
-   ,.rxbyteisaligned_out                     (rxbyteisaligned_out)
-   ,.rxbyterealign_out                       (rxbyterealign_out)
-   ,.rxcommadet_out                          (rxcommadet_out)
-   ,.rxctrl0_out                             (rxctrl0_int)
-   ,.rxctrl1_out                             (rxctrl1_int)
-   ,.rxctrl2_out                             (rxctrl2_out)
-   ,.rxctrl3_out                             (rxctrl3_out)
-   ,.rxoutclk_out                            (rxoutclk_int)
-   ,.rxpmaresetdone_out                      (rxpmaresetdone_out)
-   ,.rxprbserr_out                           (rxprbserr_out)
-   ,.rxprbslocked_out                        (rxprbslocked_out)
-   ,.txoutclk_out                            (txoutclk_int)
-   ,.txpmaresetdone_out                      (txpmaresetdone_out)
-);
+   generate 
+      if (P_CHANN_IDX == 11) begin : gtwiz_inst_spy
+         gtwiz_ddu_spy gtwiz_ddu_inst (
+           .gthrxn_in                               (gthrxn_in)
+          ,.gthrxp_in                               (gthrxp_in)
+          ,.gthtxn_out                              (gthtxn_out)
+          ,.gthtxp_out                              (gthtxp_out)
+          ,.gtwiz_userclk_tx_active_in              (gtwiz_userclk_tx_active_out)
+          ,.gtwiz_userclk_rx_active_in              (gtwiz_userclk_rx_active_out)
+          ,.gtwiz_reset_clk_freerun_in              (gtwiz_reset_clk_freerun_in)
+          ,.gtwiz_reset_all_in                      (gtwiz_reset_all_in)
+          ,.gtwiz_reset_tx_pll_and_datapath_in      (gtwiz_reset_tx_pll_and_datapath_in)
+          ,.gtwiz_reset_tx_datapath_in              (gtwiz_reset_tx_datapath_in)
+          ,.gtwiz_reset_rx_pll_and_datapath_in      (gtwiz_reset_rx_pll_and_datapath_in)
+          ,.gtwiz_reset_rx_datapath_in              (gtwiz_reset_rx_datapath_in)
+          ,.gtwiz_reset_rx_cdr_stable_out           (gtwiz_reset_rx_cdr_stable_out)
+          ,.gtwiz_reset_tx_done_out                 (gtwiz_reset_tx_done_out)
+          ,.gtwiz_reset_rx_done_out                 (gtwiz_reset_rx_done_out)
+          ,.gtwiz_userdata_tx_in                    (gtwiz_userdata_tx_in)
+          ,.gtwiz_userdata_rx_out                   (gtwiz_userdata_rx_out)
+          ,.drpclk_in                               (drpclk_in)
+          ,.gtrefclk0_in                            (gtrefclk0_in)
+          ,.rx8b10ben_in                            (rx8b10ben_in)
+          ,.rxcommadeten_in                         (rxcommadeten_in)
+          ,.rxmcommaalignen_in                      (rxmcommaalignen_in)
+          ,.rxpcommaalignen_in                      (rxpcommaalignen_in)
+          ,.rxpd_in                                 (rxpd_in)
+          ,.rxprbscntreset_in                       (rxprbscntreset_in)
+          ,.rxprbssel_in                            (rxprbssel_in)
+          ,.rxusrclk_in                             (rxusrclk_int)
+          ,.rxusrclk2_in                            (rxusrclk2_int)
+          ,.tx8b10ben_in                            (tx8b10ben_in)
+          ,.txctrl0_in                              (txctrl0_int)
+          ,.txctrl1_in                              (txctrl1_int)
+          ,.txctrl2_in                              (txctrl2_in)
+          ,.txpd_in                                 (txpd_in)
+          ,.txprbsforceerr_in                       (txprbsforceerr_in)
+          ,.txprbssel_in                            (txprbssel_in)
+          ,.txusrclk_in                             (txusrclk_int)
+          ,.txusrclk2_in                            (txusrclk2_int)
+          ,.gtpowergood_out                         (gtpowergood_int)
+          ,.rxbyteisaligned_out                     (rxbyteisaligned_out)
+          ,.rxbyterealign_out                       (rxbyterealign_out)
+          ,.rxcommadet_out                          (rxcommadet_out)
+          ,.rxctrl0_out                             (rxctrl0_int)
+          ,.rxctrl1_out                             (rxctrl1_int)
+          ,.rxctrl2_out                             (rxctrl2_out)
+          ,.rxctrl3_out                             (rxctrl3_out)
+          ,.rxoutclk_out                            (rxoutclk_int)
+          ,.rxpmaresetdone_out                      (rxpmaresetdone_out)
+          ,.rxprbserr_out                           (rxprbserr_out)
+          ,.rxprbslocked_out                        (rxprbslocked_out)
+          ,.txoutclk_out                            (txoutclk_int)
+          ,.txpmaresetdone_out                      (txpmaresetdone_out)
+         );
+      end
+      if (P_CHANN_IDX == 14) begin : gtwiz_inst_b03
+         gtwiz_ddu_b03 gtwiz_ddu_inst (
+           .gthrxn_in                               (gthrxn_in)
+          ,.gthrxp_in                               (gthrxp_in)
+          ,.gthtxn_out                              (gthtxn_out)
+          ,.gthtxp_out                              (gthtxp_out)
+          ,.gtwiz_userclk_tx_active_in              (gtwiz_userclk_tx_active_out)
+          ,.gtwiz_userclk_rx_active_in              (gtwiz_userclk_rx_active_out)
+          ,.gtwiz_reset_clk_freerun_in              (gtwiz_reset_clk_freerun_in)
+          ,.gtwiz_reset_all_in                      (gtwiz_reset_all_in)
+          ,.gtwiz_reset_tx_pll_and_datapath_in      (gtwiz_reset_tx_pll_and_datapath_in)
+          ,.gtwiz_reset_tx_datapath_in              (gtwiz_reset_tx_datapath_in)
+          ,.gtwiz_reset_rx_pll_and_datapath_in      (gtwiz_reset_rx_pll_and_datapath_in)
+          ,.gtwiz_reset_rx_datapath_in              (gtwiz_reset_rx_datapath_in)
+          ,.gtwiz_reset_rx_cdr_stable_out           (gtwiz_reset_rx_cdr_stable_out)
+          ,.gtwiz_reset_tx_done_out                 (gtwiz_reset_tx_done_out)
+          ,.gtwiz_reset_rx_done_out                 (gtwiz_reset_rx_done_out)
+          ,.gtwiz_userdata_tx_in                    (gtwiz_userdata_tx_in)
+          ,.gtwiz_userdata_rx_out                   (gtwiz_userdata_rx_out)
+          ,.drpclk_in                               (drpclk_in)
+          ,.gtrefclk0_in                            (gtrefclk0_in)
+          ,.rx8b10ben_in                            (rx8b10ben_in)
+          ,.rxcommadeten_in                         (rxcommadeten_in)
+          ,.rxmcommaalignen_in                      (rxmcommaalignen_in)
+          ,.rxpcommaalignen_in                      (rxpcommaalignen_in)
+          ,.rxpd_in                                 (rxpd_in)
+          ,.rxprbscntreset_in                       (rxprbscntreset_in)
+          ,.rxprbssel_in                            (rxprbssel_in)
+          ,.rxusrclk_in                             (rxusrclk_int)
+          ,.rxusrclk2_in                            (rxusrclk2_int)
+          ,.tx8b10ben_in                            (tx8b10ben_in)
+          ,.txctrl0_in                              (txctrl0_int)
+          ,.txctrl1_in                              (txctrl1_int)
+          ,.txctrl2_in                              (txctrl2_in)
+          ,.txpd_in                                 (txpd_in)
+          ,.txprbsforceerr_in                       (txprbsforceerr_in)
+          ,.txprbssel_in                            (txprbssel_in)
+          ,.txusrclk_in                             (txusrclk_int)
+          ,.txusrclk2_in                            (txusrclk2_int)
+          ,.gtpowergood_out                         (gtpowergood_int)
+          ,.rxbyteisaligned_out                     (rxbyteisaligned_out)
+          ,.rxbyterealign_out                       (rxbyterealign_out)
+          ,.rxcommadet_out                          (rxcommadet_out)
+          ,.rxctrl0_out                             (rxctrl0_int)
+          ,.rxctrl1_out                             (rxctrl1_int)
+          ,.rxctrl2_out                             (rxctrl2_out)
+          ,.rxctrl3_out                             (rxctrl3_out)
+          ,.rxoutclk_out                            (rxoutclk_int)
+          ,.rxpmaresetdone_out                      (rxpmaresetdone_out)
+          ,.rxprbserr_out                           (rxprbserr_out)
+          ,.rxprbslocked_out                        (rxprbslocked_out)
+          ,.txoutclk_out                            (txoutclk_int)
+          ,.txpmaresetdone_out                      (txpmaresetdone_out)
+         );
+      end
+   endgenerate
+
 
 endmodule
