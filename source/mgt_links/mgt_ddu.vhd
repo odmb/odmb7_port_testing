@@ -15,7 +15,7 @@ use ieee.std_logic_misc.all;
 
 entity mgt_ddu is
   generic (
-    CHANN_IDX : integer := 11;   --! 11: SPY port, 14: B04 - link3
+    CHANN_IDX : integer := 11;   --! 11: SPY port, 13: B04 - link2
     DATAWIDTH : integer := 16    --! User data width
     );
   port (

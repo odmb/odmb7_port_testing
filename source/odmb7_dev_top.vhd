@@ -158,10 +158,12 @@ entity odmb7_ucsb_dev is
     BCK_PRS_P    : in std_logic;                           --! B04 optical RX from FED for backpressure (B04_RX1_P).
     BCK_PRS_N    : in std_logic;                           --! B04 optical RX from FED for backpressure (B04_RX1_N).
 
-    SPY_TX_P     : out std_logic;                          --! Finisar (spy) optical TX output to PC.
-    SPY_TX_N     : out std_logic;                          --! Finisar (spy) optical TX output to PC.
+    -- SPY_TX_P     : out std_logic;                          --! Finisar (spy) optical TX output to PC.
+    -- SPY_TX_N     : out std_logic;                          --! Finisar (spy) optical TX output to PC.
     -- DAQ_TX_P     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
     -- DAQ_TX_N     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
+    DAQ_TX_P     : out std_logic_vector(2 downto 2);       --! B04 optical TX, output to FED.
+    DAQ_TX_N     : out std_logic_vector(2 downto 2);       --! B04 optical TX, output to FED.
 
     --------------------------------
     -- Optical control signals
@@ -460,6 +462,20 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal spy_prbs_err_cnt : std_logic_vector(15 downto 0) := (others => '0');
 
   --------------------------------------
+  -- DAQ test signals
+  --------------------------------------
+  signal usrclk_daq_tx : std_logic; -- USRCLK for TX data preparation
+  signal usrclk_daq_rx : std_logic; -- USRCLK for RX data readout
+  signal daq_txready : std_logic; -- Flag for tx reset done
+  signal daq_rxready : std_logic; -- Flag for rx reset done
+  signal daq_txdata : std_logic_vector(15 downto 0);  -- Data to be transmitted
+  signal daq_txd_valid : std_logic;   -- Flag for tx data valid
+  signal daq_rxdata : std_logic_vector(15 downto 0);  -- Data received
+  signal daq_rxd_valid : std_logic;   -- Flag for valid data;
+  signal daq_bad_rx : std_logic;   -- Flag for fiber errors;
+  signal daq_reset : std_logic;
+
+  --------------------------------------
   -- MGT signals for FED channels
   --------------------------------------
   constant FED_NTXLINK : integer := 4;
@@ -602,7 +618,7 @@ begin
       )
     port map (
       CMSCLK              => cmsclk,
-      DDUCLK              => usrclk_spy_tx,
+      DDUCLK              => usrclk_daq_tx,
       DCFEBCLK            => usrclk_mgtc,
       RESET               => reset,
       L1ACNT_RST          => l1acnt_rst,
@@ -833,6 +849,7 @@ begin
                  opt_rst_reg;
   opt_reset <= opt_rst_reg(31) or pon_reset or mgt_reset;  -- Optical reset
 
+
   -------------------------------------------------------------------------------------------
   -- Sub-modules
   -------------------------------------------------------------------------------------------
@@ -983,7 +1000,7 @@ begin
       CAFIFO_SIZE => 16
       )
     port map (
-      DDUCLK    => usrclk_spy_tx,
+      DDUCLK    => usrclk_daq_tx,
       CMSCLK    => cmsclk,
 
       CCB_CMD      => ccb_cmd,
@@ -1068,14 +1085,14 @@ begin
 
   MBS : entity work.odmb_status
     generic map (
-      NCFEB             => NCFEB
+      NCFEB            => NCFEB
       )
     port map (
       ODMB_STAT_SEL    => odmb_status_sel,
       ODMB_STAT_DATA   => odmb_status_data,
 
       CMSCLK           => cmsclk,
-      DDUCLK           => usrclk_spy_tx,
+      DDUCLK           => usrclk_daq_tx,
       DCFEBCLK         => usrclk_mgtc,
 
       RAW_LCT          => raw_lct,
@@ -1144,26 +1161,26 @@ begin
   -- Run3 format: sending DAQ data to DDU via the SPY ports
   GTH_DDU : entity work.mgt_ddu
     generic map (
-      CHANN_IDX       => 11    --! 11: SPY port, 14: B04 - link3
+      CHANN_IDX       => 13    --! 11: SPY port, 13: B04 - link2
       )
     port map (
       mgtrefclk       => mgtrefclk0_226, -- for 1.6 Gb/s DDU transmission, mgtrefclk1_226 is sourced from the 125 MHz crystal
-      txusrclk        => usrclk_spy_tx,  -- 80 MHz for 1.6 Gb/s with 8b/10b encoding, 62.5 MHz for 1.25 Gb/s
-      rxusrclk        => usrclk_spy_rx,
-      sysclk          => cmsclk,    -- maximum DRP clock frequency 62.5 MHz for 1.25 Gb/s line rate
-      daq_rx_n        => spy_rx_n,
-      daq_rx_p        => spy_rx_p,
-      daq_tx_n        => SPY_TX_N,
-      daq_tx_p        => SPY_TX_P,
-      txready         => spy_txready,
-      rxready         => spy_rxready,
-      txdata          => ddu_data, --spy_txdata,
-      txd_valid       => ddu_data_valid, --spy_txd_valid,
-      txdiffctrl      => spy_txdiffctrl,
-      loopback        => spy_loopback,
-      rxdata          => spy_rxdata,
-      rxd_valid       => spy_rxd_valid,
-      bad_rx          => spy_bad_rx,
+      txusrclk        => usrclk_daq_tx,  -- 80 MHz for 1.6 Gb/s with 8b/10b encoding, 62.5 MHz for 1.25 Gb/s
+      rxusrclk        => usrclk_daq_rx,
+      sysclk          => cmsclk,         -- maximum DRP clock frequency 62.5 MHz for 1.25 Gb/s line rate
+      daq_rx_n        => B04_RX_N(2),
+      daq_rx_p        => B04_RX_P(2),
+      daq_tx_n        => DAQ_TX_N(2),
+      daq_tx_p        => DAQ_TX_P(2),
+      txready         => daq_txready,
+      rxready         => daq_rxready,
+      txdata          => ddu_data,
+      txd_valid       => ddu_data_valid,
+      txdiffctrl      => "0000",
+      loopback        => "000",
+      rxdata          => open,
+      rxd_valid       => open,
+      bad_rx          => daq_bad_rx,
       prbs_type       => mgt_prbs_type,
       prbs_tx_en      => spy_prbs_tx_en,
       prbs_rx_en      => spy_prbs_rx_en,
@@ -1173,11 +1190,11 @@ begin
       );
 
   -------------------------------------------------
-  -- DCFEB receiver for ODMB7
+  -- DCFEB receiver for ODMB7/5
   -------------------------------------------------
   GTH_DCFEB : entity work.mgt_cfeb
     generic map (
-      NLINK        => 7,  -- number of links
+      NLINK        => NCFEB,  -- number of links
       DATAWIDTH    => 16  -- user data width
       )
     port map (

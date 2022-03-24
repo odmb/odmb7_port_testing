@@ -211,7 +211,7 @@ module gtwiz_ddu_example_wrapper (
 
   // Instantiate the core, mapping its enabled ports to example design ports and helper blocks as appropriate
    generate 
-      if (P_CHANN_IDX == 11) begin : gtwiz_inst_spy
+      if (P_CHANN_IDX == 11) begin : gtwiz_spy_inst
          gtwiz_ddu_spy gtwiz_ddu_inst (
            .gthrxn_in                               (gthrxn_in)
           ,.gthrxp_in                               (gthrxp_in)
@@ -266,8 +266,8 @@ module gtwiz_ddu_example_wrapper (
           ,.txpmaresetdone_out                      (txpmaresetdone_out)
          );
       end
-      if (P_CHANN_IDX == 14) begin : gtwiz_inst_b03
-         gtwiz_ddu_b03 gtwiz_ddu_inst (
+      if (P_CHANN_IDX == 13) begin : gtwiz_b02_inst
+         gtwiz_ddu_b02 gtwiz_ddu_inst (
            .gthrxn_in                               (gthrxn_in)
           ,.gthrxp_in                               (gthrxp_in)
           ,.gthtxn_out                              (gthtxn_out)

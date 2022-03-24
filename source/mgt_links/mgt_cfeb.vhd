@@ -390,11 +390,11 @@ begin
   end generate ila_data_assign;
 
   -- Input control signals
-  ila_data_rx(352 downto 346) <= kill_rxout;
-  ila_data_rx(359 downto 353) <= kill_rxpd;
-  ila_data_rx(360)            <= reset;
-  ila_data_rx(361)            <= gtwiz_userclk_rx_active_int;
-  ila_data_rx(362)            <= gtwiz_reset_rx_done_int;
+  ila_data_rx(345+NLINK downto 346) <= kill_rxout;
+  ila_data_rx(352+NLINK downto 353) <= kill_rxpd;
+  ila_data_rx(360)                  <= reset;
+  ila_data_rx(361)                  <= gtwiz_userclk_rx_active_int;
+  ila_data_rx(362)                  <= gtwiz_reset_rx_done_int;
 
   mgt_cfeb_ila_inst : ila_2
     port map(

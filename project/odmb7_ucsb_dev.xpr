@@ -30,20 +30,20 @@
     <Option Name="IPUserFilesDir" Val="$PIPUSERFILESDIR"/>
     <Option Name="IPStaticSourceDir" Val="$PIPUSERFILESDIR/ipstatic"/>
     <Option Name="EnableBDX" Val="FALSE"/>
-    <Option Name="WTXSimLaunchSim" Val="186"/>
+    <Option Name="WTXSimLaunchSim" Val="187"/>
     <Option Name="WTModelSimLaunchSim" Val="0"/>
     <Option Name="WTQuestaLaunchSim" Val="0"/>
     <Option Name="WTIesLaunchSim" Val="0"/>
     <Option Name="WTVcsLaunchSim" Val="0"/>
     <Option Name="WTRivieraLaunchSim" Val="0"/>
     <Option Name="WTActivehdlLaunchSim" Val="0"/>
-    <Option Name="WTXSimExportSim" Val="153"/>
-    <Option Name="WTModelSimExportSim" Val="153"/>
-    <Option Name="WTQuestaExportSim" Val="153"/>
-    <Option Name="WTIesExportSim" Val="153"/>
-    <Option Name="WTVcsExportSim" Val="153"/>
-    <Option Name="WTRivieraExportSim" Val="153"/>
-    <Option Name="WTActivehdlExportSim" Val="153"/>
+    <Option Name="WTXSimExportSim" Val="154"/>
+    <Option Name="WTModelSimExportSim" Val="154"/>
+    <Option Name="WTQuestaExportSim" Val="154"/>
+    <Option Name="WTIesExportSim" Val="154"/>
+    <Option Name="WTVcsExportSim" Val="154"/>
+    <Option Name="WTRivieraExportSim" Val="154"/>
+    <Option Name="WTActivehdlExportSim" Val="154"/>
     <Option Name="GenerateIPUpgradeLog" Val="TRUE"/>
     <Option Name="XSimRadix" Val="hex"/>
     <Option Name="XSimTimeUnit" Val="ns"/>
@@ -727,19 +727,6 @@
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
-    <FileSet Name="gtwiz_ddu_b03" Type="BlockSrcs" RelSrcDir="$PSRCDIR/gtwiz_ddu_b03">
-      <File Path="$PPRDIR/../ip/gtwiz_ddu_b03/gtwiz_ddu_b03.xci">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <Config>
-        <Option Name="TopModule" Val="gtwiz_ddu_b03"/>
-        <Option Name="UseBlackboxStub" Val="1"/>
-      </Config>
-    </FileSet>
     <FileSet Name="gtwiz_ddu_spy" Type="BlockSrcs" RelSrcDir="$PSRCDIR/gtwiz_ddu_spy">
       <File Path="$PPRDIR/../ip/gtwiz_ddu_spy/gtwiz_ddu_spy.xci">
         <FileInfo>
@@ -750,6 +737,19 @@
       </File>
       <Config>
         <Option Name="TopModule" Val="gtwiz_ddu_spy"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="gtwiz_ddu_b02" Type="BlockSrcs" RelSrcDir="$PSRCDIR/gtwiz_ddu_b02">
+      <File Path="$PPRDIR/../ip/gtwiz_ddu_b02/gtwiz_ddu_b02.xci">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <Config>
+        <Option Name="TopModule" Val="gtwiz_ddu_b02"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -808,7 +808,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="gtwiz_ddu_b03_synth_1" Type="Ft3:Synth" SrcSet="gtwiz_ddu_b03" Part="xcku035-ffva1156-1-c" ConstrsSet="gtwiz_ddu_b03" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/gtwiz_ddu_b03_synth_1" IncludeInArchive="true">
+    <Run Id="gtwiz_ddu_spy_synth_1" Type="Ft3:Synth" SrcSet="gtwiz_ddu_spy" Part="xcku035-ffva1156-1-c" ConstrsSet="gtwiz_ddu_spy" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/gtwiz_ddu_spy_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
           <Desc>Vivado Synthesis Defaults</Desc>
@@ -820,7 +820,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="gtwiz_ddu_spy_synth_1" Type="Ft3:Synth" SrcSet="gtwiz_ddu_spy" Part="xcku035-ffva1156-1-c" ConstrsSet="gtwiz_ddu_spy" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/gtwiz_ddu_spy_synth_1" IncludeInArchive="true">
+    <Run Id="gtwiz_ddu_b02_synth_1" Type="Ft3:Synth" SrcSet="gtwiz_ddu_b02" Part="xcku035-ffva1156-1-c" ConstrsSet="gtwiz_ddu_b02" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/gtwiz_ddu_b02_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019">
           <Desc>Vivado Synthesis Defaults</Desc>
@@ -886,7 +886,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="gtwiz_ddu_b03_impl_1" Type="Ft2:EntireDesign" Part="xcku035-ffva1156-1-c" ConstrsSet="gtwiz_ddu_b03" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="gtwiz_ddu_b03_synth_1" IncludeInArchive="false" GenFullBitstream="true">
+    <Run Id="gtwiz_ddu_spy_impl_1" Type="Ft2:EntireDesign" Part="xcku035-ffva1156-1-c" ConstrsSet="gtwiz_ddu_spy" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="gtwiz_ddu_spy_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
           <Desc>Default settings for Implementation.</Desc>
@@ -905,7 +905,7 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="gtwiz_ddu_spy_impl_1" Type="Ft2:EntireDesign" Part="xcku035-ffva1156-1-c" ConstrsSet="gtwiz_ddu_spy" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="gtwiz_ddu_spy_synth_1" IncludeInArchive="false" GenFullBitstream="true">
+    <Run Id="gtwiz_ddu_b02_impl_1" Type="Ft2:EntireDesign" Part="xcku035-ffva1156-1-c" ConstrsSet="gtwiz_ddu_b02" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="gtwiz_ddu_b02_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019">
           <Desc>Default settings for Implementation.</Desc>
