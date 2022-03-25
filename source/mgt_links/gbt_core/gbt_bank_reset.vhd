@@ -145,16 +145,17 @@ begin                 --========####   Architecture Body   ####========--
 
     if GENERAL_RESET_I = '1' then
       genReset_s      <= '1';
-      timer                   :=  0;
+      timer           :=  0;
+      -- synthesis translate_off
+      timer := INITIAL_DELAY - 100;
+      -- synthesis translate_on
 
     elsif rising_edge(GBT_CLK_I) then
 
       if timer >= INITIAL_DELAY-1 then
         genReset_s      <= '0';
-
       else
-        timer                   := timer + 1;
-
+        timer           := timer + 1;
       end if;
 
     end if;

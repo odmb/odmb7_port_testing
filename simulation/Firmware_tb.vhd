@@ -111,9 +111,12 @@ architecture Behavioral of Firmware_tb is
   --end component;
   
   component pseudolut is
+    generic (
+      CMDSET : integer := 0
+      );
     port (
       CLK   : in std_logic;
-      ADDR  : in std_logic_vector(3 downto 0);
+      ADDR  : in integer;
       DOUT1 : out std_logic_vector(15 downto 0);
       DOUT2 : out std_logic_vector(15 downto 0)
       );
@@ -322,9 +325,12 @@ begin
   --     douta=> lut_input2_dout_c
   --     );
   pseudolut_i : pseudolut
+    generic map (
+      CMDSET => 0  --! 0: DAQ test 1: SPI test
+      )
     port map(
       CLK => cmsclk,
-      ADDR => std_logic_vector(lut_input_addr1_s),
+      ADDR => to_integer(lut_input_addr1_s),
       DOUT1 => lut_input1_dout_c,
       DOUT2 => lut_input2_dout_c
       );

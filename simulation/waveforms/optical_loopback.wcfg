@@ -1,0 +1,425 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<wave_config>
+   <wave_state>
+   </wave_state>
+   <db_ref_list>
+      <db_ref path="Firmware_tb_behav.wdb" id="1">
+         <top_modules>
+            <top_module name="Firmware_tb" />
+            <top_module name="gbt_bank_package" />
+            <top_module name="glbl" />
+            <top_module name="latches_flipflops" />
+            <top_module name="ucsb_types" />
+            <top_module name="vcomponents" />
+            <top_module name="vendor_specific_gbt_bank_package" />
+         </top_modules>
+      </db_ref>
+   </db_ref_list>
+   <zoom_setting>
+      <ZoomStartTime time="987309416fs"></ZoomStartTime>
+      <ZoomEndTime time="987660917fs"></ZoomEndTime>
+      <Cursor1Time time="987602333fs"></Cursor1Time>
+   </zoom_setting>
+   <column_width_setting>
+      <NameColumnWidth column_width="226"></NameColumnWidth>
+      <ValueColumnWidth column_width="66"></ValueColumnWidth>
+   </column_width_setting>
+   <WVObjectSize size="5" />
+   <wvobject type="group" fp_name="group678">
+      <obj_property name="label">mgt_fed</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/mgtrefclk">
+         <obj_property name="ElementShortName">mgtrefclk</obj_property>
+         <obj_property name="ObjectShortName">mgtrefclk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/cmsclk">
+         <obj_property name="ElementShortName">cmsclk</obj_property>
+         <obj_property name="ObjectShortName">cmsclk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/drpclk">
+         <obj_property name="ElementShortName">drpclk</obj_property>
+         <obj_property name="ObjectShortName">drpclk</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/rxoutclk_int">
+         <obj_property name="ElementShortName">rxoutclk_int[0:0]</obj_property>
+         <obj_property name="ObjectShortName">rxoutclk_int[0:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/txoutclk_int">
+         <obj_property name="ElementShortName">txoutclk_int[0:0]</obj_property>
+         <obj_property name="ObjectShortName">txoutclk_int[0:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/rx_usrclk_int">
+         <obj_property name="ElementShortName">rx_usrclk_int[0:0]</obj_property>
+         <obj_property name="ObjectShortName">rx_usrclk_int[0:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/tx_usrclk_int">
+         <obj_property name="ElementShortName">tx_usrclk_int[0:0]</obj_property>
+         <obj_property name="ObjectShortName">tx_usrclk_int[0:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/rxpmaresetdone_int">
+         <obj_property name="ElementShortName">rxpmaresetdone_int[0:0]</obj_property>
+         <obj_property name="ObjectShortName">rxpmaresetdone_int[0:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/txpmaresetdone_int">
+         <obj_property name="ElementShortName">txpmaresetdone_int[0:0]</obj_property>
+         <obj_property name="ObjectShortName">txpmaresetdone_int[0:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gtwiz_userclk_tx_reset_int">
+         <obj_property name="ElementShortName">gtwiz_userclk_tx_reset_int</obj_property>
+         <obj_property name="ObjectShortName">gtwiz_userclk_tx_reset_int</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gtwiz_userclk_rx_reset_int">
+         <obj_property name="ElementShortName">gtwiz_userclk_rx_reset_int</obj_property>
+         <obj_property name="ObjectShortName">gtwiz_userclk_rx_reset_int</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gtwiz_userclk_tx_active_int">
+         <obj_property name="ElementShortName">gtwiz_userclk_tx_active_int</obj_property>
+         <obj_property name="ObjectShortName">gtwiz_userclk_tx_active_int</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gtwiz_userclk_rx_active_int">
+         <obj_property name="ElementShortName">gtwiz_userclk_rx_active_int</obj_property>
+         <obj_property name="ObjectShortName">gtwiz_userclk_rx_active_int</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gtwiz_buffbypass_tx_reset_int">
+         <obj_property name="ElementShortName">gtwiz_buffbypass_tx_reset_int</obj_property>
+         <obj_property name="ObjectShortName">gtwiz_buffbypass_tx_reset_int</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gtwiz_buffbypass_rx_reset_int">
+         <obj_property name="ElementShortName">gtwiz_buffbypass_rx_reset_int</obj_property>
+         <obj_property name="ObjectShortName">gtwiz_buffbypass_rx_reset_int</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gtwiz_reset_tx_done_int">
+         <obj_property name="ElementShortName">gtwiz_reset_tx_done_int</obj_property>
+         <obj_property name="ObjectShortName">gtwiz_reset_tx_done_int</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gtwiz_reset_rx_done_int">
+         <obj_property name="ElementShortName">gtwiz_reset_rx_done_int</obj_property>
+         <obj_property name="ObjectShortName">gtwiz_reset_rx_done_int</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gtwiz_tx_reset_int">
+         <obj_property name="ElementShortName">gtwiz_tx_reset_int</obj_property>
+         <obj_property name="ObjectShortName">gtwiz_tx_reset_int</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gtwiz_rx_reset_int">
+         <obj_property name="ElementShortName">gtwiz_rx_reset_int</obj_property>
+         <obj_property name="ObjectShortName">gtwiz_rx_reset_int</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gtwiz_reset_all_int">
+         <obj_property name="ElementShortName">gtwiz_reset_all_int</obj_property>
+         <obj_property name="ObjectShortName">gtwiz_reset_all_int</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gtwiz_reset_rx_cdr_stable_int">
+         <obj_property name="ElementShortName">gtwiz_reset_rx_cdr_stable_int</obj_property>
+         <obj_property name="ObjectShortName">gtwiz_reset_rx_cdr_stable_int</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/txusrclk">
+         <obj_property name="ElementShortName">txusrclk</obj_property>
+         <obj_property name="ObjectShortName">txusrclk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/txclken">
+         <obj_property name="ElementShortName">txclken</obj_property>
+         <obj_property name="ObjectShortName">txclken</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/rxusrclk">
+         <obj_property name="ElementShortName">rxusrclk</obj_property>
+         <obj_property name="ObjectShortName">rxusrclk</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/rxclken">
+         <obj_property name="ElementShortName">rxclken</obj_property>
+         <obj_property name="ObjectShortName">rxclken</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/rxbitslip_s">
+         <obj_property name="ElementShortName">rxbitslip_s[1:1]</obj_property>
+         <obj_property name="ObjectShortName">rxbitslip_s[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/rxbitslip_done_s">
+         <obj_property name="ElementShortName">rxbitslip_done_s[1:1]</obj_property>
+         <obj_property name="ObjectShortName">rxbitslip_done_s[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/usrclk_fed_tx">
+         <obj_property name="ElementShortName">usrclk_fed_tx</obj_property>
+         <obj_property name="ObjectShortName">usrclk_fed_tx</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/fed_txclken">
+         <obj_property name="ElementShortName">fed_txclken</obj_property>
+         <obj_property name="ObjectShortName">fed_txclken</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/fed_txdata">
+         <obj_property name="ElementShortName">fed_txdata[1:1][67:0]</obj_property>
+         <obj_property name="ObjectShortName">fed_txdata[1:1][67:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/fed_txd_valid">
+         <obj_property name="ElementShortName">fed_txd_valid[1:1]</obj_property>
+         <obj_property name="ObjectShortName">fed_txd_valid[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/fed_txready">
+         <obj_property name="ElementShortName">fed_txready</obj_property>
+         <obj_property name="ObjectShortName">fed_txready</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/usrclk_fed_rx">
+         <obj_property name="ElementShortName">usrclk_fed_rx</obj_property>
+         <obj_property name="ObjectShortName">usrclk_fed_rx</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/fed_rxclken">
+         <obj_property name="ElementShortName">fed_rxclken</obj_property>
+         <obj_property name="ObjectShortName">fed_rxclken</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/fed_rxdata">
+         <obj_property name="ElementShortName">fed_rxdata[1:1][83:0]</obj_property>
+         <obj_property name="ObjectShortName">fed_rxdata[1:1][83:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/fed_rxd_valid">
+         <obj_property name="ElementShortName">fed_rxd_valid[1:1]</obj_property>
+         <obj_property name="ObjectShortName">fed_rxd_valid[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/fed_bad_rx">
+         <obj_property name="ElementShortName">fed_bad_rx[1:1]</obj_property>
+         <obj_property name="ObjectShortName">fed_bad_rx[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/fed_rxready">
+         <obj_property name="ElementShortName">fed_rxready</obj_property>
+         <obj_property name="ObjectShortName">fed_rxready</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/fed_reset">
+         <obj_property name="ElementShortName">fed_reset</obj_property>
+         <obj_property name="ObjectShortName">fed_reset</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_rxclken">
+         <obj_property name="ElementShortName">gbt_rxclken</obj_property>
+         <obj_property name="ObjectShortName">gbt_rxclken</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_txclken">
+         <obj_property name="ElementShortName">gbt_txclken</obj_property>
+         <obj_property name="ObjectShortName">gbt_txclken</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_txclken_s">
+         <obj_property name="ElementShortName">gbt_txclken_s[1:1]</obj_property>
+         <obj_property name="ObjectShortName">gbt_txclken_s[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_rxclken_s">
+         <obj_property name="ElementShortName">gbt_rxclken_s[1:1]</obj_property>
+         <obj_property name="ObjectShortName">gbt_rxclken_s[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/mgt_txword_s">
+         <obj_property name="ElementShortName">mgt_txword_s[1:1][39:0]</obj_property>
+         <obj_property name="ObjectShortName">mgt_txword_s[1:1][39:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/mgt_rxword_s">
+         <obj_property name="ElementShortName">mgt_rxword_s[1:1][39:0]</obj_property>
+         <obj_property name="ObjectShortName">mgt_rxword_s[1:1][39:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gtwiz_userdata_tx_int">
+         <obj_property name="ElementShortName">gtwiz_userdata_tx_int[39:0]</obj_property>
+         <obj_property name="ObjectShortName">gtwiz_userdata_tx_int[39:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gtwiz_userdata_rx_int">
+         <obj_property name="ElementShortName">gtwiz_userdata_rx_int[39:0]</obj_property>
+         <obj_property name="ObjectShortName">gtwiz_userdata_rx_int[39:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/daq_rx_n">
+         <obj_property name="ElementShortName">daq_rx_n[1:1]</obj_property>
+         <obj_property name="ObjectShortName">daq_rx_n[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/daq_rx_p">
+         <obj_property name="ElementShortName">daq_rx_p[1:1]</obj_property>
+         <obj_property name="ObjectShortName">daq_rx_p[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/daq_tx_n">
+         <obj_property name="ElementShortName">daq_tx_n[1:1]</obj_property>
+         <obj_property name="ObjectShortName">daq_tx_n[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/daq_tx_p">
+         <obj_property name="ElementShortName">daq_tx_p[1:1]</obj_property>
+         <obj_property name="ObjectShortName">daq_tx_p[1:1]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group679">
+      <obj_property name="label">mgt_alct</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_ALCT/rxpmaresetdone_int">
+         <obj_property name="ElementShortName">rxpmaresetdone_int[0:0]</obj_property>
+         <obj_property name="ObjectShortName">rxpmaresetdone_int[0:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_ALCT/txpmaresetdone_int">
+         <obj_property name="ElementShortName">txpmaresetdone_int[0:0]</obj_property>
+         <obj_property name="ObjectShortName">txpmaresetdone_int[0:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/alct_dav_sync_out">
+         <obj_property name="ElementShortName">alct_dav_sync_out</obj_property>
+         <obj_property name="ObjectShortName">alct_dav_sync_out</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/alct_rxclken">
+         <obj_property name="ElementShortName">alct_rxclken</obj_property>
+         <obj_property name="ObjectShortName">alct_rxclken</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/alct_rxdata">
+         <obj_property name="ElementShortName">alct_rxdata[71:0]</obj_property>
+         <obj_property name="ObjectShortName">alct_rxdata[71:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/alct_rxdata_remap">
+         <obj_property name="ElementShortName">alct_rxdata_remap[111:0]</obj_property>
+         <obj_property name="ObjectShortName">alct_rxdata_remap[111:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/alct_rxd_valid">
+         <obj_property name="ElementShortName">alct_rxd_valid</obj_property>
+         <obj_property name="ObjectShortName">alct_rxd_valid</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/alct_mgt_rxready">
+         <obj_property name="ElementShortName">alct_mgt_rxready</obj_property>
+         <obj_property name="ObjectShortName">alct_mgt_rxready</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/alct_gbt_rxready">
+         <obj_property name="ElementShortName">alct_gbt_rxready</obj_property>
+         <obj_property name="ObjectShortName">alct_gbt_rxready</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/alct_rxready">
+         <obj_property name="ElementShortName">alct_rxready</obj_property>
+         <obj_property name="ObjectShortName">alct_rxready</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/alct_bad_rx">
+         <obj_property name="ElementShortName">alct_bad_rx</obj_property>
+         <obj_property name="ObjectShortName">alct_bad_rx</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group708">
+      <obj_property name="label">mgt_cfeb</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_DCFEB/rxpmaresetdone_int">
+         <obj_property name="ElementShortName">rxpmaresetdone_int[6:0]</obj_property>
+         <obj_property name="ObjectShortName">rxpmaresetdone_int[6:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_DCFEB/txpmaresetdone_int">
+         <obj_property name="ElementShortName">txpmaresetdone_int[6:0]</obj_property>
+         <obj_property name="ObjectShortName">txpmaresetdone_int[6:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group687">
+      <obj_property name="label">odmb_clocking</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/MBK/REF_CLK_4_P">
+         <obj_property name="ElementShortName">REF_CLK_4_P</obj_property>
+         <obj_property name="ObjectShortName">REF_CLK_4_P</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/MBK/mgtrefclk0_225_odiv2">
+         <obj_property name="ElementShortName">mgtrefclk0_225_odiv2</obj_property>
+         <obj_property name="ObjectShortName">mgtrefclk0_225_odiv2</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/MBK/mgtrefclk0_225">
+         <obj_property name="ElementShortName">mgtrefclk0_225</obj_property>
+         <obj_property name="ObjectShortName">mgtrefclk0_225</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/MBK/clk_mgtclk4">
+         <obj_property name="ElementShortName">clk_mgtclk4</obj_property>
+         <obj_property name="ObjectShortName">clk_mgtclk4</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group1606">
+      <obj_property name="label">gbt_bank</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/gbt_txencdata_s">
+         <obj_property name="ElementShortName">gbt_txencdata_s[1:1][119:0]</obj_property>
+         <obj_property name="ObjectShortName">gbt_txencdata_s[1:1][119:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/gbt_rxencdata_s">
+         <obj_property name="ElementShortName">gbt_rxencdata_s[1:1][119:0]</obj_property>
+         <obj_property name="ObjectShortName">gbt_rxencdata_s[1:1][119:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/mgt_headerflag_s">
+         <obj_property name="ElementShortName">mgt_headerflag_s[1:1]</obj_property>
+         <obj_property name="ObjectShortName">mgt_headerflag_s[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/gbt_rxgearboxready_s">
+         <obj_property name="ElementShortName">gbt_rxgearboxready_s[1:1]</obj_property>
+         <obj_property name="ObjectShortName">gbt_rxgearboxready_s[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/gbt_rxclkengearbox_s">
+         <obj_property name="ElementShortName">gbt_rxclkengearbox_s[1:1]</obj_property>
+         <obj_property name="ObjectShortName">gbt_rxclkengearbox_s[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/RXBITSLIP_o">
+         <obj_property name="ElementShortName">RXBITSLIP_o[1:1]</obj_property>
+         <obj_property name="ObjectShortName">RXBITSLIP_o[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/RXBITSLIP_DONE_o">
+         <obj_property name="ElementShortName">RXBITSLIP_DONE_o[1:1]</obj_property>
+         <obj_property name="ObjectShortName">RXBITSLIP_DONE_o[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/RXBITSLIP_TXRESET_o">
+         <obj_property name="ElementShortName">RXBITSLIP_TXRESET_o[1:1]</obj_property>
+         <obj_property name="ObjectShortName">RXBITSLIP_TXRESET_o[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/RXBITSLIP_RXRESET_o">
+         <obj_property name="ElementShortName">RXBITSLIP_RXRESET_o[1:1]</obj_property>
+         <obj_property name="ObjectShortName">RXBITSLIP_RXRESET_o[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/MGT_USRWORD_i">
+         <obj_property name="ElementShortName">MGT_USRWORD_i[1:1][39:0]</obj_property>
+         <obj_property name="ObjectShortName">MGT_USRWORD_i[1:1][39:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/ILA_DATA_o">
+         <obj_property name="ElementShortName">ILA_DATA_o[71:0]</obj_property>
+         <obj_property name="ObjectShortName">ILA_DATA_o[71:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/rx_usrclk_sig">
+         <obj_property name="ElementShortName">rx_usrclk_sig[1:1]</obj_property>
+         <obj_property name="ObjectShortName">rx_usrclk_sig[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/rxBitSlip_to_gtx">
+         <obj_property name="ElementShortName">rxBitSlip_to_gtx[1:1]</obj_property>
+         <obj_property name="ObjectShortName">rxBitSlip_to_gtx[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/done_from_rxBitSlipControl">
+         <obj_property name="ElementShortName">done_from_rxBitSlipControl[1:1]</obj_property>
+         <obj_property name="ObjectShortName">done_from_rxBitSlipControl[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/rstBitSlip_FSM">
+         <obj_property name="ElementShortName">rstBitSlip_FSM[1:1]</obj_property>
+         <obj_property name="ObjectShortName">rstBitSlip_FSM[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/mgtRst_from_bitslipCtrl">
+         <obj_property name="ElementShortName">mgtRst_from_bitslipCtrl[1:1]</obj_property>
+         <obj_property name="ObjectShortName">mgtRst_from_bitslipCtrl[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/rx_reset_sig">
+         <obj_property name="ElementShortName">rx_reset_sig[1:1]</obj_property>
+         <obj_property name="ObjectShortName">rx_reset_sig[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/tx_reset_sig">
+         <obj_property name="ElementShortName">tx_reset_sig[1:1]</obj_property>
+         <obj_property name="ObjectShortName">tx_reset_sig[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/resetGtxRx_from_rxBitSlipControl">
+         <obj_property name="ElementShortName">resetGtxRx_from_rxBitSlipControl[1:1]</obj_property>
+         <obj_property name="ObjectShortName">resetGtxRx_from_rxBitSlipControl[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/resetGtxTx_from_rxBitSlipControl">
+         <obj_property name="ElementShortName">resetGtxTx_from_rxBitSlipControl[1:1]</obj_property>
+         <obj_property name="ObjectShortName">resetGtxTx_from_rxBitSlipControl[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/bitSlipCmd_to_bitSlipCtrller">
+         <obj_property name="ElementShortName">bitSlipCmd_to_bitSlipCtrller[1:1]</obj_property>
+         <obj_property name="ObjectShortName">bitSlipCmd_to_bitSlipCtrller[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/ready_from_bitSlipCtrller">
+         <obj_property name="ElementShortName">ready_from_bitSlipCtrller[1:1]</obj_property>
+         <obj_property name="ObjectShortName">ready_from_bitSlipCtrller[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/rx_headerlocked_s">
+         <obj_property name="ElementShortName">rx_headerlocked_s[1:1]</obj_property>
+         <obj_property name="ObjectShortName">rx_headerlocked_s[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/rx_bitslipIsEven_s">
+         <obj_property name="ElementShortName">rx_bitslipIsEven_s[1:1]</obj_property>
+         <obj_property name="ObjectShortName">rx_bitslipIsEven_s[1:1]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/ila_data1">
+         <obj_property name="ElementShortName">ila_data1[83:0]</obj_property>
+         <obj_property name="ObjectShortName">ila_data1[83:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/ila_data_patser">
+         <obj_property name="ElementShortName">ila_data_patser[7:0]</obj_property>
+         <obj_property name="ObjectShortName">ila_data_patser[7:0]</obj_property>
+      </wvobject>
+   </wvobject>
+</wave_config>

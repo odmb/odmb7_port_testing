@@ -28,6 +28,7 @@ entity mgt_fed is
     mgtrefclk   : in  std_logic;  --! Input MGT reference clock signal after buffer
     cmsclk      : in  std_logic;  --! Independent clock signal to drive for the helper block of the MGT IP, 80 MHz
     drpclk      : in  std_logic;  --! DRPCLK for the gtwizard module, 120.24 MHz derived from mgtrefclk0_225
+    ilaclk      : in  std_logic;  --! FIXME: temporary used for ILACLK, 120.24 MHz 
     txusrclk    : out std_logic;  --! The USRCLK signal for RX data readout 120.24 MHz
     txclken     : out std_logic;  --! The clock enable signal for the RX data readout, 40.079 MHz, 1/3 duty cycle
     rxusrclk    : out std_logic;  --! The USRCLK signal for RX data readout 120.24 MHz
@@ -63,7 +64,7 @@ architecture Behavioral of mgt_fed is
       clk: in std_logic;
       probe0: in std_logic_vector(111 downto 0);
       probe1: in std_logic_vector(71 downto 0);
-      probe2: in std_logic_vector(63 downto 0);
+      probe2: in std_logic_vector(83 downto 0);
       probe3: in std_logic_vector(0 downto 0)
       );
   end component;
@@ -166,7 +167,6 @@ architecture Behavioral of mgt_fed is
 
   signal rxbitslip_s                     : std_logic_vector(1 to NUM_LINKS);
   signal rxbitslip_done_s                : std_logic_vector(1 to NUM_LINKS);
-  signal mgt_headerflag_s                : std_logic_vector(1 to NUM_LINKS);
 
   --===========--
   -- GBT Tx/Rx --
@@ -194,9 +194,11 @@ architecture Behavioral of mgt_fed is
   signal fed_halfword_reg : std_logic_vector(13 downto 0); -- latched for the last packet
 
   -- Debugging signals --
+  signal ila_data_gbt   : std_logic_vector(83 downto 0);
+
   signal ila_data_0     : std_logic_vector(111 downto 0);
   signal ila_data_1     : std_logic_vector(71 downto 0);
-  signal ila_data_2     : std_logic_vector(63 downto 0);
+  signal ila_data_2     : std_logic_vector(83 downto 0);
 
 
 begin
@@ -222,7 +224,7 @@ begin
   --=============--
   -- GBT Wrapper --
   --=============--
-  gbt_inst : entity work.gbt_wrapper
+  gbt_wrapper_inst : entity work.gbt_wrapper
     generic map (
       NUM_LINKS                => NLINK,
       TX_ENCODING              => GBT_FRAME,   -- 0: GBT_FRAME, 1: WIDE_BUS, 2: GBT_DYNAMIC
@@ -246,15 +248,15 @@ begin
       --==============--
       GBT_TXDATA_i(1)          => fed_txdata_gbt,
       GBT_RXDATA_o(1)          => fed_rxdata_gbt,
-
       WB_TXDATA_i(1)           => fed_txdata_wb,
       WB_RXDATA_o(1)           => fed_rxdata_wb,
 
       TX_ISDATA_i(1)           => TXD_VALID(1),
       RX_ISDATA_o(1)           => RXD_VALID(1),
-
       MGT_TXWORD_o             => mgt_txword_s,
       MGT_RXWORD_i             => mgt_rxword_s,
+
+      ILA_DATA_o               => ila_data_gbt,
 
       --================--
       -- MGT Control    --
@@ -444,16 +446,25 @@ begin
   ila_data_0(85) <= mgt_rxready;
   ila_data_0(86) <= gbt_rxready_s(1);
   ila_data_0(87) <= gbt_rxerror_s(1);
-  ila_data_0(88) <= gtwiz_reset_tx_done_int;
-  ila_data_0(89) <= gtwiz_buffbypass_tx_done_int;
-  ila_data_0(90) <= txusrclk_int;
+  ila_data_0(88) <= gtwiz_tx_reset_int;
+  ila_data_0(89) <= gtwiz_rx_reset_int;
+  ila_data_0(90) <= gtwiz_reset_tx_done_int;
+  ila_data_0(91) <= gtwiz_reset_rx_done_int;
+  ila_data_0(92) <= gtwiz_buffbypass_tx_done_int;
+  ila_data_0(93) <= txusrclk_int;
+  ila_data_0(94) <= rxusrclk_int;
+  ila_data_0(95) <= gtwiz_userclk_tx_reset_int;
+  ila_data_0(96) <= gtwiz_userclk_rx_reset_int;
 
+  ila_data_1 <= ila_data_gbt(71 downto 0);
 
-  ila_data_1(39 downto 0) <= mgt_txword_s(1);
+  -- ila_data_2(39 downto 0) <= mgt_txword_s(1);
+  ila_data_2(39 downto 0)  <= mgt_rxword_s(1);
+  ila_data_2(79 downto 40) <= gtwiz_userdata_rx_int;
 
   ila_fed_rx : ila_gbt
     port map (
-      clk => DRPCLK,
+      clk => ILACLK,
       probe0 => ila_data_0,
       probe1 => ila_data_1,
       probe2 => ila_data_2,

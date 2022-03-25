@@ -96,6 +96,8 @@ architecture structural of gbt_framealigner is
   signal rx_headerlocked_s                : std_logic_vector(1 to NUM_LINKS);
   signal rx_bitslipIsEven_s               : std_logic_vector(1 to NUM_LINKS);
 
+  signal pattSearch_reset_s               : std_logic_vector(1 to NUM_LINKS);
+
 
   signal ila_data1 : std_logic_vector(83 downto 0);
   signal ila_data_patser : std_logic_vector(7 downto 0);
@@ -176,7 +178,7 @@ begin                 --========####   Architecture Body   ####========--
 
     rxBitSlipControl: entity work.mgt_bitslipctrl
       port map (
-        RX_RESET_I          => not(MGT_RXRESET_DONE_i(i)),
+        RX_RESET_I          => pattSearch_reset_s(i),
         RX_WORDCLK_I        => rx_usrclk_sig(i),
         MGT_CLK_I           => MGT_DRP_CLK_i,
 
@@ -195,7 +197,7 @@ begin                 --========####   Architecture Body   ####========--
 
     patternSearch: entity work.mgt_framealigner_pattsearch
       port map (
-        RX_RESET_I          => not(MGT_RXRESET_DONE_i(i)),
+        RX_RESET_I          => pattSearch_reset_s(i),
         RX_WORDCLK_I        => rx_usrclk_sig(i),
 
         RX_BITSLIP_CMD_O    => bitSlipCmd_to_bitSlipCtrller(i),
@@ -209,6 +211,7 @@ begin                 --========####   Architecture Body   ####========--
         RX_WORD_I           => MGT_USRWORD_i(i)
         );
 
+    pattSearch_reset_s(i) <= not(MGT_RXRESET_DONE_i(i));
     RX_HEADERLOCKED_o(i) <= rx_headerlocked_s(i);
 
   end generate;

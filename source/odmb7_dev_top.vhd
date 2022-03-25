@@ -239,7 +239,7 @@ architecture Behavioral of odmb7_ucsb_dev is
       clk: in std_logic;
       probe0: in std_logic_vector(111 downto 0);
       probe1: in std_logic_vector(71 downto 0);
-      probe2: in std_logic_vector(63 downto 0);
+      probe2: in std_logic_vector(83 downto 0);
       probe3: in std_logic_vector(0 downto 0)
       );
   end component;
@@ -253,23 +253,24 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal mgtrefclk1_226 : std_logic;
   signal mgtrefclk0_227 : std_logic;
   signal mgtrefclk1_227 : std_logic;
-  signal sysclk625k : std_logic;
-  signal sysclk1p25 : std_logic;
-  signal sysclk2p5 : std_logic;
-  signal sysclk10 : std_logic;
-  signal sysclk20 : std_logic;
-  signal sysclk40 : std_logic;
-  signal sysclk80 : std_logic;
-  signal cmsclk : std_logic;
-  signal clk_lfclk : std_logic;
-  signal clk_gp6 : std_logic;
-  signal clk_gp7 : std_logic;
-  signal mgtclk1 : std_logic;
-  signal mgtclk2 : std_logic;
-  signal mgtclk3 : std_logic;
-  signal mgtclk4 : std_logic;
-  signal mgtclk5 : std_logic;
-  signal mgtclk125 : std_logic;
+  signal sysclk625k     : std_logic;
+  signal sysclk1p25     : std_logic;
+  signal sysclk2p5      : std_logic;
+  signal sysclk10       : std_logic;
+  signal sysclk20       : std_logic;
+  signal sysclk40       : std_logic;
+  signal sysclk80       : std_logic;
+  signal sysclk320      : std_logic;
+  signal cmsclk         : std_logic;
+  signal clk_lfclk      : std_logic;
+  signal clk_gp6        : std_logic;
+  signal clk_gp7        : std_logic;
+  signal mgtclk1        : std_logic;
+  signal mgtclk2        : std_logic;
+  signal mgtclk3        : std_logic;
+  signal mgtclk4        : std_logic;
+  signal mgtclk5        : std_logic;
+  signal mgtclk125      : std_logic;
 
   --------------------------------------
   -- VME signals
@@ -531,7 +532,7 @@ architecture Behavioral of odmb7_ucsb_dev is
   -- Debug signals
   --------------------------------------
   signal vme_diagout   : std_logic_vector(17 downto 0) := (others => '0');
-  signal ila_data_alct : std_logic_vector(63 downto 0);  -- ILA data related to ALCT
+  signal ila_data_alct : std_logic_vector(83 downto 0);  -- ILA data related to ALCT
   signal ila_data_fed0 : std_logic_vector(111 downto 0);  -- ILA data related to ALCT
   signal pon_reset_cnt : unsigned(7 downto 0) := (others => '0');
 
@@ -673,6 +674,7 @@ begin
       clk_sysclk20   => sysclk20,
       clk_sysclk40   => sysclk40,
       clk_sysclk80   => sysclk80,
+      clk_sysclk320  => sysclk320,
       clk_cmsclk     => cmsclk,
       clk_lfclk      => clk_lfclk,
       clk_gp6        => clk_gp6,
@@ -1286,6 +1288,7 @@ begin
       mgtrefclk    => mgtrefclk0_225,   -- 120.24 MHz
       cmsclk       => cmsclk,
       drpclk       => mgtclk4,          -- 120.24 MHz
+      ilaclk       => sysclk320,        -- 320.63 MHz
       txusrclk     => usrclk_fed_tx,    -- 120.24 MHz
       txclken      => fed_txclken,
       rxusrclk     => usrclk_fed_rx,    -- 120.24 MHz

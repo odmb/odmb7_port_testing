@@ -117,7 +117,6 @@ architecture structural of gbt_bank is
   -- GBT TX --
   --========--
   signal gbt_txencdata_s                  : gbt_reg120_A (1 to NUM_LINKS);      --! Encoded data buses used to connect the output of the datapath to the Tx gearbox
-  signal gbt_txclkfromDesc_s              : std_logic_vector(1 to NUM_LINKS);
 
   --========--
   -- MGT    --
@@ -182,8 +181,8 @@ begin                 --========####   Architecture Body   ####========--
         );
   end generate;
 
-  --! Instantiation of the transceiver module (MGT and FrameAligner)
-  mgt_inst: entity work.gbt_framealigner
+  --! Instantiation of the transceiver module FrameAligner
+  framealigner_inst: entity work.gbt_framealigner
     generic map (
       NUM_LINKS                    => NUM_LINKS
       )

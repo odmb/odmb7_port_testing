@@ -249,7 +249,7 @@ begin
   --=============--
   -- GBT Wrapper --
   --=============--
-  gbt_inst : entity work.gbt_wrapper
+  gbt_wrapper_inst : entity work.gbt_wrapper
     generic map (
       NUM_LINKS                => NLINK,
       TX_ENCODING              => WIDE_BUS,   -- 0: GBT_FRAME, 1: WIDE_BUS, 2: GBT_DYNAMIC

@@ -11,7 +11,6 @@ use unisim.vcomponents.all;
 -- Custom libraries and packages:
 use work.gbt_bank_package.all;
 use work.vendor_specific_gbt_bank_package.all;
--- use work.gbt_exampledesign_package.all;
 
 --=================================================================================================--
 --#######################################   Entity   ##############################################--
@@ -44,12 +43,12 @@ entity gbt_wrapper is
     GBT_RXDATA_o                                 : out gbt_reg84_A(1 to NUM_LINKS);
     WB_TXDATA_i                                  : in  gbt_reg32_A(1 to NUM_LINKS);
     WB_RXDATA_o                                  : out gbt_reg32_A(1 to NUM_LINKS);
-
     TX_ISDATA_i                                  : in  std_logic_vector(1 to NUM_LINKS);
     RX_ISDATA_o                                  : out std_logic_vector(1 to NUM_LINKS);
-
     MGT_TXWORD_o                                 : out word_mxnbit_A(1 to NUM_LINKS);
     MGT_RXWORD_i                                 : in  word_mxnbit_A(1 to NUM_LINKS);
+
+    ILA_DATA_o                                   : out std_logic_vector(83 downto 0);       --! Debug data for ILA pass on to higher level structures
 
     --================--
     -- MGT Control    --
@@ -124,16 +123,6 @@ architecture gbt_wrapper_inst of gbt_wrapper is
 
   -- Debug --
   signal ila_data_mgt                    : std_logic_vector(83 downto 0);
-
-  -- component ila_gbt_exde is
-  --   port (
-  --     clk: in std_logic;
-  --     probe0: in std_logic_vector(83 downto 0);
-  --     probe1: in std_logic_vector(31 downto 0);
-  --     probe2: in std_logic_vector(0 downto 0);
-  --     probe3: in std_logic_vector(0 downto 0)
-  --     );
-  -- end component;
 
 --=================================================================================================--
 begin                 --========####   Architecture Body   ####========--
@@ -330,15 +319,6 @@ begin                 --========####   Architecture Body   ####========--
       WB_RXDATA_o              => WB_RXDATA_o
 
       );
-
-  -- ila_gbt_wrapper : ila_gbt_exde
-  --   port map (
-  --     clk => MGT_DRP_CLK,        -- original 300 MHz
-  --     probe0 => ila_data_mgt,
-  --     probe1 => (others => '0'),
-  --     probe2(0) => gbt_rxclken_s(1),
-  --     probe3(0) => gbt_rxclkenLogic_s(1)
-  --     );
 
 --=====================================================================================--
 end gbt_wrapper_inst;

@@ -14,23 +14,23 @@ entity odmb_clocking is
     --------------------
     CMS_CLK_FPGA_P : in std_logic;      --! system clock: 40.07897 MHz
     CMS_CLK_FPGA_N : in std_logic;      --! system clock: 40.07897 MHz
-    GP_CLK_6_P : in std_logic;          --! clock synthesizer ODIV6: 80 MHz
-    GP_CLK_6_N : in std_logic;          --! clock synthesizer ODIV6: 80 MHz
-    GP_CLK_7_P : in std_logic;          --! clock synthesizer ODIV7: 80 MHz
-    GP_CLK_7_N : in std_logic;          --! clock synthesizer ODIV7: 80 MHz
-    REF_CLK_1_P : in std_logic;         --! refclk0 to MGT quad 224
-    REF_CLK_1_N : in std_logic;         --! refclk0 to MGT quad 224
-    REF_CLK_2_P : in std_logic;         --! refclk0 to MGT quad 227
-    REF_CLK_2_N : in std_logic;         --! refclk0 to MGT quad 227
-    REF_CLK_3_P : in std_logic;         --! refclk0 to MGT quad 226
-    REF_CLK_3_N : in std_logic;         --! refclk0 to MGT quad 226
-    REF_CLK_4_P : in std_logic;         --! refclk0 to MGT quad 225
-    REF_CLK_4_N : in std_logic;         --! refclk0 to MGT quad 225
-    REF_CLK_5_P : in std_logic;         --! refclk1 to MGT quad 227
-    REF_CLK_5_N : in std_logic;         --! refclk1 to MGT quad 227
-    CLK_125_REF_P : in std_logic;       --! refclk1 to MGT quad 226
-    CLK_125_REF_N : in std_logic;       --! refclk1 to MGT quad 226
-    LF_CLK : in std_logic;              --! Low frequency, 10 kHz
+    GP_CLK_6_P     : in std_logic;      --! clock synthesizer ODIV6: 80 MHz
+    GP_CLK_6_N     : in std_logic;      --! clock synthesizer ODIV6: 80 MHz
+    GP_CLK_7_P     : in std_logic;      --! clock synthesizer ODIV7: 80 MHz
+    GP_CLK_7_N     : in std_logic;      --! clock synthesizer ODIV7: 80 MHz
+    REF_CLK_1_P    : in std_logic;      --! refclk0 to MGT quad 224
+    REF_CLK_1_N    : in std_logic;      --! refclk0 to MGT quad 224
+    REF_CLK_2_P    : in std_logic;      --! refclk0 to MGT quad 227
+    REF_CLK_2_N    : in std_logic;      --! refclk0 to MGT quad 227
+    REF_CLK_3_P    : in std_logic;      --! refclk0 to MGT quad 226
+    REF_CLK_3_N    : in std_logic;      --! refclk0 to MGT quad 226
+    REF_CLK_4_P    : in std_logic;      --! refclk0 to MGT quad 225
+    REF_CLK_4_N    : in std_logic;      --! refclk0 to MGT quad 225
+    REF_CLK_5_P    : in std_logic;      --! refclk1 to MGT quad 227
+    REF_CLK_5_N    : in std_logic;      --! refclk1 to MGT quad 227
+    CLK_125_REF_P  : in std_logic;      --! refclk1 to MGT quad 226
+    CLK_125_REF_N  : in std_logic;      --! refclk1 to MGT quad 226
+    LF_CLK         : in std_logic;      --! Low frequency, 10 kHz
 
     --------------------
     -- Output clocks
@@ -44,22 +44,23 @@ entity odmb_clocking is
 
     clk_sysclk625k : out std_logic;     --! buffered 625 kHz clock
     clk_sysclk1p25 : out std_logic;     --! buffered 1.25 MHz clock
-    clk_sysclk2p5 : out std_logic;      --! buffered 2.5 MHz clock
-    clk_sysclk10 : out std_logic;       --! buffered 10 MHz clock
-    clk_sysclk20 : out std_logic;       --! buffered 20 MHz clock
-    clk_sysclk40 : out std_logic;       --! buffered 40 MHz clock
-    clk_sysclk80 : out std_logic;       --! buffered 80 MHz clock
-    clk_cmsclk : out std_logic;         --! buffered CMS (40.07897 MHz) clock
-    clk_lfclk : out std_logic;          --! buffered 10 kHz clock
-    clk_gp6 : out std_logic;            --! buffered 80 MHz cock
-    clk_gp7 : out std_logic;            --! buffered 80 MHz clock
+    clk_sysclk2p5  : out std_logic;     --! buffered 2.5 MHz clock
+    clk_sysclk10   : out std_logic;     --! buffered 10 MHz clock
+    clk_sysclk20   : out std_logic;     --! buffered 20 MHz clock
+    clk_sysclk40   : out std_logic;     --! buffered 40 MHz clock
+    clk_sysclk80   : out std_logic;     --! buffered 80 MHz clock
+    clk_sysclk320  : out std_logic;     --! buffered 80 MHz clock
+    clk_cmsclk     : out std_logic;     --! buffered CMS (40.07897 MHz) clock
+    clk_lfclk      : out std_logic;     --! buffered 10 kHz clock
+    clk_gp6        : out std_logic;     --! buffered 80 MHz cock
+    clk_gp7        : out std_logic;     --! buffered 80 MHz clock
  
-    clk_mgtclk1 : out std_logic;        --! buffered clock from MGT quad 224 clock 0 divided by 2
-    clk_mgtclk2 : out std_logic;        --! buffered clock from MGT quad 227 clock 0 divided by 2
-    clk_mgtclk3 : out std_logic;        --! buffered clock from MGT quad 226 clock 0 divided by 2
-    clk_mgtclk4 : out std_logic;        --! buffered clock from MGT quad 225 clock 0 divided by 2
-    clk_mgtclk5 : out std_logic;        --! buffered clock from MGT quad 227 clock 1 divided by 2
-    clk_mgtclk125 : out std_logic       --! buffered clock from MGT quad 226 clock 1 divided by 2
+    clk_mgtclk1    : out std_logic;     --! buffered clock from MGT quad 224 clock 0 divided by 2
+    clk_mgtclk2    : out std_logic;     --! buffered clock from MGT quad 227 clock 0 divided by 2
+    clk_mgtclk3    : out std_logic;     --! buffered clock from MGT quad 226 clock 0 divided by 2
+    clk_mgtclk4    : out std_logic;     --! buffered clock from MGT quad 225 clock 0 divided by 2
+    clk_mgtclk5    : out std_logic;     --! buffered clock from MGT quad 227 clock 1 divided by 2
+    clk_mgtclk125  : out std_logic      --! buffered clock from MGT quad 226 clock 1 divided by 2
 
     );
 end odmb_clocking;
@@ -73,7 +74,8 @@ architecture Clocking_Arch of odmb_clocking is
       clk_out10 : out std_logic;
       clk_out20 : out std_logic;
       clk_out40 : out std_logic;
-      clk_out80 : out std_logic
+      clk_out80 : out std_logic;
+      clk_out320 : out std_logic
       );
   end component;
 
@@ -257,12 +259,13 @@ begin
 
   clockManager_i : clockManager
     port map (
-      clk_in1   => clk_cmsclk_unbuf, -- input  40 MHz
-      clk_out5  => clk_sysclk5,      -- output  5 MHz
-      clk_out10 => clk_sysclk10,     -- output 10 MHz
-      clk_out20 => clk_sysclk20,     -- output 20 MHz
-      clk_out40 => clk_sysclk40,     -- output 40 MHz
-      clk_out80 => clk_sysclk80      -- output 80 MHz
+      clk_in1    => clk_cmsclk_unbuf, -- input  40.08 MHz
+      clk_out5   => clk_sysclk5,      -- output  5.01 MHz
+      clk_out10  => clk_sysclk10,     -- output 10.02 MHz
+      clk_out20  => clk_sysclk20,     -- output 20.04 MHz
+      clk_out40  => clk_sysclk40,     -- output 40.08 MHz
+      clk_out80  => clk_sysclk80,     -- output 80.16 MHz
+      clk_out320 => clk_sysclk320     -- output 320.3 MHz
       );
 
 

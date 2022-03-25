@@ -65,11 +65,11 @@ architecture alct_otmb_data_gen_architecture of alct_otmb_data_gen is
   signal alct_l1a_cnt_l_fifo_rdc   : std_logic_vector(9 downto 0);
   signal alct_l1a_cnt_l_fifo_empty : std_logic;
   signal alct_l1a_cnt_l_fifo_full  : std_logic;
-  signal alct_l1a_cnt_h_fifo_out   : std_logic_vector(17 downto 0);
-  signal alct_l1a_cnt_h_fifo_wrc   : std_logic_vector(9 downto 0);
-  signal alct_l1a_cnt_h_fifo_rdc   : std_logic_vector(9 downto 0);
-  signal alct_l1a_cnt_h_fifo_empty : std_logic;
-  signal alct_l1a_cnt_h_fifo_full  : std_logic;
+  -- signal alct_l1a_cnt_h_fifo_out   : std_logic_vector(17 downto 0);
+  -- signal alct_l1a_cnt_h_fifo_wrc   : std_logic_vector(9 downto 0);
+  -- signal alct_l1a_cnt_h_fifo_rdc   : std_logic_vector(9 downto 0);
+  -- signal alct_l1a_cnt_h_fifo_empty : std_logic;
+  -- signal alct_l1a_cnt_h_fifo_full  : std_logic;
   signal alct_l1a_cnt_fifo_wr_en   : std_logic;
   signal alct_l1a_cnt_fifo_rd_en   : std_logic;
 
@@ -78,11 +78,11 @@ architecture alct_otmb_data_gen_architecture of alct_otmb_data_gen is
   signal otmb_l1a_cnt_l_fifo_rdc   : std_logic_vector(9 downto 0);
   signal otmb_l1a_cnt_l_fifo_empty : std_logic;
   signal otmb_l1a_cnt_l_fifo_full  : std_logic;
-  signal otmb_l1a_cnt_h_fifo_out   : std_logic_vector(17 downto 0);
-  signal otmb_l1a_cnt_h_fifo_wrc   : std_logic_vector(9 downto 0);
-  signal otmb_l1a_cnt_h_fifo_rdc   : std_logic_vector(9 downto 0);
-  signal otmb_l1a_cnt_h_fifo_empty : std_logic;
-  signal otmb_l1a_cnt_h_fifo_full  : std_logic;
+  -- signal otmb_l1a_cnt_h_fifo_out   : std_logic_vector(17 downto 0);
+  -- signal otmb_l1a_cnt_h_fifo_wrc   : std_logic_vector(9 downto 0);
+  -- signal otmb_l1a_cnt_h_fifo_rdc   : std_logic_vector(9 downto 0);
+  -- signal otmb_l1a_cnt_h_fifo_empty : std_logic;
+  -- signal otmb_l1a_cnt_h_fifo_full  : std_logic;
   signal otmb_l1a_cnt_fifo_wr_en   : std_logic;
   signal otmb_l1a_cnt_fifo_rd_en   : std_logic;
 
@@ -331,8 +331,8 @@ begin
   -- );
 
 -- FSM 
-  alct_tx_start_d <= not alct_l1a_cnt_h_fifo_empty;
-  otmb_tx_start_d <= not otmb_l1a_cnt_h_fifo_empty;
+  alct_tx_start_d <= not alct_l1a_cnt_l_fifo_empty;
+  otmb_tx_start_d <= not otmb_l1a_cnt_l_fifo_empty;
   FDALCT_START : FD port map(alct_tx_start, CLK, alct_tx_start_d);
   FDOTMB_START : FD port map(otmb_tx_start, CLK, otmb_tx_start_d);
 
