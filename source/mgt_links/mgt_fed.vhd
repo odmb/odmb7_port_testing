@@ -174,8 +174,6 @@ architecture Behavioral of mgt_fed is
   signal gbt_rxclken                     : std_logic; -- Clock enable signal, on for every third clock of the usrclk
   signal gbt_txclken                     : std_logic; -- Clock enable signal, on for every third clock of the usrclk
 
-  signal gbt_txclken_s                   : std_logic_vector(1 to NUM_LINKS);
-  signal gbt_rxclken_s                   : std_logic_vector(1 to NUM_LiNKS);
   signal mgt_txword_s                    : word_mxnbit_A(1 to NUM_LINKS);     --! Tx word to the transceiver (from the Tx gearbox to the MGT)
   signal mgt_rxword_s                    : word_mxnbit_A(1 to NUM_LINKS);     --! Rx word from the transceiver (from the transceiver to the Rx gearbox)
 
@@ -305,6 +303,7 @@ begin
 
   mgt_txready <= gtwiz_reset_tx_done_int and gtwiz_buffbypass_tx_done_int;
   mgt_rxready <= gtwiz_reset_rx_done_int and gtwiz_buffbypass_rx_done_int and and_reduce(rxbitslip_done_s);
+  mgt_rxreset_done <= gtwiz_reset_rx_done_int and gtwiz_buffbypass_rx_done_int;
 
   rxBuffBypassRst <= not(gtwiz_userclk_rx_active_int) or not(gtwiz_buffbypass_tx_done_int);
 

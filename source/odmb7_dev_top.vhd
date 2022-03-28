@@ -478,7 +478,6 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal fed_rxd_valid   : std_logic_vector(FED_NRXLINK downto 1); -- Flag for rx valid data;
   signal fed_bad_rx      : std_logic_vector(FED_NRXLINK downto 1); -- Flag for fiber errors;
   signal fed_rxready     : std_logic;                              -- Flag for rx reset done
-  signal fed_reset       : std_logic;
 
   signal fed_prbs_tx_en   : std_logic_vector(4 downto 1);
   signal fed_prbs_rx_en   : std_logic_vector(4 downto 1);

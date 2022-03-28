@@ -257,6 +257,7 @@ begin                 --========####   Architecture Body   ####========--
   ILA_DATA_o(3 downto 2) <= std_logic_vector(to_unsigned(psAddress, 2));
   ILA_DATA_o(4)          <= shiftPsAddr;
   ILA_DATA_o(5)          <= headerFlag_s;
+  ILA_DATA_o(7 downto 6) <= "00";
 
 --=====================================================================================--
 end behavioral;

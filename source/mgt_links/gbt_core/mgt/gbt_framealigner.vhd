@@ -84,8 +84,6 @@ architecture structural of gbt_framealigner is
   signal rstBitSlip_FSM                   : rstBitSlip_FSM_t_A(1 to NUM_LINKS);
 
   signal mgtRst_from_bitslipCtrl          : std_logic_vector(1 to NUM_LINKS);
-  signal rx_reset_sig                     : std_logic_vector(1 to NUM_LINKS);
-  signal tx_reset_sig                     : std_logic_vector(1 to NUM_LINKS);
 
   signal resetGtxRx_from_rxBitSlipControl : std_logic_vector(1 to NUM_LINKS);
   signal resetGtxTx_from_rxBitSlipControl : std_logic_vector(1 to NUM_LINKS);
@@ -99,7 +97,6 @@ architecture structural of gbt_framealigner is
   signal pattSearch_reset_s               : std_logic_vector(1 to NUM_LINKS);
 
 
-  signal ila_data1 : std_logic_vector(83 downto 0);
   signal ila_data_patser : std_logic_vector(7 downto 0);
 
 --=================================================================================================--

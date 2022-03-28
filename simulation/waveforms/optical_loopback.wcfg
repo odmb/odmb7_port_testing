@@ -16,15 +16,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="987309416fs"></ZoomStartTime>
-      <ZoomEndTime time="987660917fs"></ZoomEndTime>
-      <Cursor1Time time="987602333fs"></Cursor1Time>
+      <ZoomStartTime time="112014860fs"></ZoomStartTime>
+      <ZoomEndTime time="113128055fs"></ZoomEndTime>
+      <Cursor1Time time="112942522fs"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="226"></NameColumnWidth>
+      <NameColumnWidth column_width="210"></NameColumnWidth>
       <ValueColumnWidth column_width="66"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="5" />
+   <WVObjectSize size="7" />
    <wvobject type="group" fp_name="group678">
       <obj_property name="label">mgt_fed</obj_property>
       <obj_property name="DisplayName">label</obj_property>
@@ -113,6 +113,26 @@
          <obj_property name="ElementShortName">gtwiz_reset_rx_cdr_stable_int</obj_property>
          <obj_property name="ObjectShortName">gtwiz_reset_rx_cdr_stable_int</obj_property>
       </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/mgt_rxreset_done">
+         <obj_property name="ElementShortName">mgt_rxreset_done</obj_property>
+         <obj_property name="ObjectShortName">mgt_rxreset_done</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gtwiz_reset_tx_done_int">
+         <obj_property name="ElementShortName">gtwiz_reset_tx_done_int</obj_property>
+         <obj_property name="ObjectShortName">gtwiz_reset_tx_done_int</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gtwiz_reset_rx_done_int">
+         <obj_property name="ElementShortName">gtwiz_reset_rx_done_int</obj_property>
+         <obj_property name="ObjectShortName">gtwiz_reset_rx_done_int</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gtwiz_buffbypass_tx_done_int">
+         <obj_property name="ElementShortName">gtwiz_buffbypass_tx_done_int</obj_property>
+         <obj_property name="ObjectShortName">gtwiz_buffbypass_tx_done_int</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gtwiz_buffbypass_rx_done_int">
+         <obj_property name="ElementShortName">gtwiz_buffbypass_rx_done_int</obj_property>
+         <obj_property name="ObjectShortName">gtwiz_buffbypass_rx_done_int</obj_property>
+      </wvobject>
       <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/txusrclk">
          <obj_property name="ElementShortName">txusrclk</obj_property>
          <obj_property name="ObjectShortName">txusrclk</obj_property>
@@ -140,6 +160,18 @@
       <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/usrclk_fed_tx">
          <obj_property name="ElementShortName">usrclk_fed_tx</obj_property>
          <obj_property name="ObjectShortName">usrclk_fed_tx</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/mgt_txready">
+         <obj_property name="ElementShortName">mgt_txready</obj_property>
+         <obj_property name="ObjectShortName">mgt_txready</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/mgt_rxready">
+         <obj_property name="ElementShortName">mgt_rxready</obj_property>
+         <obj_property name="ObjectShortName">mgt_rxready</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/mgt_rxreset_done">
+         <obj_property name="ElementShortName">mgt_rxreset_done</obj_property>
+         <obj_property name="ObjectShortName">mgt_rxreset_done</obj_property>
       </wvobject>
       <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/fed_txclken">
          <obj_property name="ElementShortName">fed_txclken</obj_property>
@@ -181,10 +213,6 @@
          <obj_property name="ElementShortName">fed_rxready</obj_property>
          <obj_property name="ObjectShortName">fed_rxready</obj_property>
       </wvobject>
-      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/fed_reset">
-         <obj_property name="ElementShortName">fed_reset</obj_property>
-         <obj_property name="ObjectShortName">fed_reset</obj_property>
-      </wvobject>
       <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_rxclken">
          <obj_property name="ElementShortName">gbt_rxclken</obj_property>
          <obj_property name="ObjectShortName">gbt_rxclken</obj_property>
@@ -193,13 +221,9 @@
          <obj_property name="ElementShortName">gbt_txclken</obj_property>
          <obj_property name="ObjectShortName">gbt_txclken</obj_property>
       </wvobject>
-      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_txclken_s">
-         <obj_property name="ElementShortName">gbt_txclken_s[1:1]</obj_property>
-         <obj_property name="ObjectShortName">gbt_txclken_s[1:1]</obj_property>
-      </wvobject>
-      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_rxclken_s">
-         <obj_property name="ElementShortName">gbt_rxclken_s[1:1]</obj_property>
-         <obj_property name="ObjectShortName">gbt_rxclken_s[1:1]</obj_property>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/rxslide_int">
+         <obj_property name="ElementShortName">rxslide_int[0:0]</obj_property>
+         <obj_property name="ObjectShortName">rxslide_int[0:0]</obj_property>
       </wvobject>
       <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/mgt_txword_s">
          <obj_property name="ElementShortName">mgt_txword_s[1:1][39:0]</obj_property>
@@ -381,14 +405,6 @@
          <obj_property name="ElementShortName">mgtRst_from_bitslipCtrl[1:1]</obj_property>
          <obj_property name="ObjectShortName">mgtRst_from_bitslipCtrl[1:1]</obj_property>
       </wvobject>
-      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/rx_reset_sig">
-         <obj_property name="ElementShortName">rx_reset_sig[1:1]</obj_property>
-         <obj_property name="ObjectShortName">rx_reset_sig[1:1]</obj_property>
-      </wvobject>
-      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/tx_reset_sig">
-         <obj_property name="ElementShortName">tx_reset_sig[1:1]</obj_property>
-         <obj_property name="ObjectShortName">tx_reset_sig[1:1]</obj_property>
-      </wvobject>
       <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/resetGtxRx_from_rxBitSlipControl">
          <obj_property name="ElementShortName">resetGtxRx_from_rxBitSlipControl[1:1]</obj_property>
          <obj_property name="ObjectShortName">resetGtxRx_from_rxBitSlipControl[1:1]</obj_property>
@@ -413,13 +429,247 @@
          <obj_property name="ElementShortName">rx_bitslipIsEven_s[1:1]</obj_property>
          <obj_property name="ObjectShortName">rx_bitslipIsEven_s[1:1]</obj_property>
       </wvobject>
-      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/ila_data1">
-         <obj_property name="ElementShortName">ila_data1[83:0]</obj_property>
-         <obj_property name="ObjectShortName">ila_data1[83:0]</obj_property>
-      </wvobject>
       <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/ila_data_patser">
          <obj_property name="ElementShortName">ila_data_patser[7:0]</obj_property>
          <obj_property name="ObjectShortName">ila_data_patser[7:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/patternSearch/MGT_BITSLIPDONE_i">
+         <obj_property name="ElementShortName">MGT_BITSLIPDONE_i</obj_property>
+         <obj_property name="ObjectShortName">MGT_BITSLIPDONE_i</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/patternSearch/RX_BITSLIPISEVEN_o">
+         <obj_property name="ElementShortName">RX_BITSLIPISEVEN_o</obj_property>
+         <obj_property name="ObjectShortName">RX_BITSLIPISEVEN_o</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/patternSearch/RX_BITSLIPISEVEN_s">
+         <obj_property name="ElementShortName">RX_BITSLIPISEVEN_s</obj_property>
+         <obj_property name="ObjectShortName">RX_BITSLIPISEVEN_s</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/patternSearch/RX_BITSLIP_CMD_O">
+         <obj_property name="ElementShortName">RX_BITSLIP_CMD_O</obj_property>
+         <obj_property name="ObjectShortName">RX_BITSLIP_CMD_O</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/patternSearch/RX_HEADER_FLAG_O">
+         <obj_property name="ElementShortName">RX_HEADER_FLAG_O</obj_property>
+         <obj_property name="ObjectShortName">RX_HEADER_FLAG_O</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/patternSearch/RX_HEADER_LOCKED_O">
+         <obj_property name="ElementShortName">RX_HEADER_LOCKED_O</obj_property>
+         <obj_property name="ObjectShortName">RX_HEADER_LOCKED_O</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/patternSearch/RX_HEADER_LOCKED_s">
+         <obj_property name="ElementShortName">RX_HEADER_LOCKED_s</obj_property>
+         <obj_property name="ObjectShortName">RX_HEADER_LOCKED_s</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/patternSearch/RX_RESET_I">
+         <obj_property name="ElementShortName">RX_RESET_I</obj_property>
+         <obj_property name="ObjectShortName">RX_RESET_I</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/patternSearch/RX_WORDCLK_I">
+         <obj_property name="ElementShortName">RX_WORDCLK_I</obj_property>
+         <obj_property name="ObjectShortName">RX_WORDCLK_I</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/patternSearch/RX_WORD_I">
+         <obj_property name="ElementShortName">RX_WORD_I[39:0]</obj_property>
+         <obj_property name="ObjectShortName">RX_WORD_I[39:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/MGT_TXWORD_o">
+         <obj_property name="ElementShortName">MGT_TXWORD_o[1:1][39:0]</obj_property>
+         <obj_property name="ObjectShortName">MGT_TXWORD_o[1:1][39:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/MGT_RXWORD_i">
+         <obj_property name="ElementShortName">MGT_RXWORD_i[1:1][39:0]</obj_property>
+         <obj_property name="ObjectShortName">MGT_RXWORD_i[1:1][39:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/GBT_TXDATA_i">
+         <obj_property name="ElementShortName">GBT_TXDATA_i[1:1][83:0]</obj_property>
+         <obj_property name="ObjectShortName">GBT_TXDATA_i[1:1][83:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/GBT_RXDATA_o">
+         <obj_property name="ElementShortName">GBT_RXDATA_o[1:1][83:0]</obj_property>
+         <obj_property name="ObjectShortName">GBT_RXDATA_o[1:1][83:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/WB_TXDATA_i">
+         <obj_property name="ElementShortName">WB_TXDATA_i[1:1][31:0]</obj_property>
+         <obj_property name="ObjectShortName">WB_TXDATA_i[1:1][31:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/WB_RXDATA_o">
+         <obj_property name="ElementShortName">WB_RXDATA_o[1:1][31:0]</obj_property>
+         <obj_property name="ObjectShortName">WB_RXDATA_o[1:1][31:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/patternSearch/bitSlipCmd">
+         <obj_property name="ElementShortName">bitSlipCmd</obj_property>
+         <obj_property name="ObjectShortName">bitSlipCmd</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/patternSearch/headerFlag_s">
+         <obj_property name="ElementShortName">headerFlag_s</obj_property>
+         <obj_property name="ObjectShortName">headerFlag_s</obj_property>
+      </wvobject>
+      <wvobject type="other" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/patternSearch/psAddress">
+         <obj_property name="ElementShortName">psAddress</obj_property>
+         <obj_property name="ObjectShortName">psAddress</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/patternSearch/shiftPsAddr">
+         <obj_property name="ElementShortName">shiftPsAddr</obj_property>
+         <obj_property name="ObjectShortName">shiftPsAddr</obj_property>
+      </wvobject>
+      <wvobject type="other" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/patternSearch/state">
+         <obj_property name="ElementShortName">state</obj_property>
+         <obj_property name="ObjectShortName">state</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group556">
+      <obj_property name="label">gbt_rx</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/RX_RESET_I">
+         <obj_property name="ElementShortName">RX_RESET_I</obj_property>
+         <obj_property name="ObjectShortName">RX_RESET_I</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/RX_FRAMECLK_I">
+         <obj_property name="ElementShortName">RX_FRAMECLK_I</obj_property>
+         <obj_property name="ObjectShortName">RX_FRAMECLK_I</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/RX_CLKEN_i">
+         <obj_property name="ElementShortName">RX_CLKEN_i</obj_property>
+         <obj_property name="ObjectShortName">RX_CLKEN_i</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/RX_ENCODING_SEL_i">
+         <obj_property name="ElementShortName">RX_ENCODING_SEL_i</obj_property>
+         <obj_property name="ObjectShortName">RX_ENCODING_SEL_i</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/RX_READY_O">
+         <obj_property name="ElementShortName">RX_READY_O</obj_property>
+         <obj_property name="ObjectShortName">RX_READY_O</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/RX_ISDATA_FLAG_O">
+         <obj_property name="ElementShortName">RX_ISDATA_FLAG_O</obj_property>
+         <obj_property name="ObjectShortName">RX_ISDATA_FLAG_O</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/RX_ERROR_DETECTED">
+         <obj_property name="ElementShortName">RX_ERROR_DETECTED</obj_property>
+         <obj_property name="ObjectShortName">RX_ERROR_DETECTED</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/RX_BIT_MODIFIED_FLAG">
+         <obj_property name="ElementShortName">RX_BIT_MODIFIED_FLAG[83:0]</obj_property>
+         <obj_property name="ObjectShortName">RX_BIT_MODIFIED_FLAG[83:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/GBT_RXFRAME_i">
+         <obj_property name="ElementShortName">GBT_RXFRAME_i[119:0]</obj_property>
+         <obj_property name="ObjectShortName">GBT_RXFRAME_i[119:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/RX_DATA_O">
+         <obj_property name="ElementShortName">RX_DATA_O[83:0]</obj_property>
+         <obj_property name="ObjectShortName">RX_DATA_O[83:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/RX_EXTRA_DATA_WIDEBUS_O">
+         <obj_property name="ElementShortName">RX_EXTRA_DATA_WIDEBUS_O[31:0]</obj_property>
+         <obj_property name="ObjectShortName">RX_EXTRA_DATA_WIDEBUS_O[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/ready_from_decoder">
+         <obj_property name="ElementShortName">ready_from_decoder</obj_property>
+         <obj_property name="ObjectShortName">ready_from_decoder</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/rxIsDataFlag_from_decoder">
+         <obj_property name="ElementShortName">rxIsDataFlag_from_decoder</obj_property>
+         <obj_property name="ObjectShortName">rxIsDataFlag_from_decoder</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/rxCommonFrame_from_decoder">
+         <obj_property name="ElementShortName">rxCommonFrame_from_decoder[83:0]</obj_property>
+         <obj_property name="ObjectShortName">rxCommonFrame_from_decoder[83:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/rxExtraFrameWidebus_from_decoder">
+         <obj_property name="ElementShortName">rxExtraFrameWidebus_from_decoder[31:0]</obj_property>
+         <obj_property name="ObjectShortName">rxExtraFrameWidebus_from_decoder[31:0]</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/ready_from_descrambler">
+         <obj_property name="ElementShortName">ready_from_descrambler</obj_property>
+         <obj_property name="ObjectShortName">ready_from_descrambler</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/descrambler/\gbtRxDescrambler84bit_gen(0)\/gbtRxDescrambler21bit/RX_RESET_I">
+         <obj_property name="ElementShortName">RX_RESET_I</obj_property>
+         <obj_property name="ObjectShortName">RX_RESET_I</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/descrambler/\gbtRxDescrambler84bit_gen(0)\/gbtRxDescrambler21bit/RX_FRAMECLK_I">
+         <obj_property name="ElementShortName">RX_FRAMECLK_I</obj_property>
+         <obj_property name="ObjectShortName">RX_FRAMECLK_I</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/descrambler/\gbtRxDescrambler84bit_gen(0)\/gbtRxDescrambler21bit/RX_CLKEN_i">
+         <obj_property name="ElementShortName">RX_CLKEN_i</obj_property>
+         <obj_property name="ObjectShortName">RX_CLKEN_i</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/descrambler/\gbtRxDescrambler84bit_gen(0)\/gbtRxDescrambler21bit/RX_COMMON_FRAME_I">
+         <obj_property name="ElementShortName">RX_COMMON_FRAME_I[20:0]</obj_property>
+         <obj_property name="ObjectShortName">RX_COMMON_FRAME_I[20:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/descrambler/\gbtRxDescrambler84bit_gen(0)\/gbtRxDescrambler21bit/RX_DATA_O">
+         <obj_property name="ElementShortName">RX_DATA_O[20:0]</obj_property>
+         <obj_property name="ObjectShortName">RX_DATA_O[20:0]</obj_property>
+      </wvobject>
+      <wvobject type="array" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/\gbt_rxdatapath_multilink_gen(1)\/gbt_rxdatapath_inst/descrambler/\gbtRxDescrambler84bit_gen(0)\/gbtRxDescrambler21bit/feedbackRegister">
+         <obj_property name="ElementShortName">feedbackRegister[20:0]</obj_property>
+         <obj_property name="ObjectShortName">feedbackRegister[20:0]</obj_property>
+      </wvobject>
+   </wvobject>
+   <wvobject type="group" fp_name="group1235">
+      <obj_property name="label">mgt_bitSlipCtrl</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+      <obj_property name="isExpanded"></obj_property>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/rxBitSlipControl/RX_RESET_I">
+         <obj_property name="ElementShortName">RX_RESET_I</obj_property>
+         <obj_property name="ObjectShortName">RX_RESET_I</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/rxBitSlipControl/RX_WORDCLK_I">
+         <obj_property name="ElementShortName">RX_WORDCLK_I</obj_property>
+         <obj_property name="ObjectShortName">RX_WORDCLK_I</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/rxBitSlipControl/MGT_CLK_I">
+         <obj_property name="ElementShortName">MGT_CLK_I</obj_property>
+         <obj_property name="ObjectShortName">MGT_CLK_I</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/rxBitSlipControl/RX_BITSLIPCMD_i">
+         <obj_property name="ElementShortName">RX_BITSLIPCMD_i</obj_property>
+         <obj_property name="ObjectShortName">RX_BITSLIPCMD_i</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/rxBitSlipControl/RX_BITSLIPCMD_o">
+         <obj_property name="ElementShortName">RX_BITSLIPCMD_o</obj_property>
+         <obj_property name="ObjectShortName">RX_BITSLIPCMD_o</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/rxBitSlipControl/RX_HEADERLOCKED_i">
+         <obj_property name="ElementShortName">RX_HEADERLOCKED_i</obj_property>
+         <obj_property name="ObjectShortName">RX_HEADERLOCKED_i</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/rxBitSlipControl/RX_BITSLIPISEVEN_i">
+         <obj_property name="ElementShortName">RX_BITSLIPISEVEN_i</obj_property>
+         <obj_property name="ObjectShortName">RX_BITSLIPISEVEN_i</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/rxBitSlipControl/RX_RSTONBITSLIP_o">
+         <obj_property name="ElementShortName">RX_RSTONBITSLIP_o</obj_property>
+         <obj_property name="ObjectShortName">RX_RSTONBITSLIP_o</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/rxBitSlipControl/RX_ENRST_i">
+         <obj_property name="ElementShortName">RX_ENRST_i</obj_property>
+         <obj_property name="ObjectShortName">RX_ENRST_i</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/rxBitSlipControl/RX_RSTONEVEN_i">
+         <obj_property name="ElementShortName">RX_RSTONEVEN_i</obj_property>
+         <obj_property name="ObjectShortName">RX_RSTONEVEN_i</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/rxBitSlipControl/DONE_o">
+         <obj_property name="ElementShortName">DONE_o</obj_property>
+         <obj_property name="ObjectShortName">DONE_o</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/rxBitSlipControl/READY_o">
+         <obj_property name="ElementShortName">READY_o</obj_property>
+         <obj_property name="ObjectShortName">READY_o</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/rxBitSlipControl/bitSlitRst">
+         <obj_property name="ElementShortName">bitSlitRst</obj_property>
+         <obj_property name="ObjectShortName">bitSlitRst</obj_property>
+      </wvobject>
+      <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/GTH_FED/gbt_wrapper_inst/gbt_inst/framealigner_inst/\gtxLatOpt_gen(1)\/rxBitSlipControl/bitSlitRst_sync">
+         <obj_property name="ElementShortName">bitSlitRst_sync</obj_property>
+         <obj_property name="ObjectShortName">bitSlitRst_sync</obj_property>
       </wvobject>
    </wvobject>
 </wave_config>

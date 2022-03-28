@@ -237,7 +237,7 @@ begin                 --========####   Architecture Body   ####========--
       TX_OPTIMIZATION          => STANDARD,     -- 0: STANDARD, 1: LATENCY_OPTIMIZED
       RX_OPTIMIZATION          => STANDARD,     -- 0: STANDARD, 1: LATENCY_OPTIMIZED
       TX_ENCODING              => TX_ENCODING,  -- 0: GBT_FRAME, 1: WIDE_BUS, 2: GBT_DYNAMIC
-      RX_ENCODING              => TX_ENCODING   -- 0: GBT_FRAME, 1: WIDE_BUS, 2: GBT_DYNAMIC
+      RX_ENCODING              => RX_ENCODING   -- 0: GBT_FRAME, 1: WIDE_BUS, 2: GBT_DYNAMIC
       )
     port map (
 
