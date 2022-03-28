@@ -14,15 +14,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="425695500fs"></ZoomStartTime>
-      <ZoomEndTime time="426470501fs"></ZoomEndTime>
-      <Cursor1Time time="426337500fs"></Cursor1Time>
+      <ZoomStartTime time="54335000fs"></ZoomStartTime>
+      <ZoomEndTime time="62125001fs"></ZoomEndTime>
+      <Cursor1Time time="55045000fs"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="142"></NameColumnWidth>
-      <ValueColumnWidth column_width="82"></ValueColumnWidth>
+      <ValueColumnWidth column_width="78"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="121" />
+   <WVObjectSize size="127" />
    <wvobject type="vbus" fp_name="vbus167">
       <obj_property name="label">vme_crate_addr</obj_property>
       <obj_property name="DisplayName">label</obj_property>
@@ -232,12 +232,12 @@
       <obj_property name="DisplayName">label</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/Firmware_tb/odmb_i/dcfeb_tck">
-      <obj_property name="ElementShortName">dcfeb_tck[7:1]</obj_property>
-      <obj_property name="ObjectShortName">dcfeb_tck[7:1]</obj_property>
+      <obj_property name="ElementShortName">dcfeb_tck[5:1]</obj_property>
+      <obj_property name="ObjectShortName">dcfeb_tck[5:1]</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/Firmware_tb/odmb_i/dcfeb_tdo">
-      <obj_property name="ElementShortName">dcfeb_tdo[7:1]</obj_property>
-      <obj_property name="ObjectShortName">dcfeb_tdo[7:1]</obj_property>
+      <obj_property name="ElementShortName">dcfeb_tdo[5:1]</obj_property>
+      <obj_property name="ObjectShortName">dcfeb_tdo[5:1]</obj_property>
    </wvobject>
    <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/dcfeb_tck[2]">
       <obj_property name="DisplayName">label</obj_property>
@@ -260,8 +260,8 @@
       <obj_property name="ObjectShortName">dcfeb_tdi</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/Firmware_tb/odmb_i/MBV/DEV1_CFEBJTAG/selfeb">
-      <obj_property name="ElementShortName">selfeb[7:1]</obj_property>
-      <obj_property name="ObjectShortName">selfeb[7:1]</obj_property>
+      <obj_property name="ElementShortName">selfeb[5:1]</obj_property>
+      <obj_property name="ObjectShortName">selfeb[5:1]</obj_property>
    </wvobject>
    <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/MBV/DEV1_CFEBJTAG/load">
       <obj_property name="ElementShortName">load</obj_property>
@@ -302,6 +302,30 @@
    <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/MBV/DEV1_CFEBJTAG/shtail">
       <obj_property name="ElementShortName">shtail</obj_property>
       <obj_property name="ObjectShortName">shtail</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Firmware_tb/dcfeb_i/PMAP_BSCAN/IR_reg">
+      <obj_property name="ElementShortName">IR_reg[9:0]</obj_property>
+      <obj_property name="ObjectShortName">IR_reg[9:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/dcfeb_i/PMAP_BSCAN/tap_shift_dr">
+      <obj_property name="ElementShortName">tap_shift_dr</obj_property>
+      <obj_property name="ObjectShortName">tap_shift_dr</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/dcfeb_i/PMAP_BSCAN/shift_tpusr">
+      <obj_property name="ElementShortName">shift_tpusr</obj_property>
+      <obj_property name="ObjectShortName">shift_tpusr</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/dcfeb_i/tdo">
+      <obj_property name="ElementShortName">tdo</obj_property>
+      <obj_property name="ObjectShortName">tdo</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/dcfeb_i/PMAP_BSCAN/TDO">
+      <obj_property name="ElementShortName">TDO</obj_property>
+      <obj_property name="ObjectShortName">TDO</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Firmware_tb/dcfeb_i/PMAP_BSCAN/IDreg">
+      <obj_property name="ElementShortName">IDreg[31:0]</obj_property>
+      <obj_property name="ObjectShortName">IDreg[31:0]</obj_property>
    </wvobject>
    <wvobject fp_name="divider196" type="divider">
       <obj_property name="label">SPIPORT Signals</obj_property>
@@ -502,12 +526,12 @@
       <obj_property name="ObjectShortName">WRITER</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/Firmware_tb/lvmb_pon">
-      <obj_property name="ElementShortName">lvmb_pon[7:0]</obj_property>
-      <obj_property name="ObjectShortName">lvmb_pon[7:0]</obj_property>
+      <obj_property name="ElementShortName">lvmb_pon[5:0]</obj_property>
+      <obj_property name="ObjectShortName">lvmb_pon[5:0]</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/Firmware_tb/r_lvmb_PON">
-      <obj_property name="ElementShortName">r_lvmb_PON[7:0]</obj_property>
-      <obj_property name="ObjectShortName">r_lvmb_PON[7:0]</obj_property>
+      <obj_property name="ElementShortName">r_lvmb_PON[5:0]</obj_property>
+      <obj_property name="ObjectShortName">r_lvmb_PON[5:0]</obj_property>
    </wvobject>
    <wvobject type="array" fp_name="/Firmware_tb/lvmb_csb">
       <obj_property name="ElementShortName">lvmb_csb[6:0]</obj_property>

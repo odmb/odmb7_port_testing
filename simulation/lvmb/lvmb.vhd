@@ -19,7 +19,7 @@ entity LVMB is
     LVMB_SDIN     : in  std_logic;
     LVMB_SDOUT_P  : out std_logic;
     LVMB_SDOUT_N  : out std_logic;
-    LVMB_CSB      : in std_Logic_vector((NFEB-1) downto 0);
+    LVMB_CSB      : in std_Logic_vector(6 downto 0);
     LVMB_PON      : in std_Logic_vector(NFEB downto 0);
     MON_LVMB_PON  : out std_Logic_vector(NFEB downto 0);
     PON_LOAD_B    : in std_logic;
@@ -40,11 +40,12 @@ architecture LVMB_ARCH of LVMB is
       );
   end component;
 
-  type     adc_addr_type is array (1 to NFEB) of std_logic_vector(3 downto 0);
-  constant adc_addr   : adc_addr_type := (x"1", x"2", x"3", x"4", x"5", x"6", x"7");
-  signal sim_lvmb_sdo : std_logic_vector(NFEB downto 1);
+  type     adc_addr_type is array (1 to 7) of std_logic_vector(3 downto 0);
+  constant adc_addr   : adc_addr_type := (x"7",x"6",x"5",x"4",x"3",x"2",x"1");
+  signal sim_lvmb_sdo : std_logic_vector(7 downto 1);
   signal lvmb_sdout   : std_logic;
   signal pon_status   : std_logic_vector(NFEB downto 0) := (others => '0');
+  signal lvmb_csb_big : std_logic_vector(6 downto 0);
 
 begin
 
@@ -54,7 +55,7 @@ begin
   MON_LVMB_PON <= pon_status;
 
   --send ADC input to simulated ADCs
-  GEN_ADC : for ind in NFEB downto 1 generate
+  GEN_ADC : for ind in 7 downto 1 generate
   begin
     LVMB_ADC_PM : LVMB_ADC
       port map (
@@ -68,13 +69,13 @@ begin
 
   --handle ADC output
   lvmb_sdout <= sim_lvmb_sdo(1) when LVMB_CSB = "1111110" else
-                      sim_lvmb_sdo(2) when LVMB_CSB = "1111101" else
-                      sim_lvmb_sdo(3) when LVMB_CSB = "1111011" else
-                      sim_lvmb_sdo(4) when LVMB_CSB = "1110111" else
-                      sim_lvmb_sdo(5) when LVMB_CSB = "1101111" else
-                      sim_lvmb_sdo(6) when LVMB_CSB = "1011111" else
-                      sim_lvmb_sdo(7) when LVMB_CSB = "0111111" else
-                      '0';
+                sim_lvmb_sdo(2) when LVMB_CSB = "1111101" else
+                sim_lvmb_sdo(3) when LVMB_CSB = "1111011" else
+                sim_lvmb_sdo(4) when LVMB_CSB = "1110111" else
+                sim_lvmb_sdo(5) when LVMB_CSB = "1101111" else
+                sim_lvmb_sdo(6) when LVMB_CSB = "1011111" else
+                sim_lvmb_sdo(7) when LVMB_CSB = "0111111" else
+                '0';
 
   IB_LVMB_SDOUT: OBUFDS port map (I => lvmb_sdout, O => LVMB_SDOUT_P, OB => LVMB_SDOUT_N);
   

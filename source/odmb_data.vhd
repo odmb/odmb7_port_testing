@@ -200,7 +200,7 @@ architecture ODMB_DATA_ARCH of odmb_data is
   signal dcfeb_fifo_empty  : std_logic_vector(NCFEB downto 1);
   signal dcfeb_fifo_full   : std_logic_vector(NCFEB downto 1);
 
-  type dcfeb_addr_type is array (1 to NCFEB) of std_logic_vector(3 downto 0);
+  type dcfeb_addr_type is array (1 to 7) of std_logic_vector(3 downto 0);
   constant dcfeb_addr  : dcfeb_addr_type := ("0001", "0010", "0011", "0100", "0101", "0110", "0111");
   constant push_dly    : integer := 63;  -- It needs to be > alct/otmb_push_dly
   constant push_dlyp4  : integer := push_dly+4;  -- push_dly+4

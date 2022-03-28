@@ -7,7 +7,7 @@ use UNISIM.VComponents.all;
 
 entity Firmware_tb is
   generic (
-    NCFEB       : integer range 1 to 7 := 7
+    NCFEB       : integer range 1 to 7 := 5
     );
 end entity Firmware_tb;
 
@@ -52,7 +52,7 @@ architecture Behavioral of Firmware_tb is
       LVMB_SDIN     : in  std_logic;
       LVMB_SDOUT_P  : out std_logic;
       LVMB_SDOUT_N  : out std_logic;
-      LVMB_CSB      : in std_Logic_vector((NFEB-1) downto 0);
+      LVMB_CSB      : in std_Logic_vector(6 downto 0);
       LVMB_PON      : in std_Logic_vector(NFEB downto 0);
       MON_LVMB_PON  : out std_Logic_vector(NFEB downto 0);
       PON_LOAD_B    : in std_logic;
@@ -111,12 +111,9 @@ architecture Behavioral of Firmware_tb is
   --end component;
   
   component pseudolut is
-    generic (
-      CMDSET : integer := 0
-      );
     port (
       CLK   : in std_logic;
-      ADDR  : in integer;
+      ADDR  : in std_logic_vector(3 downto 0);
       DOUT1 : out std_logic_vector(15 downto 0);
       DOUT2 : out std_logic_vector(15 downto 0)
       );
@@ -215,6 +212,7 @@ architecture Behavioral of Firmware_tb is
   signal dcfeb_tdi_n    : std_logic := '0';
   signal dcfeb_tdo_p    : std_logic_vector (NCFEB downto 1)  := (others => '0');
   signal dcfeb_tdo_n    : std_logic_vector (NCFEB downto 1)  := (others => '0');
+  signal dcfeb_tdo      : std_logic_vector (NCFEB downto 1)  := (others => '0');
   signal injpls         : std_logic := '0';
   signal injpls_p       : std_logic := '0';
   signal injpls_n       : std_logic := '0';
@@ -239,10 +237,10 @@ architecture Behavioral of Firmware_tb is
 
   signal dcfeb_done       : std_logic_vector (NCFEB downto 1) := (others => '0');
 
-  signal lvmb_pon     : std_logic_vector(7 downto 0);
+  signal lvmb_pon     : std_logic_vector(NCFEB downto 0);
   signal pon_load     : std_logic;
   signal pon_oe       : std_logic;
-  signal r_lvmb_PON   : std_logic_vector(7 downto 0);
+  signal r_lvmb_PON   : std_logic_vector(NCFEB downto 0);
   signal lvmb_csb     : std_logic_vector(6 downto 0);
   signal lvmb_sclk    : std_logic;
   signal lvmb_sdin    : std_logic;
@@ -271,7 +269,7 @@ architecture Behavioral of Firmware_tb is
   signal lut_input1_dout_c : std_logic_vector(bw_input1-1 downto 0) := (others=> '0');
   signal lut_input2_dout_c : std_logic_vector(bw_input2-1 downto 0) := (others=> '0');
 
-  -- signals for generating input to VME
+  --signals for generating input to VME
   signal cmddev    : std_logic_vector(15 downto 0) := (others=> '0');
   attribute mark_debug of cmddev : signal is "true";
   signal nextcmd   : std_logic := '1';
@@ -279,18 +277,6 @@ architecture Behavioral of Firmware_tb is
   attribute mark_debug of cack : signal is "true";
   signal cack_reg  : std_logic := 'H';
   signal cack_i    : std_logic := '1';
-
-  -- Signals for optical loopback
-  signal daq_rx_p     : std_logic_vector(10 downto 0) := (others => '0');
-  signal daq_rx_n     : std_logic_vector(10 downto 0) := (others => '0');
-  signal daq_spy_rx_p : std_logic := '0';
-  signal daq_spy_rx_n : std_logic := '0';
-  signal b04_rx_p     : std_logic_vector(4 downto 2);
-  signal b04_rx_n     : std_logic_vector(4 downto 2);
-  signal bck_prs_p    : std_logic;
-  signal bck_prs_n    : std_logic;
-  signal daq_tx_p     : std_logic_vector(2 downto 1);
-  signal daq_tx_n     : std_logic_vector(2 downto 1);
 
   -- Checker bit
   signal checker  : std_logic := '0';
@@ -325,12 +311,9 @@ begin
   --     douta=> lut_input2_dout_c
   --     );
   pseudolut_i : pseudolut
-    generic map (
-      CMDSET => 0  --! 0: DAQ test 1: SPI test
-      )
     port map(
       CLK => cmsclk,
-      ADDR => to_integer(lut_input_addr1_s),
+      ADDR => std_logic_vector(lut_input_addr1_s),
       DOUT1 => lut_input1_dout_c,
       DOUT2 => lut_input2_dout_c
       );
@@ -438,15 +421,15 @@ begin
   begin
     VME_BUF : IOBUF port map(O => vme_data_io_out_buf(I), IO => vme_data_io(I), I => vme_data_io_in_buf(I), T => vme_oe_b);
   end generate VCC_GEN_15;
-
-  -- Optical loopback signals -------------------
-  bck_prs_p <= daq_tx_p(1);
-  bck_prs_n <= daq_tx_n(1);
-  daq_rx_p(7) <= daq_tx_p(1);
-  daq_rx_n(7) <= daq_tx_n(1);
+  
+  CFEB_GEN_5 : for I in 1 to NCFEB generate
+  begin
+    CFEB_TDO_BUF : OBUFDS port map(I => dcfeb_tdo(I), O => dcfeb_tdo_p(I), OB => dcfeb_tdo_n(I));
+  end generate CFEB_GEN_5;
 
   -- ODMB Firmware module
-  odmb_i: entity work.ODMB7_UCSB_DEV
+
+  odmb_i: entity work.ODMB5_UCSB_DEV
     port map(
       -- Clock
       CMS_CLK_FPGA_P       => cmsclk_p,
@@ -467,6 +450,7 @@ begin
       REF_CLK_5_N          => cmsclk160_n,
       CLK_125_REF_P        => oscclk125_p,
       CLK_125_REF_N        => oscclk125_n,
+      EMCCLK               => oscclk125_p, -- Low frequency, 133 MHz for SPI programing clock, use 160 for now...
       LF_CLK               => cmsclk10, -- Low frequency, 10 kHz, use clk10 for now
 
       VME_DATA             => vme_data_io,
@@ -508,7 +492,7 @@ begin
       L1A_N                => l1a_n,
       L1A_MATCH_P          => l1a_match_p,
       L1A_MATCH_N          => l1a_match_n,
-      PPIB_OUT_EN_B        => open,
+      CFEB_OUT_EN_B        => open, --PPIB_OUT_EN_B        => open,
       DCFEB_REPROG_B       => open,
 
       CCB_CMD              => "011000",
@@ -537,11 +521,13 @@ begin
       LVMB_CSB             => lvmb_csb,
       LVMB_SCLK            => lvmb_sclk,
       LVMB_SDIN            => lvmb_sdin,
-      LVMB_SDOUT_P         => lvmb_sdout_p,
-      LVMB_SDOUT_N         => lvmb_sdout_n,
+      LVMB_SDOUT           => lvmb_sdout_p,
+      --LVMB_SDOUT_P         => lvmb_sdout_p,
+      --LVMB_SDOUT_N         => lvmb_sdout_n,
 
       OTMB                 => x"F_FFFFFFFF",
-      RAWLCT               => x"00",
+      RAWLCT               => "000000",
+      --RAWLCT               => x"00",
       OTMB_DAV             => '0',
       LEGACY_ALCT_DAV      => '0',
       OTMB_FF_CLK          => '0',
@@ -555,18 +541,18 @@ begin
       KUS_TDO              => '0',
       KUS_DL_SEL           => open,
 
-      DAQ_RX_P             => daq_rx_p,
-      DAQ_RX_N             => daq_rx_n,
-      DAQ_SPY_RX_P         => daq_spy_rx_p,
-      DAQ_SPY_RX_N         => daq_spy_rx_n,
-      B04_RX_P             => b04_rx_p,
-      B04_RX_N             => b04_rx_n,
-      BCK_PRS_P            => bck_prs_p,
-      BCK_PRS_N            => bck_prs_n,
-      -- SPY_TX_P             => open,
-      -- SPY_TX_N             => open,
-      DAQ_TX_P             => daq_tx_p,
-      DAQ_TX_N             => daq_tx_n,
+      DAQ_RX_P             => "00000000000",
+      DAQ_RX_N             => "00000000000",
+      DAQ_SPY_RX_P         => '0',
+      DAQ_SPY_RX_N         => '0',
+      B04_RX_P             => "000",
+      B04_RX_N             => "000",
+      BCK_PRS_P            => '0',
+      BCK_PRS_N            => '0',
+      SPY_TX_P             => open,
+      SPY_TX_N             => open,
+      -- DAQ_TX_P             => open,
+      -- DAQ_TX_N             => open,
       DAQ_SPY_SEL          => open,
       RX12_I2C_ENA         => open,
       RX12_SDA             => open,
@@ -575,13 +561,13 @@ begin
       RX12_RST_B           => open,
       RX12_INT_B           => '0',
       RX12_PRESENT_B       => '0',
-      TX12_I2C_ENA         => open,
-      TX12_SDA             => open,
-      TX12_SCL             => open,
-      TX12_CS_B            => open,
-      TX12_RST_B           => open,
-      TX12_INT_B           => '0',
-      TX12_PRESENT_B       => '0',
+      -- TX12_I2C_ENA         => open,
+      -- TX12_SDA             => open,
+      -- TX12_SCL             => open,
+      -- TX12_CS_B            => open,
+      -- TX12_RST_B           => open,
+      -- TX12_INT_B           => '0',
+      -- TX12_PRESENT_B       => '0',
       B04_I2C_ENA          => open,
       B04_SDA              => open,
       B04_SCL              => open,
@@ -596,8 +582,6 @@ begin
       SPY_TDIS             => open,
 
       ODMB_DONE            => '1',
-      FPGA_SEL             => open,
-      RST_CLKS_B           => open,
 
       SYSMON_P             => x"0000",
       SYSMON_N             => x"0000",
@@ -610,6 +594,20 @@ begin
       PROM_CS2_B           => open,
       CNFG_DATA            => open,
 
+      RST_CLKS_B           => open,
+      FPGA_SEL             => open,
+      FPGA_AC              => open,
+      FPGA_TEST            => open,
+      FPGA_IF0_CSN         => open,
+      FPGA_IF1_MISO        => open,
+      FPGA_SCLK            => open,
+      FPGA_MOSI            => open,
+
+      THTP                 => open,
+      SMTP                 => open,
+
+      LEDS_HEART_BEAT      => open,
+      LEDS_CFEBS_DONE      => open,
       LEDS_CFV             => open
       );
 
@@ -632,7 +630,7 @@ begin
       TCK             => dcfeb_tck_p(2),
       TMS             => dcfeb_tms_p,
       TDI             => dcfeb_tdi_p,
-      TDO             => dcfeb_tdo_p(2),
+      TDO             => dcfeb_tdo(2),
       RTN_SHFT_EN     => open,
       DONE            => dcfeb_done(2),
       INJPLS          => injpls_p,

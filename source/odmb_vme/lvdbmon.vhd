@@ -27,6 +27,9 @@ use unisim.vcomponents.all;
 --! * bit 2 BIP - 0 for only positive voltages, 1 for negative (+-5V or +-10V)
 --! * bit 1-0 PD - mode select 00 normal internal clock, 11 normal external clock, 10 standby, 11 power down
 entity LVDBMON is  
+  generic (
+    NCFEB   : integer range 1 to 7 := 7
+    );
   port (
     SLOWCLK   : in std_logic;                               --! 1.25 MHz clock input
     RST       : in std_logic;                               --! Reset signal
@@ -47,8 +50,8 @@ entity LVDBMON is
     ADCDATA : out std_logic;                                --! SPI data signal to ADCs
     ADCIN   : in  std_logic;                                --! SPI data signal from ADCs
 
-    LVTURNON   : out std_logic_vector(8 downto 1);          --! Power-on signal to LVMB
-    R_LVTURNON : in  std_logic_vector(8 downto 1);          --! Read-back power-on signal from LVMB
+    LVTURNON   : out std_logic_vector(NCFEB downto 0);          --! Power-on signal to LVMB
+    R_LVTURNON : in  std_logic_vector(NCFEB downto 0);          --! Read-back power-on signal from LVMB
     LOADON     : out std_logic;                             --! Signal to load power-on signals
     DIAGOUT    : out std_logic_vector(17 downto 0)          --! Debugging signal
     --CSP_LVMB_LA_CTRL : inout std_logic_vector(35 downto 0)  --! debug signal
@@ -62,7 +65,7 @@ architecture LVDBMON_Arch of LVDBMON is
   signal READPOWERSTATUS, SELADC, READADC               : std_logic;
   signal ce_seladc, ce_writepower                       : std_logic := '0';
   signal SELADC_vector                                  : std_logic_vector(3 downto 1);
-  signal LVTURNON_INNER                                 : std_logic_vector(8 downto 1);
+  signal LVTURNON_INNER                                 : std_logic_vector(NCFEB downto 0);
   signal D_OUTDATA, Q_OUTDATA, D_OUTDATA_2, Q_OUTDATA_2 : std_logic;
   signal D_DTACK_2, Q_DTACK_2, D_DTACK_4, Q_DTACK_4     : std_logic;
   signal dd_dtack, d_dtack                              : std_logic := '0';
@@ -83,6 +86,8 @@ architecture LVDBMON_Arch of LVDBMON is
   signal Q_OUTDATA_FULL                                 : std_logic_vector(15 downto 0);
   signal SLI_ADCDATA, L_ADCDATA, CE_ADCDATA             : std_logic;
   signal Q_ADCDATA                                      : std_logic_vector(7 downto 0);
+  signal LVTURNON_INNER_BIG                             : std_logic_vector(7 downto 0) := "00000000";
+  signal R_LVTURNON_BIG                                 : std_logic_vector(7 downto 0) := "00000000";
 
   signal cmddev : std_logic_vector (15 downto 0);
   signal strobe_q, strobe_qq, strobe_pulse : std_logic;
@@ -110,9 +115,11 @@ begin  --Architecture
 
 
   -- Generate OUTDATA (READADC, READPOWER, READPOWERSTATUS, READMON)
+  LVTURNON_INNER_BIG(NCFEB downto 0) <= LVTURNON_INNER;
+  R_LVTURNON_BIG(NCFEB downto 0) <= R_LVTURNON;
   OUTDATA <= '0' & x"000" & SELADC_vector(3 downto 1) when (STROBE = '1' and READADC = '1') else
-             x"00" & LVTURNON_INNER(8 downto 1) when (STROBE = '1' and READPOWER = '1') else
-             x"00" & R_LVTURNON(8 downto 1) when (STROBE = '1' and READPOWERSTATUS = '1') else
+             x"00" & LVTURNON_INNER_BIG(7 downto 0) when (STROBE = '1' and READPOWER = '1') else
+             x"00" & R_LVTURNON_BIG(7 downto 0) when (STROBE = '1' and READPOWERSTATUS = '1') else
              Q_OUTDATA_FULL(15 downto 0) when (RDMONBK = '1') else
              (others => 'Z');
 
@@ -134,10 +141,10 @@ begin  --Architecture
 
   -- Handle WRITEPOWER command
   ce_writepower <= strobe_pulse and WRITEPOWER;
-  FDCE_GEN2 : for i in 0 to 7 generate
+  FDCE_GEN2 : for i in 0 to NCFEB generate
   begin
     --MO: order is a bit strange, but seems to be correct
-    FDPE_OUT2 : FDPE port map (Q => LVTURNON_INNER(i+1), C => SLOWCLK, CE => ce_writepower, D => INDATA(i), PRE => RST);
+    FDPE_OUT2 : FDPE port map (Q => LVTURNON_INNER(i), C => SLOWCLK, CE => ce_writepower, D => INDATA(i), PRE => RST);
   end generate FDCE_GEN2;
   D_DTACK_4 <= '1' when (WRITEPOWER = '1' and STROBE = '1') else '0';
   FD_DTACK_4 : FD port map (Q => Q_DTACK_4, C => SLOWCLK, D => D_DTACK_4);

@@ -7,7 +7,7 @@ use ieee.numeric_std.all;
 
 entity pseudolut is
   generic (
-    CMDSET : integer := 0   --! 0: DAQ test 1: SPI test
+    CMDSET : integer := 0   --! 0: DAQ test 1: SPI test 2: CFEBJTAG test
     );
   port (
     CLK   : in std_logic;
@@ -28,6 +28,15 @@ architecture behavioral of pseudolut is
                                     x"0001", x"0001", x"0026", x"0003",
                                     x"0021", x"0000", x"0004", x"2EAD",
                                     x"2EAD", x"2EAD", x"2EAD", x"2EAD");
+
+  constant addr_dev1 : lut_array := (x"4100", x"4200", x"4300", x"4100",
+                                     x"4200", x"4300", x"4100", x"4200",
+                                     x"1018", x"1020", x"1024", x"191C",
+                                     x"1F04", x"1014", x"1F08", x"1014");
+  constant data_dev1 : lut_array := (x"2EAD", x"2EAD", x"2EAD", x"2EAD",
+                                     x"2EAD", x"2EAD", x"2EAD", x"2EAD",
+                                     x"0000", x"0002", x"2EAD", x"03C9",
+                                     x"0000", x"2EAD", x"0000", x"2EAD");
 
   constant addr_spi : lut_array := (x"4100", x"602C", x"602C", x"602C",
                                     x"602C", x"602C", x"6030", x"4100",
@@ -53,6 +62,9 @@ begin
         when 1 =>
           dout1_inner <= addr_spi(ADDR);
           dout2_inner <= data_spi(ADDR);
+        when 2 =>
+          dout1_inner <= addr_dev1(ADDR);
+          dout2_inner <= data_dev1(ADDR);
         when others =>
           dout1_inner <= addr_daq(ADDR);
           dout2_inner <= data_daq(ADDR);

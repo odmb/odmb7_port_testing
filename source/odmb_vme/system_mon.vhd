@@ -213,7 +213,7 @@ begin
   
   --chip_selected(1) <= '0';
   
-  cs_gen : for I in 3 downto 1 generate
+  cs_gen : for I in 4 downto 0 generate
   begin
     --chip_selected(I) <= '0';
     chip_selected(I) <= '1' when (vmon_chipidx = I) else '0';

@@ -55,7 +55,7 @@ entity ODMB_CTRL is
     --------------------
     CAL_MODE      : in std_logic;
     PEDESTAL      : in std_logic;
-    PEDESTAL_OTMB   : in  std_logic;
+    PEDESTAL_OTMB : in  std_logic;
 
     --------------------
     -- TRGCNTRL
@@ -94,13 +94,6 @@ entity ODMB_CTRL is
 
     EOF_DATA    : in std_logic_vector(NCFEB+2 downto 1);
 
-    CAFIFO_PREV_NEXT_L1A_MATCH : out std_logic_vector(15 downto 0);
-    CAFIFO_PREV_NEXT_L1A       : out std_logic_vector(15 downto 0);
-    CONTROL_DEBUG              : out std_logic_vector(15 downto 0);
-    CAFIFO_DEBUG               : out std_logic_vector(15 downto 0);
-    CAFIFO_WR_ADDR             : out std_logic_vector(7 downto 0);
-    CAFIFO_RD_ADDR             : out std_logic_vector(7 downto 0);
-
     -- From CAFIFO to Data FIFOs
     CAFIFO_L1A           : out std_logic;
     CAFIFO_L1A_MATCH_IN  : out std_logic_vector(NCFEB+2 downto 1);  -- From TRGCNTRL to CAFIFO to generate Data  
@@ -112,12 +105,11 @@ entity ODMB_CTRL is
     -- From GigaLinks
     DDU_DATA       : out std_logic_vector(15 downto 0);
     DDU_DATA_VALID : out std_logic;
+    DDU_EOF        : out std_logic;
 
     -- For headers/trailers
-    --DAQMBID : in std_logic_vector(11 downto 0);  -- From CRATEID in SETFEBDLY, and GA
-    GA : in std_logic_vector(4 downto 0);
-    CRATEID : in std_logic_vector(7 downto 0);  -- From CRATEID in SETFEBDLY, and GA
-    AUTOKILLED_DCFEBS  : in std_logic_vector(NCFEB downto 1);
+    GA_B           : in std_logic_vector(4 downto 0);
+    CRATEID        : in std_logic_vector(7 downto 0);  -- From CRATEID in SETFEBDLY, and GA
       
     -- From/To Data FIFOs
     FIFO_RE_B      : out std_logic_vector(NCFEB+2 downto 1);
@@ -227,12 +219,7 @@ architecture Behavioral of ODMB_CTRL is
       cafifo_lost_pckt : out std_logic_vector(NCFEB+2 downto 1);
       cafifo_lone      : out std_logic;
 
-      cafifo_prev_next_l1a_match : out std_logic_vector(15 downto 0);
-      cafifo_prev_next_l1a       : out std_logic_vector(15 downto 0);
-      control_debug              : in  std_logic_vector(143 downto 0);
-      cafifo_debug               : out std_logic_vector(15 downto 0);
-      cafifo_wr_addr             : out std_logic_vector(7 downto 0);
-      cafifo_rd_addr             : out std_logic_vector(7 downto 0)
+      control_debug    : in  std_logic_vector(143 downto 0)
       );
 
   end component;
@@ -272,7 +259,6 @@ architecture Behavioral of ODMB_CTRL is
 
       -- For headers/trailers
       DAQMBID : in std_logic_vector(11 downto 0);  -- From CRATEID in SETFEBDLY, and GA
-      AUTOKILLED_DCFEBS  : in std_logic_vector(NCFEB downto 1);
 
       -- FROM SW1
       GIGAEN : in std_logic;
@@ -361,7 +347,7 @@ architecture Behavioral of ODMB_CTRL is
   -- CONTROL outputs
   signal control_debug_full   : std_logic_vector(143 downto 0);
   signal cafifo_pop           : std_logic := '0';
-  signal eof                  : std_logic := '0';
+  signal ddu_eof_inner        : std_logic := '0';
   signal ddu_data_inner       : std_logic_vector(15 downto 0);
   signal ddu_data_valid_inner : std_logic := 'L';
 
@@ -478,12 +464,7 @@ begin
       cafifo_lost_pckt => cafifo_lost_pckt_out,
       cafifo_lone      => cafifo_lone,
 
-      cafifo_prev_next_l1a_match => cafifo_prev_next_l1a_match,
-      cafifo_prev_next_l1a       => cafifo_prev_next_l1a,
-      control_debug              => control_debug_full,
-      cafifo_debug               => cafifo_debug,
-      cafifo_wr_addr             => cafifo_wr_addr,
-      cafifo_rd_addr             => cafifo_rd_addr
+      control_debug => control_debug_full
       );
 
   CONTROL_FSM_PM : CONTROL_FSM
@@ -520,7 +501,6 @@ begin
 
       -- From CONFREG and GA
       DAQMBID => daqmbid,
-      AUTOKILLED_DCFEBS => AUTOKILLED_DCFEBS,
 
       -- FROM SW1
       GIGAEN => LOGICH,
@@ -529,7 +509,7 @@ begin
       FIFO_POP => cafifo_pop,
 
       -- TO PCFIFO
-      EOF => eof,
+      EOF => ddu_eof_inner,
 
       -- DEBUG
       control_debug => control_debug_full,
@@ -573,31 +553,32 @@ begin
 
   ccb_bx0 <= not ccb_bx0_b;
   ccb_bxrst <= not ccb_bxrst_b;
-  control_debug <= control_debug_full(15 downto 0);
 
   DDU_DATA       <= ddu_data_inner;
   DDU_DATA_VALID <= ddu_data_valid_inner;
+  DDU_EOF        <= ddu_eof_inner;
 
-  daqmbid(11 downto 4) <= crateid;
-  daqmbid(3 downto 0)  <= not ga(4 downto 1);  -- GA0 not included so that this is ODMB counter
+  daqmbid(11 downto 4) <= CRATEID;
+  daqmbid(3 downto 0)  <= not GA_B(4 downto 1);  -- GA0 not included so that this is ODMB counter
 
   -- ILA
-  ila_data1(3 downto 0)   <= otmb_dav & alct_dav & rawlct(0) & raw_l1a; -- raw signal
-  ila_data1(10 downto 4)  <= rawlct(7 downto 1);  
-  ila_data1(28 downto 11) <= diag_trigctrl(17 downto 0);
-  ila_data1(37 downto 29) <= cafifo_l1a_match_in_inner(9 downto 1);
-  ila_data1(46 downto 38) <= control_debug_full(41 downto 33); -- CAFIFO_L1A_MATCH
-  ila_data1(55 downto 47) <= control_debug_full(50 downto 42); -- CAFIFO_L1A_DAV
-  ila_data1(56)           <= control_debug_full(16); -- dav_inner
-  ila_data1(59 downto 57) <= cal_lct & cal_gtrg & cal_mode;
-  ila_data1(66 downto 61) <= LCT_L1A_DLY;
-  ila_data1(72 downto 67) <= std_logic_vector(to_unsigned(OTMB_PUSH_DLY, 6));
-  ila_data1(78 downto 73) <= std_logic_vector(to_unsigned(ALCT_PUSH_DLY, 6));
-  ila_data1(84 downto 79) <= std_logic_vector(to_unsigned(PUSH_DLY, 6));
-  ila_data1(100 downto 85)  <= control_debug_full(69 downto 54); -- dout_inner
-  ila_data1(104 downto 101) <= control_debug_full(20 downto 17); -- current_state_svl
-  ila_data1(109 downto 105) <= control_debug_full(25 downto 21); -- dev_cnt_svl
-  ila_data1(110)            <= control_debug_full(32);           -- q_datain_last
+  ila_data1(3 downto 0)         <= otmb_dav & alct_dav & rawlct(0) & raw_l1a; -- raw signal
+  ila_data1(3+NCFEB downto 4)   <= rawlct(NCFEB downto 1);  
+  ila_data1(28 downto 11)       <= diag_trigctrl(17 downto 0);
+  ila_data1(30+NCFEB downto 29) <= cafifo_l1a_match_in_inner(NCFEB+2 downto 1);
+  ila_data1(46 downto 38)       <= control_debug_full(41 downto 33); -- CAFIFO_L1A_MATCH
+  ila_data1(55 downto 47)       <= control_debug_full(50 downto 42); -- CAFIFO_L1A_DAV
+  ila_data1(56)                 <= control_debug_full(16); -- dav_inner
+  ila_data1(59 downto 57)       <= cal_lct & cal_gtrg & cal_mode;
+  ila_data1(66 downto 61)       <= LCT_L1A_DLY;
+  ila_data1(72 downto 67)       <= std_logic_vector(to_unsigned(OTMB_PUSH_DLY, 6));
+  ila_data1(78 downto 73)       <= std_logic_vector(to_unsigned(ALCT_PUSH_DLY, 6));
+  ila_data1(84 downto 79)       <= std_logic_vector(to_unsigned(PUSH_DLY, 6));
+  ila_data1(100 downto 85)      <= control_debug_full(69 downto 54); -- dout_inner
+  ila_data1(104 downto 101)     <= control_debug_full(20 downto 17); -- current_state_svl
+  ila_data1(109 downto 105)     <= control_debug_full(25 downto 21); -- dev_cnt_svl
+  ila_data1(110)                <= control_debug_full(32);           -- q_datain_last
+  ila_data1(113 downto 111)     <= diag_trigctrl(20 downto 18);      -- raw_l1a_q, l1a_in, raw_l1a
 
   ila_odmb_ctrl_inst1 : ila_1
     port map(

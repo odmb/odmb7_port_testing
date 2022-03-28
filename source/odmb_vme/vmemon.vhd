@@ -214,8 +214,8 @@ begin
   PLS_OPTRESET : PULSE2FAST port map(DOUT => OPT_RESET_PULSE, CLK_DOUT => CLK40, RST => RST, DIN => w_opt_rst);
   PLS_L1ARESET : PULSE2FAST port map(DOUT => L1A_RESET_PULSE, CLK_DOUT => CLK40, RST => RST, DIN => w_dcfeb_resync);
   PLS_REPROG   : NPULSE2SAME port map(DOUT => reprog, CLK_DOUT => SLOWCLK, RST => RST, NPULSE => 2, DIN => w_dcfeb_reprog);
-  -- REPROG_B <= not reprog;
-  REPROG_B <= '1';
+  REPROG_B <= not reprog;
+  -- REPROG_B <= '1';
 
   --Local register (+DCFEB done) write/read commands
 
@@ -259,7 +259,7 @@ begin
   out_txdiffctrl    <= x"000" & txdiffctrl_inner;
 
   --0x3120 read DCFEB done (NOT local register)
-  out_dcfeb_done <= x"00" & '0' & dcfeb_done;
+  out_dcfeb_done(NCFEB-1 downto 0) <= dcfeb_done;
 
   --0x3300 write/read data path MUX selector
   FD_MUXDATAPATHSEL : FDCE port map(Q => mux_data_path_inner, C => SLOWCLK, CE => w_mux_data_path, CLR => RST, D => INDATA(0));
@@ -298,7 +298,7 @@ begin
     FD_W_MASK_L1A : FDCE port map(Q => mask_l1a_inner(I), C => SLOWCLK, CE => w_mask_l1a, CLR => RST, D => INDATA(I));
   end generate GEN_MASK_L1A;
   MASK_L1A <= mask_l1a_inner;
-  out_mask_l1a(15 downto 0) <= x"00" & mask_l1a_inner;
+  out_mask_l1a(NCFEB downto 0) <= mask_l1a_inner;
 
   -- DCFEB pulses
   GEN_dcfeb_pulse : for K in 0 to 5 generate

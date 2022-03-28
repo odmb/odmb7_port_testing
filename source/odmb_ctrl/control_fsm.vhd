@@ -4,8 +4,6 @@ library ieee;
 library work;
 library unisim;
 library hdlmacro;
---use hdlmacro.hdlmacro.CB16CE;
---use hdlmacro.hdlmacro.IFD_1;
 use unisim.vcomponents.all;
 use work.ucsb_types.all;
 use ieee.std_logic_1164.all;
@@ -52,7 +50,6 @@ entity CONTROL_FSM is
 
     -- For headers/trailers
     DAQMBID : in std_logic_vector(11 downto 0);
-    AUTOKILLED_DCFEBS  : in std_logic_vector(NCFEB downto 1);
 
     -- FROM SW1
     GIGAEN : in std_logic;
@@ -150,17 +147,10 @@ architecture CONTROL_arch of CONTROL_FSM is
   signal current_state_svl, next_state_svl : std_logic_vector(3 downto 0) := (others => '0');
   signal bad_l1a_lone, bad_l1a_change, bad_l1a_change40 : std_logic := '0'; 
   signal cafifo_l1a_cnt_reg   : std_logic_vector(23 downto 0);
+  signal cafifo_l1a_match_cfeb_big : std_logic_vector(7 downto 1) := (others => '0');
+  signal fifo_half_full_cfeb_big   : std_logic_vector(7 downto 1) := (others => '0');
 
 begin
-
-  -- csp ILA core
-  --csp_control_fsm_la_pm : csp_control_fsm_la
-  --  port map (
-  --    CONTROL => CSP_CONTROL_FSM_PORT_LA_CTRL,
-  --    CLK     => CLK,
-  --    DATA    => control_fsm_la_data,
-  --    TRIG0   => control_fsm_la_trig
-  --    );
 
   expect_pckt         <= or_reduce(cafifo_l1a_match);
   dev_cnt_svl         <= std_logic_vector(to_unsigned(dev_cnt, 5));
@@ -173,20 +163,23 @@ begin
                               and control_current_state /= WAIT_IDLE) else '0';
   FDBADL1A : PULSE2SLOW port map(DOUT => bad_l1a_change40, CLK_DOUT => CLKCMS, CLK_DIN => CLK, RST => RST, DIN => bad_l1a_change);
 -- trigger assignments (8 bits)
-  control_fsm_la_trig <= expect_pckt & q_datain_last & bad_l1a_lone  & cafifo_lone & CAFIFO_L1A_CNT(3 downto 0);
-  control_fsm_la_data <= x"00" & std_logic_vector(to_unsigned(wait_dev_cnt, 4)) --[119:116]
-                         & bad_l1a_change --[115]
-                         & bad_l1a_lone & lone_cnt_svl & cafifo_lone & RST          -- [114:107]
-                         & std_logic_vector(to_unsigned(wait_cnt, 5))  -- [106:102]
-                         & CAFIFO_L1A_CNT(4 downto 0)          -- [101:97]
-                         & FFOR_B & cafifo_lost_pckt           -- [96:79]
-                         & next_state_svl & eof_inner & fifo_pop_inner & fifo_pop_80  -- [78:72]
-                         & oefifo_b_inner & renfifo_b_inner & dout_inner  -- [71:38]
-                         & '0' & hdr_tail_cnt_en & dev_cnt_en  -- [37:35]
-                         & CAFIFO_L1A_DAV & CAFIFO_L1A_MATCH   -- [34:17]
-                         & q_datain_last & expect_pckt         -- [16:15]
-                         & hdr_tail_cnt_svl & dev_cnt_svl      -- [14:5]
-                         & current_state_svl & dav_inner;      -- [4:0]
+  -- control_fsm_la_trig <= expect_pckt & q_datain_last & bad_l1a_lone  & cafifo_lone & CAFIFO_L1A_CNT(3 downto 0);
+  control_fsm_la_data(119 downto 116)     <= std_logic_vector(to_unsigned(wait_dev_cnt, 4)); --[119:116]
+  control_fsm_la_data(115 downto 107)     <= bad_l1a_change & bad_l1a_lone & lone_cnt_svl & cafifo_lone & RST; -- [115:107]
+  control_fsm_la_data(106 downto 102)     <= std_logic_vector(to_unsigned(wait_cnt, 5)); -- [106:102]
+  control_fsm_la_data(101 downto 97)      <= CAFIFO_L1A_CNT(4 downto 0); -- [101:97]
+  control_fsm_la_data(89+NCFEB downto 88) <= FFOR_B; -- [96:88]
+  control_fsm_la_data(80+NCFEB downto 79) <= cafifo_lost_pckt; -- [87:79]
+  control_fsm_la_data(78 downto 72)       <= next_state_svl & eof_inner & fifo_pop_inner & fifo_pop_80; -- [78:72]
+  control_fsm_la_data(64+NCFEB downto 63) <= oefifo_b_inner; -- [71:63]
+  control_fsm_la_data(55+NCFEB downto 54) <= renfifo_b_inner; -- [62:54]
+  control_fsm_la_data(53 downto 38)       <= dout_inner; -- [53:38]
+  control_fsm_la_data(37 downto 35)       <= '0' & hdr_tail_cnt_en & dev_cnt_en; -- [37:35]
+  control_fsm_la_data(27+NCFEB downto 26) <= CAFIFO_L1A_DAV; -- [34:26]
+  control_fsm_la_data(18+NCFEB downto 17) <= CAFIFO_L1A_MATCH; -- [25:17]
+  control_fsm_la_data(16 downto 15)       <= q_datain_last & expect_pckt; -- [16:15]
+  control_fsm_la_data(14 downto 5)        <= hdr_tail_cnt_svl & dev_cnt_svl; -- [14:5]
+  control_fsm_la_data(4 downto 0)         <= current_state_svl & dav_inner; -- [4:0]
 
   control_debug <= control_fsm_la_data & '0' & dev_cnt_svl & bad_l1a_change40 & hdr_tail_cnt_svl
                    & current_state_svl;
@@ -457,13 +450,15 @@ begin
   FIFO_POP  <= fifo_pop_inner;
   EOF       <= eof_inner;
 
+  cafifo_l1a_match_cfeb_big(NCFEB downto 1) <= cafifo_l1a_match(NCFEB downto 1);
+  fifo_half_full_cfeb_big(NCFEB downto 1) <= FIFO_HALF_FULL(NCFEB downto 1);
   hdr_word(1) <= x"9" & cafifo_l1a_cnt(11 downto 0);
   hdr_word(2) <= x"9" & cafifo_l1a_cnt(23 downto 12);
   hdr_word(3) <= x"9" & cafifo_l1a_match(NCFEB+2 downto NCFEB+1) & fmt_vers & l1a_dav_mismatch
-                 & cafifo_l1a_match(NCFEB downto 1);
+                 & cafifo_l1a_match_cfeb_big(7 downto 1);
   hdr_word(4) <= x"9" & cafifo_bx_cnt;
   hdr_word(5) <= x"A" & cafifo_l1a_match(NCFEB+2 downto NCFEB+1) & fmt_vers & l1a_dav_mismatch
-                 & cafifo_l1a_match(NCFEB downto 1);
+                 & cafifo_l1a_match_cfeb_big(7 downto 1);
   hdr_word(6) <= x"A" & DAQMBID(11 downto 0);
   hdr_word(7) <= x"A" & cafifo_l1a_match(NCFEB+2 downto NCFEB+1) & ovlp & cafifo_bx_cnt(4 downto 0);
   hdr_word(8) <= x"A" & sync & fmt_vers & l1a_dav_mismatch & cafifo_l1a_cnt(4 downto 0);
@@ -471,13 +466,13 @@ begin
   tail_word(1) <= x"F" & alct_to_end & cafifo_bx_cnt(4 downto 0) & cafifo_l1a_cnt(5 downto 0);
   --tail_word(2) <= x"F" & ovlp & AUTOKILLED_DCFEBS;
   tail_word(2) <= x"F" & ovlp & "000" & x"0"; -- Set timeout to 0 to avoid DDU errors
-  tail_word(3) <= x"F" & data_fifo_full(3 downto 1) & cafifo_lost_pckt(8) & dmb_l1pipe;
+  tail_word(3) <= x"F" & data_fifo_full(3 downto 1) & cafifo_lost_pckt(NCFEB+1) & dmb_l1pipe;
   -- tail_word(4) <= x"F" & cafifo_lost_pckt(9) & cafifo_lost_pckt(7 downto 1)
   --                 & data_fifo_full(7 downto 4);
-  tail_word(4) <= x"F" & cafifo_lost_pckt(9) & "000" & x"0" -- Set timeout to 0 to avoid DDU errors
+  tail_word(4) <= x"F" & cafifo_lost_pckt(NCFEB+2) & "000" & x"0" -- Set timeout to 0 to avoid DDU errors
                   & data_fifo_full(7 downto 4);
   tail_word(5) <= x"E" & data_fifo_full(NCFEB+2 downto NCFEB+1) & not FIFO_HALF_FULL(NCFEB+2 downto NCFEB+1)
-                  & otmb_to_end & not FIFO_HALF_FULL(NCFEB downto 1);
+                  & otmb_to_end & not fifo_half_full_cfeb_big(7 downto 1);
   tail_word(6) <= x"E" & DAQMBID(11 downto 0);
   tail_word(7) <= x"E" & REG_CRC(22) & REG_CRC(10 downto 0);
   tail_word(8) <= x"E" & REG_CRC(23) & REG_CRC(21 downto 11);

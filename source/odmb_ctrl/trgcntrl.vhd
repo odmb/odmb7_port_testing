@@ -85,12 +85,12 @@ begin  --Architecture
 
 -- Generate LCT_ERR
   LCT_ERR_D <= LCT(0) xor or_reduce(LCT(NCFEB downto 1));
-  FDLCTERR : FD port map(LCT_ERR, CLK, LCT_ERR_D);
+  FDLCTERR : FD port map (Q => LCT_ERR, C => CLK, D => LCT_ERR_D);
 
 -- Generate L1A / Generate DCFEB_L1A
   L1A_IN <= CAL_L1A when CAL_MODE = '1' else RAW_L1A;
 
-  FDL1A : FD port map(RAW_L1A_Q, CLK, L1A_IN);
+  FDL1A : FD port map (Q => RAW_L1A_Q, C => CLK, D => L1A_IN);
   L1A       <= RAW_L1A_Q;
   DCFEB_L1A <= L1A;
 
@@ -100,7 +100,7 @@ begin  --Architecture
     LCT_Q(K)(0) <= LCT(K);
     GEN_LCT_Q : for H in 1 to 4 generate
     begin
-      FD_H : FD port map(LCT_Q(K)(H), CLK, LCT_Q(K)(H-1));
+      FD_H : FD port map (Q => LCT_Q(K)(H), C => CLK, D => LCT_Q(K)(H-1));
     end generate GEN_LCT_Q;
     L1A_MATCH(K) <= '1' when (L1A = '1' and KILL(K) = '0' and (LCT_Q(K) /= "00000" or PEDESTAL = '1')) else '0';
   end generate GEN_L1A_MATCH;
@@ -140,9 +140,10 @@ begin  --Architecture
   -- ila_data(78 downto 73) <= std_logic_vector(to_unsigned(ALCT_PUSH_DLY, 6));
   -- ila_data(84 downto 79) <= std_logic_vector(to_unsigned(PUSH_DLY, 6));
 
-  DIAGOUT(3 downto 0)  <= otmb_dav_sync & alct_dav_sync & fifo_push_inner & l1a;
-  DIAGOUT(10 downto 4) <= lct(7 downto 1);  
-  DIAGOUT(17 downto 11) <= l1a_match(7 downto 1);  
+  DIAGOUT(3 downto 0)         <= otmb_dav_sync & alct_dav_sync & fifo_push_inner & l1a;
+  DIAGOUT(3+NCFEB downto 4)   <= lct(NCFEB downto 1);  
+  DIAGOUT(10+NCFEB downto 11) <= l1a_match(NCFEB downto 1);
+  DIAGOUT(20 downto 18)       <= raw_l1a_q & l1a_in & raw_l1a;
   -- DIAGOUT(26 downto 18) <= fifo_l1a_match_inner(9 downto 1);  
   -- DIAGOUT <= ila_data;
 

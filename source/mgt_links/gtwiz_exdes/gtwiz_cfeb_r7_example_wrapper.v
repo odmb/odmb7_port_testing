@@ -54,7 +54,7 @@
 // the core, connects them as appropriate, and maps enabled ports
 // =====================================================================================================================
 
-module gtwiz_cfeb_r7_example_wrapper (
+module gtwiz_cfeb_example_wrapper (
   input  wire [6:0] gthrxn_in
  ,input  wire [6:0] gthrxp_in
  ,output wire [6:0] gthtxn_out

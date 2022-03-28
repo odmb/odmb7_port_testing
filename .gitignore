@@ -2,17 +2,8 @@ vivado*
 testbench/vivado*
 .Xil
 *webtalk*
-testbench/tb_project/tb_project.cache
-testbench/tb_project/tb_project.hw
-testbench/tb_project/tb_project.ip_user_files
-testbench/tb_project/tb_project.runs
-testbench/tb_project/tb_project.sim
-ip
-testbench/ip
-odmb7_project/ip
-odmb7_project/odmb_project
-TestBench_odmb7
-fw
+ip/**/*
+!ip/**/*.xci
 
 project/odmb7_ucsb_dev.cache
 project/odmb7_ucsb_dev.hw
@@ -21,20 +12,10 @@ project/odmb7_ucsb_dev.runs
 project/odmb7_ucsb_dev.sim
 project/odmb7_ucsb_dev.srcs
 
-testbench/ip/xcku040-ffva1156-2-e/lut_input1/
-!testbench/ip/xcku040-ffva1156-2-e/lut_input1/*xci
+project/odmb5_ucsb_dev.cache
+project/odmb5_ucsb_dev.hw
+project/odmb5_ucsb_dev.ip_user_files
+project/odmb5_ucsb_dev.runs
+project/odmb5_ucsb_dev.sim
+project/odmb5_ucsb_dev.srcs
 
-testbench/ip/xcku040-ffva1156-2-e/lut_input2/
-!testbench/ip/xcku040-ffva1156-2-e/lut_input2/*xci
-
-testbench/ip/xcku040-ffva1156-2-e/ila/
-!testbench/ip/xcku040-ffva1156-2-e/ila/*xci
-
-testbench/ip/xcku040-ffva1156-2-e/clock_manager/
-!testbench/ip/xcku040-ffva1156-2-e/clock_manager/*xci
-
-testbench/ip/xcku040-ffva1156-2-e/clockManager/
-!testbench/ip/xcku040-ffva1156-2-e/clockManager/*xci
-
-testbench/ip/xcku040-ffva1156-2-e/ibert_odmb7_gth/
-!testbench/ip/xcku040-ffva1156-2-e/ibert_odmb7_gth/*xci

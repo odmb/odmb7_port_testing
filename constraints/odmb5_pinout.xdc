@@ -1,4 +1,4 @@
-# ODMB7 UltraScale FPGA Pinout XDC file
+# ODMB5 UltraScale FPGA Pinout XDC file
 # --------------------------------------------------------------------------
 # Location constraints for differential reference clock buffers
 # Outline/section title:
@@ -143,10 +143,6 @@ set_property -dict { PACKAGE_PIN E15   IOSTANDARD LVDS } [get_ports DCFEB_TCK_P[
 set_property -dict { PACKAGE_PIN D15   IOSTANDARD LVDS } [get_ports DCFEB_TCK_N[4]]
 set_property -dict { PACKAGE_PIN B17   IOSTANDARD LVDS } [get_ports DCFEB_TCK_P[5]]
 set_property -dict { PACKAGE_PIN B16   IOSTANDARD LVDS } [get_ports DCFEB_TCK_N[5]]
-set_property -dict { PACKAGE_PIN C18   IOSTANDARD LVDS } [get_ports DCFEB_TCK_P[6]]
-set_property -dict { PACKAGE_PIN C17   IOSTANDARD LVDS } [get_ports DCFEB_TCK_N[6]]
-set_property -dict { PACKAGE_PIN C19   IOSTANDARD LVDS } [get_ports DCFEB_TCK_P[7]]
-set_property -dict { PACKAGE_PIN B19   IOSTANDARD LVDS } [get_ports DCFEB_TCK_N[7]]
 set_property -dict { PACKAGE_PIN A19   IOSTANDARD LVDS } [get_ports DCFEB_TMS_P]
 set_property -dict { PACKAGE_PIN A18   IOSTANDARD LVDS } [get_ports DCFEB_TMS_N]
 set_property -dict { PACKAGE_PIN B14   IOSTANDARD LVDS } [get_ports DCFEB_TDI_P]
@@ -161,10 +157,6 @@ set_property -dict { PACKAGE_PIN G24   IOSTANDARD LVDS  DIFF_TERM_ADV TERM_100 }
 set_property -dict { PACKAGE_PIN F25   IOSTANDARD LVDS  DIFF_TERM_ADV TERM_100 } [get_ports DCFEB_TDO_N[4]]
 set_property -dict { PACKAGE_PIN G22   IOSTANDARD LVDS  DIFF_TERM_ADV TERM_100 } [get_ports DCFEB_TDO_P[5]]
 set_property -dict { PACKAGE_PIN F22   IOSTANDARD LVDS  DIFF_TERM_ADV TERM_100 } [get_ports DCFEB_TDO_N[5]]
-set_property -dict { PACKAGE_PIN E20   IOSTANDARD LVDS  DIFF_TERM_ADV TERM_100 } [get_ports DCFEB_TDO_P[6]]
-set_property -dict { PACKAGE_PIN E21   IOSTANDARD LVDS  DIFF_TERM_ADV TERM_100 } [get_ports DCFEB_TDO_N[6]]
-set_property -dict { PACKAGE_PIN J19   IOSTANDARD LVDS  DIFF_TERM_ADV TERM_100 } [get_ports DCFEB_TDO_P[7]]
-set_property -dict { PACKAGE_PIN J18   IOSTANDARD LVDS  DIFF_TERM_ADV TERM_100 } [get_ports DCFEB_TDO_N[7]]
 
 # DCFEB specific pins
 set_property -dict { PACKAGE_PIN G19   IOSTANDARD LVCMOS18 } [get_ports DCFEB_DONE[1]]
@@ -172,8 +164,6 @@ set_property -dict { PACKAGE_PIN F19   IOSTANDARD LVCMOS18 } [get_ports DCFEB_DO
 set_property -dict { PACKAGE_PIN G15   IOSTANDARD LVCMOS18 } [get_ports DCFEB_DONE[3]]
 set_property -dict { PACKAGE_PIN G14   IOSTANDARD LVCMOS18 } [get_ports DCFEB_DONE[4]]
 set_property -dict { PACKAGE_PIN F18   IOSTANDARD LVCMOS18 } [get_ports DCFEB_DONE[5]]
-set_property -dict { PACKAGE_PIN F17   IOSTANDARD LVCMOS18 } [get_ports DCFEB_DONE[6]]
-set_property -dict { PACKAGE_PIN H14   IOSTANDARD LVCMOS18 } [get_ports DCFEB_DONE[7]]
 set_property -dict { PACKAGE_PIN D8    IOSTANDARD LVDS }     [get_ports RESYNC_P]
 set_property -dict { PACKAGE_PIN C8    IOSTANDARD LVDS }     [get_ports RESYNC_N]
 set_property -dict { PACKAGE_PIN B15   IOSTANDARD LVDS }     [get_ports BC0_P]
@@ -182,7 +172,7 @@ set_property -dict { PACKAGE_PIN E10   IOSTANDARD LVDS }     [get_ports INJPLS_P
 set_property -dict { PACKAGE_PIN D10   IOSTANDARD LVDS }     [get_ports INJPLS_N]
 set_property -dict { PACKAGE_PIN B10   IOSTANDARD LVDS }     [get_ports EXTPLS_P]
 set_property -dict { PACKAGE_PIN A10   IOSTANDARD LVDS }     [get_ports EXTPLS_N]
-set_property -dict { PACKAGE_PIN C16   IOSTANDARD LVCMOS18 } [get_ports PPIB_OUT_EN_B]
+set_property -dict { PACKAGE_PIN C16   IOSTANDARD LVCMOS18 } [get_ports CFEB_OUT_EN_B]
 set_property -dict { PACKAGE_PIN A17   IOSTANDARD LVCMOS18 } [get_ports DCFEB_REPROG_B]
 
 # L1A pins
@@ -198,10 +188,6 @@ set_property -dict { PACKAGE_PIN F13   IOSTANDARD LVDS }     [get_ports L1A_MATC
 set_property -dict { PACKAGE_PIN E13   IOSTANDARD LVDS }     [get_ports L1A_MATCH_N[4]]
 set_property -dict { PACKAGE_PIN C11   IOSTANDARD LVDS }     [get_ports L1A_MATCH_P[5]]
 set_property -dict { PACKAGE_PIN B11   IOSTANDARD LVDS }     [get_ports L1A_MATCH_N[5]]
-set_property -dict { PACKAGE_PIN C12   IOSTANDARD LVDS }     [get_ports L1A_MATCH_P[6]]
-set_property -dict { PACKAGE_PIN B12   IOSTANDARD LVDS }     [get_ports L1A_MATCH_N[6]]
-set_property -dict { PACKAGE_PIN E11   IOSTANDARD LVDS }     [get_ports L1A_MATCH_P[7]]
-set_property -dict { PACKAGE_PIN D11   IOSTANDARD LVDS }     [get_ports L1A_MATCH_N[7]]
 
 # --------------------------------------------------------------------------
 # CCB communication pins
@@ -258,8 +244,6 @@ set_property -dict { PACKAGE_PIN C26   IOSTANDARD LVCMOS18 } [get_ports LVMB_PON
 set_property -dict { PACKAGE_PIN B26   IOSTANDARD LVCMOS18 } [get_ports LVMB_PON[3]]
 set_property -dict { PACKAGE_PIN B25   IOSTANDARD LVCMOS18 } [get_ports LVMB_PON[4]]
 set_property -dict { PACKAGE_PIN A25   IOSTANDARD LVCMOS18 } [get_ports LVMB_PON[5]]
-set_property -dict { PACKAGE_PIN A27   IOSTANDARD LVCMOS18 } [get_ports LVMB_PON[6]]
-set_property -dict { PACKAGE_PIN A28   IOSTANDARD LVCMOS18 } [get_ports LVMB_PON[7]]
 set_property -dict { PACKAGE_PIN C24   IOSTANDARD LVCMOS18 } [get_ports PON_LOAD_B]
 set_property -dict { PACKAGE_PIN A23   IOSTANDARD LVCMOS18 } [get_ports PON_OE]
 set_property -dict { PACKAGE_PIN C28   IOSTANDARD LVCMOS18 } [get_ports LVMB_CSB[0]]
@@ -272,8 +256,7 @@ set_property -dict { PACKAGE_PIN C29   IOSTANDARD LVCMOS18 } [get_ports LVMB_CSB
 
 set_property -dict { PACKAGE_PIN L19   IOSTANDARD LVCMOS18 } [get_ports LVMB_SCLK]
 set_property -dict { PACKAGE_PIN L18   IOSTANDARD LVCMOS18 } [get_ports LVMB_SDIN]
-set_property -dict { PACKAGE_PIN H21   IOSTANDARD LVDS  DIFF_TERM_ADV TERM_100 } [get_ports LVMB_SDOUT_P]
-set_property -dict { PACKAGE_PIN G21   IOSTANDARD LVDS  DIFF_TERM_ADV TERM_100 } [get_ports LVMB_SDOUT_N]
+set_property -dict { PACKAGE_PIN H21   IOSTANDARD LVCMOS18 } [get_ports LVMB_SDOUT]
 
 set_property -dict { PACKAGE_PIN A20   IOSTANDARD LVCMOS18 } [get_ports MON_LVMB_PON[0]]
 set_property -dict { PACKAGE_PIN C21   IOSTANDARD LVCMOS18 } [get_ports MON_LVMB_PON[1]]
@@ -281,8 +264,6 @@ set_property -dict { PACKAGE_PIN C22   IOSTANDARD LVCMOS18 } [get_ports MON_LVMB
 set_property -dict { PACKAGE_PIN B21   IOSTANDARD LVCMOS18 } [get_ports MON_LVMB_PON[3]]
 set_property -dict { PACKAGE_PIN B22   IOSTANDARD LVCMOS18 } [get_ports MON_LVMB_PON[4]]
 set_property -dict { PACKAGE_PIN A22   IOSTANDARD LVCMOS18 } [get_ports MON_LVMB_PON[5]]
-set_property -dict { PACKAGE_PIN D23   IOSTANDARD LVCMOS18 } [get_ports MON_LVMB_PON[6]]
-set_property -dict { PACKAGE_PIN C23   IOSTANDARD LVCMOS18 } [get_ports MON_LVMB_PON[7]]
 
 # --------------------------------------------------------------------------
 # TMB communication pins
@@ -331,8 +312,7 @@ set_property -dict { PACKAGE_PIN AG15  IOSTANDARD LVCMOS18  PULLTYPE PULLDOWN } 
 set_property -dict { PACKAGE_PIN AG14  IOSTANDARD LVCMOS18  PULLTYPE PULLDOWN } [get_ports RAWLCT[3]]
 set_property -dict { PACKAGE_PIN AJ15  IOSTANDARD LVCMOS18  PULLTYPE PULLDOWN } [get_ports RAWLCT[4]]
 set_property -dict { PACKAGE_PIN AJ14  IOSTANDARD LVCMOS18  PULLTYPE PULLDOWN } [get_ports RAWLCT[5]]
-set_property -dict { PACKAGE_PIN AE16  IOSTANDARD LVCMOS18  PULLTYPE PULLDOWN } [get_ports RAWLCT[6]]
-set_property -dict { PACKAGE_PIN AE18  IOSTANDARD LVCMOS18  PULLTYPE PULLDOWN } [get_ports RAWLCT[7]]
+# set_property -dict { PACKAGE_PIN AE16  IOSTANDARD LVCMOS18  PULLTYPE PULLDOWN } [get_ports RAWLCT[6]]
 
 set_property -dict { PACKAGE_PIN AK8   IOSTANDARD LVCMOS18 } [get_ports RSVFD[1]]
 set_property -dict { PACKAGE_PIN AL8   IOSTANDARD LVCMOS18 } [get_ports RSVFD[2]]
@@ -374,8 +354,8 @@ set_property -dict { PACKAGE_PIN  T2   } [get_ports  DAQ_RX_P[10]]
 set_property -dict { PACKAGE_PIN  T1   } [get_ports  DAQ_RX_N[10]]
 set_property -dict { PACKAGE_PIN  P2   } [get_ports  DAQ_SPY_RX_P]
 set_property -dict { PACKAGE_PIN  P1   } [get_ports  DAQ_SPY_RX_N]
-set_property -dict { PACKAGE_PIN  N4   } [get_ports  DAQ_TX_P[1]]
-set_property -dict { PACKAGE_PIN  N3   } [get_ports  DAQ_TX_N[1]]
+# set_property -dict { PACKAGE_PIN  N4   } [get_ports  DAQ_TX_P[1]]
+# set_property -dict { PACKAGE_PIN  N3   } [get_ports  DAQ_TX_N[1]]
 set_property -dict { PACKAGE_PIN  L4   } [get_ports  DAQ_TX_P[2]]
 set_property -dict { PACKAGE_PIN  L3   } [get_ports  DAQ_TX_N[2]]
 # set_property -dict { PACKAGE_PIN  J4   } [get_ports  DAQ_TX_P[3]]
@@ -405,13 +385,6 @@ set_property -dict { PACKAGE_PIN G12   IOSTANDARD LVCMOS18 } [get_ports RX12_CS_
 set_property -dict { PACKAGE_PIN F12   IOSTANDARD LVCMOS18 } [get_ports RX12_RST_B]
 set_property -dict { PACKAGE_PIN G9    IOSTANDARD LVCMOS18 } [get_ports RX12_INT_B]
 set_property -dict { PACKAGE_PIN F9    IOSTANDARD LVCMOS18 } [get_ports RX12_PRESENT_B]
-set_property -dict { PACKAGE_PIN J13   IOSTANDARD LVCMOS18 } [get_ports TX12_I2C_ENA]
-set_property -dict { PACKAGE_PIN H13   IOSTANDARD LVCMOS18 } [get_ports TX12_SDA]
-set_property -dict { PACKAGE_PIN L12   IOSTANDARD LVCMOS18 } [get_ports TX12_SCL]
-set_property -dict { PACKAGE_PIN G10   IOSTANDARD LVCMOS18 } [get_ports TX12_CS_B]
-set_property -dict { PACKAGE_PIN F10   IOSTANDARD LVCMOS18 } [get_ports TX12_RST_B]
-set_property -dict { PACKAGE_PIN J8    IOSTANDARD LVCMOS18 } [get_ports TX12_INT_B]
-set_property -dict { PACKAGE_PIN H8    IOSTANDARD LVCMOS18 } [get_ports TX12_PRESENT_B]
 set_property -dict { PACKAGE_PIN K12   IOSTANDARD LVCMOS18 } [get_ports B04_I2C_ENA]
 set_property -dict { PACKAGE_PIN L13   IOSTANDARD LVCMOS18 } [get_ports B04_SDA]
 set_property -dict { PACKAGE_PIN K13   IOSTANDARD LVCMOS18 } [get_ports B04_SCL]
@@ -498,7 +471,7 @@ set_property -dict { PACKAGE_PIN P21   IOSTANDARD LVCMOS18 } [get_ports LEDS_CFV
 set_property -dict { PACKAGE_PIN M22   IOSTANDARD LVCMOS18 } [get_ports LEDS_CFV[11]]
 
 set_property -dict { PACKAGE_PIN P24   IOSTANDARD LVCMOS18 } [get_ports LEDS_HEART_BEAT]
-set_property -dict { PACKAGE_PIN P25   IOSTANDARD LVCMOS18 } [get_ports LEDS_SPARE]
+set_property -dict { PACKAGE_PIN P25   IOSTANDARD LVCMOS18 } [get_ports LEDS_CFEBS_DONE]
 
 # --------------------------------------------------------------------------
 # Clock synthesizer control pins

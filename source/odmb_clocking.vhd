@@ -35,12 +35,12 @@ entity odmb_clocking is
     --------------------
     -- Output clocks
     --------------------
-    mgtrefclk0_224 : out std_logic;     --! buffered refclk0 for MGT quad 224
-    mgtrefclk0_225 : out std_logic;     --! buffered refclk0 for MGT quad 225
-    mgtrefclk0_226 : out std_logic;     --! buffered refclk0 for MGT quad 226
-    mgtrefclk1_226 : out std_logic;     --! buffered refclk1 for MGT quad 226
-    mgtrefclk0_227 : out std_logic;     --! buffered refclk0 for MGT quad 227
-    mgtrefclk1_227 : out std_logic;     --! buffered refclk1 for MGT quad 227
+    mgtrefclk0_224 : out std_logic;     --! MGT refclk for R12 links from DCFEBs, may be 160.316 MHz
+    mgtrefclk0_225 : out std_logic;     --! MGT refclk for R12 link  from ALCT  , may be 120.237 MHz
+    mgtrefclk0_226 : out std_logic;     --! MGT refclk for SPY link  to   DDU   , may be 160.000 MHz
+    mgtrefclk1_226 : out std_logic;     --! MGT refclk for SPY link  to   PC    , may be 125.000 MHz
+    mgtrefclk0_227 : out std_logic;     --! MGT refclk for B04 links to   FED   , may be 160.316 MHz
+    mgtrefclk1_227 : out std_logic;     --! MGT refclk for B04 links from FED   , may be 120.237 MHz      
 
     clk_sysclk625k : out std_logic;     --! buffered 625 kHz clock
     clk_sysclk1p25 : out std_logic;     --! buffered 1.25 MHz clock
@@ -54,14 +54,16 @@ entity odmb_clocking is
     clk_lfclk      : out std_logic;     --! buffered 10 kHz clock
     clk_gp6        : out std_logic;     --! buffered 80 MHz cock
     clk_gp7        : out std_logic;     --! buffered 80 MHz clock
+    clkwiz_locked  : out std_logic;     --! locked signal from the clocking wizard
  
     clk_mgtclk1    : out std_logic;     --! buffered clock from MGT quad 224 clock 0 divided by 2
     clk_mgtclk2    : out std_logic;     --! buffered clock from MGT quad 227 clock 0 divided by 2
     clk_mgtclk3    : out std_logic;     --! buffered clock from MGT quad 226 clock 0 divided by 2
     clk_mgtclk4    : out std_logic;     --! buffered clock from MGT quad 225 clock 0 divided by 2
     clk_mgtclk5    : out std_logic;     --! buffered clock from MGT quad 227 clock 1 divided by 2
-    clk_mgtclk125  : out std_logic      --! buffered clock from MGT quad 226 clock 1 divided by 2
+    clk_mgtclk125  : out std_logic;     --! buffered clock from MGT quad 226 clock 1 divided by 2
 
+    led_clkfreqs : out std_logic_vector(7 downto 0) --! blinking signals at ~1Hz for the input clocks
     );
 end odmb_clocking;
 
@@ -69,13 +71,14 @@ architecture Clocking_Arch of odmb_clocking is
 
   component clockManager is
     port (
-      clk_in1   : in std_logic;
-      clk_out5  : out std_logic;
-      clk_out10 : out std_logic;
-      clk_out20 : out std_logic;
-      clk_out40 : out std_logic;
-      clk_out80 : out std_logic;
-      clk_out320 : out std_logic
+      clk_in1    : in  std_logic;
+      clk_out5   : out std_logic;
+      clk_out10  : out std_logic;
+      clk_out20  : out std_logic;
+      clk_out40  : out std_logic;
+      clk_out80  : out std_logic;
+      clk_out320 : out std_logic;
+      locked     : out std_logic
       );
   end component;
 
@@ -85,6 +88,13 @@ architecture Clocking_Arch of odmb_clocking is
   signal mgtrefclk1_226_odiv2 : std_logic;
   signal mgtrefclk0_227_odiv2 : std_logic;
   signal mgtrefclk1_227_odiv2 : std_logic;
+
+  signal mgtclk1   : std_logic;
+  signal mgtclk2   : std_logic;
+  signal mgtclk3   : std_logic;
+  signal mgtclk4   : std_logic;
+  signal mgtclk5   : std_logic;
+  signal mgtclk125 : std_logic;
 
   signal clk_sysclk5 : std_logic;
   signal clk2p5_unbuf : std_logic := '0';
@@ -97,6 +107,16 @@ architecture Clocking_Arch of odmb_clocking is
   signal clk_cmsclk_unbuf : std_logic;
   signal clk_gp6_unbuf : std_logic;
   signal clk_gp7_unbuf : std_logic;
+
+  signal cntr_cmsclk    : unsigned(40 downto 0) := (others => '0');
+  signal cntr_mgtclk1   : unsigned(40 downto 0) := (others => '0');
+  signal cntr_mgtclk2   : unsigned(40 downto 0) := (others => '0');
+  signal cntr_mgtclk3   : unsigned(40 downto 0) := (others => '0');
+  signal cntr_mgtclk4   : unsigned(40 downto 0) := (others => '0');
+  signal cntr_mgtclk5   : unsigned(40 downto 0) := (others => '0');
+  signal cntr_mgtclk125 : unsigned(40 downto 0) := (others => '0');
+  signal cntr_clkgp6    : unsigned(40 downto 0) := (others => '0');
+  signal cntr_clkgp7    : unsigned(40 downto 0) := (others => '0');
 
 begin
 
@@ -194,7 +214,7 @@ begin
   u_mgtclk0_q224 : BUFG_GT
     port map(
       I       => mgtrefclk0_224_odiv2,
-      O       => clk_mgtclk1,
+      O       => mgtclk1,
       CE      => '1',
       CEMASK  => '0',
       CLR     => '0',
@@ -205,7 +225,7 @@ begin
   u_mgtclk0_q225 : BUFG_GT
     port map(
       I       => mgtrefclk0_225_odiv2,
-      O       => clk_mgtclk4,
+      O       => mgtclk4,
       CE      => '1',
       CEMASK  => '0',
       CLR     => '0',
@@ -216,7 +236,7 @@ begin
   u_mgtclk0_q226 : BUFG_GT
     port map(
       I       => mgtrefclk0_226_odiv2,
-      O       => clk_mgtclk3,
+      O       => mgtclk3,
       CE      => '1',
       CEMASK  => '0',
       CLR     => '0',
@@ -227,7 +247,7 @@ begin
   u_mgtclk1_q226 : BUFG_GT
     port map(
       I       => mgtrefclk1_226_odiv2,
-      O       => clk_mgtclk125,
+      O       => mgtclk125,
       CE      => '1',
       CEMASK  => '0',
       CLR     => '0',
@@ -238,7 +258,7 @@ begin
   u_mgtclk0_q227 : BUFG_GT
     port map(
       I       => mgtrefclk0_227_odiv2,
-      O       => clk_mgtclk2,
+      O       => mgtclk2,
       CE      => '1',
       CEMASK  => '0',
       CLR     => '0',
@@ -249,13 +269,20 @@ begin
   u_mgtclk1_q227 : BUFG_GT
     port map(
       I       => mgtrefclk1_227_odiv2,
-      O       => clk_mgtclk5,
+      O       => mgtclk5,
       CE      => '1',
       CEMASK  => '0',
       CLR     => '0',
       CLRMASK => '0',
       DIV     => "000"
       );
+
+  clk_mgtclk1   <= mgtclk1;
+  clk_mgtclk2   <= mgtclk2;
+  clk_mgtclk3   <= mgtclk3;
+  clk_mgtclk4   <= mgtclk4;
+  clk_mgtclk5   <= mgtclk5;
+  clk_mgtclk125 <= mgtclk125;
 
   clockManager_i : clockManager
     port map (
@@ -265,7 +292,8 @@ begin
       clk_out20  => clk_sysclk20,     -- output 20.04 MHz
       clk_out40  => clk_sysclk40,     -- output 40.08 MHz
       clk_out80  => clk_sysclk80,     -- output 80.16 MHz
-      clk_out320 => clk_sysclk320     -- output 320.3 MHz
+      clk_out320 => clk_sysclk320,    -- output 320.3 MHz
+      locked     => clkwiz_locked
       );
 
 
@@ -283,5 +311,29 @@ begin
   BUFG_clk2p5 : BUFG port map(I => clk2p5_unbuf, O => clk_sysclk2p5);
   BUFG_clk1p25 : BUFG port map(I => clk1p25_unbuf, O => clk_sysclk1p25);
   BUFG_clk625k : BUFG port map(I => clk625k_unbuf, O => clk_sysclk625k);
+
+  -------------------------------------------------------------------------------------------
+  -- Generate Human readable LED signals
+  -------------------------------------------------------------------------------------------
+  -- 2^25 = 33'554'432, 2^26 = 67'108'864, 2^27 = 134'217'728, 2^28 = 268'435'456, 2^30 = 1'073'741'824
+
+  led_clkfreqs(0) <= std_logic(cntr_cmsclk(24));    -- clk at  40 MHz = led at 40/33.5 ~ 1.2 Hz
+  led_clkfreqs(1) <= std_logic(cntr_mgtclk1(26));   -- clk at 160 MHz = led at 160/134 ~ 1.2 Hz 
+  led_clkfreqs(2) <= std_logic(cntr_mgtclk2(26));   -- clk at 160 MHz = led at 160/134 ~ 1.2 Hz 
+  led_clkfreqs(3) <= std_logic(cntr_mgtclk3(26));   -- clk at 160 MHz = led at 160/134 ~ 1.2 Hz 
+  led_clkfreqs(4) <= std_logic(cntr_mgtclk4(26));   -- clk at 120 MHz = led at 120/134 ~ 0.9 Hz
+  led_clkfreqs(5) <= std_logic(cntr_mgtclk5(26));   -- clk at 160 MHz = led at 160/134 ~ 1.2 Hz 
+  led_clkfreqs(6) <= std_logic(cntr_mgtclk125(26)); -- clk at 125 MHz = led at 125/134 ~ 0.9 Hz
+  led_clkfreqs(7) <= std_logic(cntr_clkgp7(25));    -- clk at  80 MHz = led at 80/67.1 ~ 1.2 Hz
+
+   cntr_cmsclk    <= cntr_cmsclk    + 1 when rising_edge(clk_cmsclk_unbuf);
+   cntr_mgtclk1   <= cntr_mgtclk1   + 1 when rising_edge(mgtclk1);
+   cntr_mgtclk2   <= cntr_mgtclk2   + 1 when rising_edge(mgtclk2);
+   cntr_mgtclk3   <= cntr_mgtclk3   + 1 when rising_edge(mgtclk3);
+   cntr_mgtclk4   <= cntr_mgtclk4   + 1 when rising_edge(mgtclk4);
+   cntr_mgtclk5   <= cntr_mgtclk5   + 1 when rising_edge(mgtclk5);
+   cntr_mgtclk125 <= cntr_mgtclk125 + 1 when rising_edge(mgtclk125);
+   cntr_clkgp6    <= cntr_clkgp6    + 1 when rising_edge(clk_gp6_unbuf);
+   cntr_clkgp7    <= cntr_clkgp7    + 1 when rising_edge(clk_gp7_unbuf);
 
 end Clocking_Arch;

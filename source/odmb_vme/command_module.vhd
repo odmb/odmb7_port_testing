@@ -83,7 +83,7 @@ architecture COMMAND_MODULE_Arch of COMMAND_MODULE is
       CLR : in std_logic
       );
   end component;
-
+  
 begin  --Architecture
 
   -- Generate DOE_B

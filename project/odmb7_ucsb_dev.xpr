@@ -30,20 +30,20 @@
     <Option Name="IPUserFilesDir" Val="$PIPUSERFILESDIR"/>
     <Option Name="IPStaticSourceDir" Val="$PIPUSERFILESDIR/ipstatic"/>
     <Option Name="EnableBDX" Val="FALSE"/>
-    <Option Name="WTXSimLaunchSim" Val="224"/>
+    <Option Name="WTXSimLaunchSim" Val="236"/>
     <Option Name="WTModelSimLaunchSim" Val="0"/>
     <Option Name="WTQuestaLaunchSim" Val="0"/>
     <Option Name="WTIesLaunchSim" Val="0"/>
     <Option Name="WTVcsLaunchSim" Val="0"/>
     <Option Name="WTRivieraLaunchSim" Val="0"/>
     <Option Name="WTActivehdlLaunchSim" Val="0"/>
-    <Option Name="WTXSimExportSim" Val="168"/>
-    <Option Name="WTModelSimExportSim" Val="168"/>
-    <Option Name="WTQuestaExportSim" Val="168"/>
-    <Option Name="WTIesExportSim" Val="168"/>
-    <Option Name="WTVcsExportSim" Val="168"/>
-    <Option Name="WTRivieraExportSim" Val="168"/>
-    <Option Name="WTActivehdlExportSim" Val="168"/>
+    <Option Name="WTXSimExportSim" Val="170"/>
+    <Option Name="WTModelSimExportSim" Val="170"/>
+    <Option Name="WTQuestaExportSim" Val="170"/>
+    <Option Name="WTIesExportSim" Val="170"/>
+    <Option Name="WTVcsExportSim" Val="170"/>
+    <Option Name="WTRivieraExportSim" Val="170"/>
+    <Option Name="WTActivehdlExportSim" Val="170"/>
     <Option Name="GenerateIPUpgradeLog" Val="TRUE"/>
     <Option Name="XSimRadix" Val="hex"/>
     <Option Name="XSimTimeUnit" Val="ns"/>
@@ -66,6 +66,13 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
+      <File Path="$PPRDIR/../ip/ila_2/ila_2.xci">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PPRDIR/../ip/ila_1/ila_1.xci">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -74,13 +81,6 @@
         </FileInfo>
       </File>
       <File Path="$PPRDIR/../ip/fifo_l1acnt_dav/fifo_l1acnt_dav.xci">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../ip/ila_2/ila_2.xci">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -163,6 +163,13 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
+      <File Path="$PPRDIR/../source/mgt_links/gtwiz_exdes/gtwiz_ddu_example_wrapper.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
       <File Path="$PPRDIR/../source/mgt_links/gtwiz_exdes/gtwiz_example_gtwiz_userclk_rx.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
@@ -171,13 +178,6 @@
         </FileInfo>
       </File>
       <File Path="$PPRDIR/../source/mgt_links/gtwiz_exdes/gtwiz_example_gtwiz_userclk_tx.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-          <Attr Name="UsedIn" Val="implementation"/>
-          <Attr Name="UsedIn" Val="simulation"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../source/mgt_links/gtwiz_exdes/gtwiz_spy_ddu_example_wrapper.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -318,6 +318,12 @@
         </FileInfo>
       </File>
       <File Path="$PPRDIR/../source/utils/crossclock.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../source/utils/dcfeb_autokill.vhd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -629,13 +635,13 @@
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../source/mgt_links/mgt_fed.vhd">
+      <File Path="$PPRDIR/../source/mgt_links/mgt_ddu.vhd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="simulation"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../source/mgt_links/mgt_spy.vhd">
+      <File Path="$PPRDIR/../source/mgt_links/mgt_fed.vhd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -756,6 +762,12 @@
         </FileInfo>
       </File>
       <File Path="$PPRDIR/../source/odmb_vme/system_test.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../source/utils/time_average.vhd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="simulation"/>
@@ -998,8 +1010,8 @@
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
-    <FileSet Name="gtwiz_spy_ddu" Type="BlockSrcs" RelSrcDir="$PSRCDIR/gtwiz_spy_ddu">
-      <File Path="$PPRDIR/../ip/gtwiz_spy_ddu/gtwiz_spy_ddu.xci">
+    <FileSet Name="gtwiz_ddu_spy" Type="BlockSrcs" RelSrcDir="$PSRCDIR/gtwiz_ddu_spy">
+      <File Path="$PPRDIR/../ip/gtwiz_ddu_spy/gtwiz_ddu_spy.xci">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
           <Attr Name="UsedIn" Val="implementation"/>
@@ -1007,7 +1019,20 @@
         </FileInfo>
       </File>
       <Config>
-        <Option Name="TopModule" Val="gtwiz_spy_ddu"/>
+        <Option Name="TopModule" Val="gtwiz_ddu_spy"/>
+        <Option Name="UseBlackboxStub" Val="1"/>
+      </Config>
+    </FileSet>
+    <FileSet Name="gtwiz_ddu_b02" Type="BlockSrcs" RelSrcDir="$PSRCDIR/gtwiz_ddu_b02">
+      <File Path="$PPRDIR/../ip/gtwiz_ddu_b02/gtwiz_ddu_b02.xci">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+          <Attr Name="UsedIn" Val="implementation"/>
+          <Attr Name="UsedIn" Val="simulation"/>
+        </FileInfo>
+      </File>
+      <Config>
+        <Option Name="TopModule" Val="gtwiz_ddu_b02"/>
         <Option Name="UseBlackboxStub" Val="1"/>
       </Config>
     </FileSet>
@@ -1118,7 +1143,17 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="gtwiz_spy_ddu_synth_1" Type="Ft3:Synth" SrcSet="gtwiz_spy_ddu" Part="xcku035-ffva1156-1-c" ConstrsSet="gtwiz_spy_ddu" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/gtwiz_spy_ddu_synth_1" IncludeInArchive="true">
+    <Run Id="gtwiz_ddu_spy_synth_1" Type="Ft3:Synth" SrcSet="gtwiz_ddu_spy" Part="xcku035-ffva1156-1-c" ConstrsSet="gtwiz_ddu_spy" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/gtwiz_ddu_spy_synth_1" IncludeInArchive="true">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
+        <Step Id="synth_design"/>
+      </Strategy>
+      <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
+      <ReportStrategy Name="Vivado Synthesis Default Reports" Flow="Vivado Synthesis 2019"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="gtwiz_ddu_b02_synth_1" Type="Ft3:Synth" SrcSet="gtwiz_ddu_b02" Part="xcku035-ffva1156-1-c" ConstrsSet="gtwiz_ddu_b02" Description="Vivado Synthesis Defaults" AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" Dir="$PRUNDIR/gtwiz_ddu_b02_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2019"/>
         <Step Id="synth_design"/>
@@ -1222,7 +1257,24 @@
       <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
       <RQSFiles/>
     </Run>
-    <Run Id="gtwiz_spy_ddu_impl_1" Type="Ft2:EntireDesign" Part="xcku035-ffva1156-1-c" ConstrsSet="gtwiz_spy_ddu" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="gtwiz_spy_ddu_synth_1" IncludeInArchive="false" GenFullBitstream="true">
+    <Run Id="gtwiz_ddu_spy_impl_1" Type="Ft2:EntireDesign" Part="xcku035-ffva1156-1-c" ConstrsSet="gtwiz_ddu_spy" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="gtwiz_ddu_spy_synth_1" IncludeInArchive="false" GenFullBitstream="true">
+      <Strategy Version="1" Minor="2">
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
+        <Step Id="init_design"/>
+        <Step Id="opt_design"/>
+        <Step Id="power_opt_design"/>
+        <Step Id="place_design"/>
+        <Step Id="post_place_power_opt_design"/>
+        <Step Id="phys_opt_design" EnableStepBool="1"/>
+        <Step Id="route_design"/>
+        <Step Id="post_route_phys_opt_design"/>
+        <Step Id="write_bitstream"/>
+      </Strategy>
+      <ReportStrategy Name="Vivado Implementation Default Reports" Flow="Vivado Implementation 2019"/>
+      <Report Name="ROUTE_DESIGN.REPORT_METHODOLOGY" Enabled="1"/>
+      <RQSFiles/>
+    </Run>
+    <Run Id="gtwiz_ddu_b02_impl_1" Type="Ft2:EntireDesign" Part="xcku035-ffva1156-1-c" ConstrsSet="gtwiz_ddu_b02" Description="Default settings for Implementation." AutoIncrementalCheckpoint="false" WriteIncrSynthDcp="false" SynthRun="gtwiz_ddu_b02_synth_1" IncludeInArchive="false" GenFullBitstream="true">
       <Strategy Version="1" Minor="2">
         <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2019"/>
         <Step Id="init_design"/>

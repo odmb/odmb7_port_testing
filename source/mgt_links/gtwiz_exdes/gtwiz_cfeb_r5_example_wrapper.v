@@ -54,11 +54,11 @@
 // the core, connects them as appropriate, and maps enabled ports
 // =====================================================================================================================
 
-module gtwiz_spy_ddu_example_wrapper (
-  input  wire [0:0] gthrxn_in
- ,input  wire [0:0] gthrxp_in
- ,output wire [0:0] gthtxn_out
- ,output wire [0:0] gthtxp_out
+module gtwiz_cfeb_example_wrapper (
+  input  wire [4:0] gthrxn_in
+ ,input  wire [4:0] gthrxp_in
+ ,output wire [4:0] gthtxn_out
+ ,output wire [4:0] gthtxp_out
  ,input  wire [0:0] gtwiz_userclk_tx_reset_in
  ,output wire [0:0] gtwiz_userclk_tx_srcclk_out
  ,output wire [0:0] gtwiz_userclk_tx_usrclk_out
@@ -78,36 +78,34 @@ module gtwiz_spy_ddu_example_wrapper (
  ,output wire [0:0] gtwiz_reset_rx_cdr_stable_out
  ,output wire [0:0] gtwiz_reset_tx_done_out
  ,output wire [0:0] gtwiz_reset_rx_done_out
- ,input  wire [15:0] gtwiz_userdata_tx_in
- ,output wire [15:0] gtwiz_userdata_rx_out
- ,input  wire [0:0] drpclk_in
- ,input  wire [0:0] gtrefclk0_in
- ,input  wire [0:0] rx8b10ben_in
- ,input  wire [0:0] rxcommadeten_in
- ,input  wire [0:0] rxmcommaalignen_in
- ,input  wire [0:0] rxpcommaalignen_in
- ,input  wire [1:0] rxpd_in
- ,input  wire [0:0] rxprbscntreset_in
- ,input  wire [3:0] rxprbssel_in
- ,input  wire [0:0] tx8b10ben_in
- ,input  wire [15:0] txctrl0_in
- ,input  wire [15:0] txctrl1_in
- ,input  wire [7:0] txctrl2_in
- ,input  wire [1:0] txpd_in
- ,input  wire [0:0] txprbsforceerr_in
- ,input  wire [3:0] txprbssel_in
- ,output wire [0:0] gtpowergood_out
- ,output wire [0:0] rxbyteisaligned_out
- ,output wire [0:0] rxbyterealign_out
- ,output wire [0:0] rxcommadet_out
- ,output wire [15:0] rxctrl0_out
- ,output wire [15:0] rxctrl1_out
- ,output wire [7:0] rxctrl2_out
- ,output wire [7:0] rxctrl3_out
- ,output wire [0:0] rxpmaresetdone_out
- ,output wire [0:0] rxprbserr_out
- ,output wire [0:0] rxprbslocked_out
- ,output wire [0:0] txpmaresetdone_out
+ ,input  wire [79:0] gtwiz_userdata_tx_in
+ ,output wire [79:0] gtwiz_userdata_rx_out
+ ,input  wire [4:0] drpclk_in
+ ,input  wire [4:0] gtrefclk0_in
+ ,input  wire [4:0] rx8b10ben_in
+ ,input  wire [4:0] rxcommadeten_in
+ ,input  wire [4:0] rxmcommaalignen_in
+ ,input  wire [4:0] rxpcommaalignen_in
+ ,input  wire [9:0] rxpd_in
+ ,input  wire [4:0] rxprbscntreset_in
+ ,input  wire [19:0] rxprbssel_in
+ ,input  wire [4:0] tx8b10ben_in
+ ,input  wire [79:0] txctrl0_in
+ ,input  wire [79:0] txctrl1_in
+ ,input  wire [39:0] txctrl2_in
+ ,input  wire [9:0] txpd_in
+ ,output wire [4:0] gtpowergood_out
+ ,output wire [4:0] rxbyteisaligned_out
+ ,output wire [4:0] rxbyterealign_out
+ ,output wire [4:0] rxcommadet_out
+ ,output wire [79:0] rxctrl0_out
+ ,output wire [79:0] rxctrl1_out
+ ,output wire [39:0] rxctrl2_out
+ ,output wire [39:0] rxctrl3_out
+ ,output wire [4:0] rxpmaresetdone_out
+ ,output wire [4:0] rxprbserr_out
+ ,output wire [4:0] rxprbslocked_out
+ ,output wire [4:0] txpmaresetdone_out
 );
 
 
@@ -116,10 +114,10 @@ module gtwiz_spy_ddu_example_wrapper (
   // ===================================================================================================================
 
   // Declare and initialize local parameters and functions used for HDL generation
-  localparam [191:0] P_CHANNEL_ENABLE = 192'b000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000;
+  localparam [191:0] P_CHANNEL_ENABLE = 192'b000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000011111;
   `include "gtwiz_example_wrapper_functions.v"
-  localparam integer P_TX_MASTER_CH_PACKED_IDX = f_calc_pk_mc_idx(11);
-  localparam integer P_RX_MASTER_CH_PACKED_IDX = f_calc_pk_mc_idx(11);
+  localparam integer P_TX_MASTER_CH_PACKED_IDX = f_calc_pk_mc_idx(0);
+  localparam integer P_RX_MASTER_CH_PACKED_IDX = f_calc_pk_mc_idx(0);
 
 
   // ===================================================================================================================
@@ -133,9 +131,9 @@ module gtwiz_spy_ddu_example_wrapper (
   // Transmitter user clocking network helper block
   // -------------------------------------------------------------------------------------------------------------------
 
-  wire [0:0] txusrclk_int;
-  wire [0:0] txusrclk2_int;
-  wire [0:0] txoutclk_int;
+  wire [4:0] txusrclk_int;
+  wire [4:0] txusrclk2_int;
+  wire [4:0] txoutclk_int;
 
   // Generate a single module instance which is driven by a clock source associated with the master transmitter channel,
   // and which drives TXUSRCLK and TXUSRCLK2 for all channels
@@ -153,16 +151,16 @@ module gtwiz_spy_ddu_example_wrapper (
   );
 
   // Drive TXUSRCLK and TXUSRCLK2 for all channels with the respective helper block outputs
-  assign txusrclk_int  = {1{gtwiz_userclk_tx_usrclk_out}};
-  assign txusrclk2_int = {1{gtwiz_userclk_tx_usrclk2_out}};
+  assign txusrclk_int  = {5{gtwiz_userclk_tx_usrclk_out}};
+  assign txusrclk2_int = {5{gtwiz_userclk_tx_usrclk2_out}};
 
   // -------------------------------------------------------------------------------------------------------------------
   // Receiver user clocking network helper block
   // -------------------------------------------------------------------------------------------------------------------
 
-  wire [0:0] rxusrclk_int;
-  wire [0:0] rxusrclk2_int;
-  wire [0:0] rxoutclk_int;
+  wire [4:0] rxusrclk_int;
+  wire [4:0] rxusrclk2_int;
+  wire [4:0] rxoutclk_int;
 
   // Generate a single module instance which is driven by a clock source associated with the master receiver channel,
   // and which drives RXUSRCLK and RXUSRCLK2 for all channels
@@ -180,9 +178,9 @@ module gtwiz_spy_ddu_example_wrapper (
   );
 
   // Drive RXUSRCLK and RXUSRCLK2 for all channels with the respective helper block outputs
-  assign rxusrclk_int  = {1{gtwiz_userclk_rx_usrclk_out}};
-  assign rxusrclk2_int = {1{gtwiz_userclk_rx_usrclk2_out}};
-  wire [0:0] gtpowergood_int;
+  assign rxusrclk_int  = {5{gtwiz_userclk_rx_usrclk_out}};
+  assign rxusrclk2_int = {5{gtwiz_userclk_rx_usrclk2_out}};
+  wire [4:0] gtpowergood_int;
 
   // Required assignment to expose the GTPOWERGOOD port per user request
   assign gtpowergood_out = gtpowergood_int;
@@ -191,19 +189,19 @@ module gtwiz_spy_ddu_example_wrapper (
   // Assignments to expose data ports, or data control ports, per configuration requirement or user request
   // ----------------------------------------------------------------------------------------------------------------
 
-  wire [15:0] txctrl0_int;
+  wire [79:0] txctrl0_int;
 
   // Required assignment to expose the TXCTRL0 port per configuration requirement or user request
   assign txctrl0_int = txctrl0_in;
-  wire [15:0] txctrl1_int;
+  wire [79:0] txctrl1_int;
 
   // Required assignment to expose the TXCTRL1 port per configuration requirement or user request
   assign txctrl1_int = txctrl1_in;
-  wire [15:0] rxctrl0_int;
+  wire [79:0] rxctrl0_int;
 
   // Required assignment to expose the RXCTRL0 port per configuration requirement or user request
   assign rxctrl0_out = rxctrl0_int;
-  wire [15:0] rxctrl1_int;
+  wire [79:0] rxctrl1_int;
 
   // Required assignment to expose the RXCTRL1 port per configuration requirement or user request
   assign rxctrl1_out = rxctrl1_int;
@@ -214,7 +212,7 @@ module gtwiz_spy_ddu_example_wrapper (
   // ===================================================================================================================
 
   // Instantiate the core, mapping its enabled ports to example design ports and helper blocks as appropriate
-  gtwiz_spy_ddu gtwiz_spy_ddu_inst (
+  gtwiz_cfeb_r5 gtwiz_cfeb_r5_inst (
     .gthrxn_in                               (gthrxn_in)
    ,.gthrxp_in                               (gthrxp_in)
    ,.gthtxn_out                              (gthtxn_out)
@@ -248,8 +246,6 @@ module gtwiz_spy_ddu_example_wrapper (
    ,.txctrl1_in                              (txctrl1_int)
    ,.txctrl2_in                              (txctrl2_in)
    ,.txpd_in                                 (txpd_in)
-   ,.txprbsforceerr_in                       (txprbsforceerr_in)
-   ,.txprbssel_in                            (txprbssel_in)
    ,.txusrclk_in                             (txusrclk_int)
    ,.txusrclk2_in                            (txusrclk2_int)
    ,.gtpowergood_out                         (gtpowergood_int)
