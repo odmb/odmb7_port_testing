@@ -28,9 +28,16 @@ The wafeform config files are stored under the [waveforms](/simulation/waveforms
 ### Supporting software
 Currently the software is mainly consists of helper `tcl` scripts stored under the [software](/software) folder.
 
+- [make_mcs.tcl](/software/make_mcs.tcl): Vivado script to be run in Linux command line, can be used to generate the `*_primary.mcs` and `*_secondary.mcs` files from the `.bit` file for the SPIx8 program mode.
+  Usage and argument examples are shown at the top of the script.
+
 #### Diagnosis scripts
-- [sysmon_setup.tcl](/software/diagnosis/sysmon_setup.tcl): used to setup the SYSMON registers from Vivado hardware manager to give correct reading. Not needed anymore.
-- [group_ports.tcl](/software/diagnosis/group_ports.tcl): Can be used to assign names to all the ILA debug signals of the current firmware. Historical ports are left in the file commented, for quick reuse when needed.
+- [sysmon_setup.tcl](/software/diagnosis/sysmon_setup.tcl): Script used to setup the SYSMON registers from Vivado hardware manager to give correct reading. Not needed anymore.
+
+- [group_ports.tcl](/software/diagnosis/group_ports.tcl): Script to be run in the Tcl console of the Vivado hardware manager, can be used to assign names to all the ILA debug signals of the current firmware. 
+Historical ports are left in the file commented, for quick reuse when needed.
+
+- [vme_wrapper.py](/software/vme_wrapper.py): Quick python wrapper over the [vme_cli](https://github.com/jaebak/vme_cli) software. Can be used interactively to send continuous VME commands or to run preset tests.
 
 
 ### Other resources
