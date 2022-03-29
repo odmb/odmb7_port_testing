@@ -237,6 +237,7 @@ begin                 --========####   Architecture Body   ####========--
   ILA_DATA_o(21) <= rx_bitslipIsEven_s(1);
   ILA_DATA_o(61 downto 22) <= MGT_USRWORD_i(1);
   ILA_DATA_o(69 downto 62) <= ila_data_patser;
+  ILA_DATA_o(71 downto 70) <= "00";
 
 end structural;
 --=================================================================================================--

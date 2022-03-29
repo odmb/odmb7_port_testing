@@ -304,7 +304,7 @@ begin                 --========####   Architecture Body   ####========--
       MGT_HEADERLOCKED_o       => open,
       MGT_RSTCNT_o             => open,
 
-      ILA_DATA_o               => ila_data_mgt,
+      ILA_DATA_o               => ILA_DATA_o,
 
       --========--
       -- Data   --

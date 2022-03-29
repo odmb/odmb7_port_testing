@@ -22,6 +22,17 @@ Their project may also contain different set of files and IPs, managed by differ
 The HDL code specific for simulation are under the [simulation](/simulation) folder. This will contain the simulation wrapper for ODMB7/5 firmware, the simulated VME, DCFEBs, and possibly
 other devices in the future. LUTs are used to provide VME commands to the ODMB7/5.
 
+#### Waveforms config files
+The wafeform config files are stored under the [waveforms](/simulation/waveforms) sub-folder. They are used to show the signal behaviors during simulation under different studies.
+
+### Supporting software
+Currently the software is mainly consists of helper `tcl` scripts stored under the [software](/software) folder.
+
+#### Diagnosis scripts
+- [sysmon_setup.tcl](/software/diagnosis/sysmon_setup.tcl): used to setup the SYSMON registers from Vivado hardware manager to give correct reading. Not needed anymore.
+- [group_ports.tcl](/software/diagnosis/group_ports.tcl): Can be used to assign names to all the ILA debug signals of the current firmware. Historical ports are left in the file commented, for quick reuse when needed.
+
+
 ### Other resources
 #### Clock synthesizer config
 The most recent config file for the clock synthesizer on board, as well as the human readable documentation of them are placed under the [clock_configs](/resources/clock_configs) directory.
@@ -58,8 +69,8 @@ Currently, the firmware is developed under the assumption that config similar to
     - [X] Other PROM commands (status/lock/unlock/check)
     - [X] Timer commands
 
-- [ ] Port ODMB_CTRL from ODMB
-  - [ ] Run3 logic tested with Cosmics
+- [X] Port ODMB_CTRL from ODMB
+  - [X] Run3 logic tested with Cosmics
 
 - [ ] Configure optical interfaces
   - [X] (x)DCFEB interface
@@ -78,6 +89,7 @@ Currently, the firmware is developed under the assumption that config similar to
   - [X] ODMB clocking logic 
   - [X] ODMB status monitoring logic 
   - [ ] ODMB reset and init logic
+  - [ ] DCFEB autokill logic
 
 - [ ] Develop Run4 DAQ logic
 
