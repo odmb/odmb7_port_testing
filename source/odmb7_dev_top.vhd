@@ -492,18 +492,25 @@ architecture Behavioral of odmb7_ucsb_dev is
   constant FED_NTXLINK   : integer := 1;
   constant FED_NRXLINK   : integer := 1;
 
-  signal usrclk_fed_tx   : std_logic;                              -- USRCLK for TX data preparation
-  signal fed_txclken     : std_logic;                              -- CLKEN signal for the USRCLK of TX data preparation
-  signal fed_txdata      : t_std68_array(FED_NTXLINK downto 1);    -- Data to be transmitted
-  signal fed_txd_valid   : std_logic_vector(FED_NTXLINK downto 1); -- Flag for tx valid data;
-  signal fed_txready     : std_logic;                              -- Flag for rx reset done
+  signal usrclk_fed_tx   : std_logic_vector(1 to FED_NTXLINK); -- USRCLK for TX data preparation
+  signal fed_txclken     : std_logic_vector(1 to FED_NTXLINK); -- CLKEN signal for the USRCLK of TX data preparation
+  signal fed_txdata_gbt  : t_std84_array(1 to FED_NTXLINK);    -- Data to be transmitted
+  signal fed_txdata_wb   : t_std32_array(1 to FED_NTXLINK);    -- Data received
+  signal fed_txd_valid   : std_logic_vector(1 to FED_NTXLINK); -- Flag for tx valid data;
+  signal fed_mgt_txready : std_logic_vector(1 to FED_NTXLINK); -- Flag for rx reset done
+  signal fed_gbt_txready : std_logic_vector(1 to FED_NTXLINK); -- Flag for rx reset done
+  signal fed_txready     : std_logic_vector(1 to FED_NTXLINK); -- Flag for rx reset done
 
-  signal usrclk_fed_rx   : std_logic;                              -- USRCLK for RX data readout
-  signal fed_rxclken     : std_logic;                              -- CLKEN signal for the USRCLK of RX data readout
-  signal fed_rxdata      : t_std84_array(FED_NRXLINK downto 1);    -- Data received
-  signal fed_rxd_valid   : std_logic_vector(FED_NRXLINK downto 1); -- Flag for rx valid data;
-  signal fed_bad_rx      : std_logic_vector(FED_NRXLINK downto 1); -- Flag for fiber errors;
-  signal fed_rxready     : std_logic;                              -- Flag for rx reset done
+  signal usrclk_fed_rx   : std_logic_vector(1 to FED_NRXLINK); -- USRCLK for RX data readout
+  signal fed_rxclken     : std_logic_vector(1 to FED_NRXLINK); -- CLKEN signal for the USRCLK of RX data readout
+  signal fed_rxdata_gbt  : t_std84_array(1 to FED_NRXLINK);    -- Data received
+  signal fed_rxdata_wb   : t_std32_array(1 to FED_NRXLINK);    -- Data received
+  signal fed_rxd_valid   : std_logic_vector(1 to FED_NRXLINK); -- Flag for rx valid data;
+  signal fed_bad_rx      : std_logic_vector(1 to FED_NRXLINK); -- Flag for fiber errors;
+  signal fed_mgt_rxready : std_logic_vector(1 to FED_NRXLINK); -- Flag for rx reset done
+  signal fed_gbt_rxready : std_logic_vector(1 to FED_NRXLINK); -- Flag for rx reset done
+  signal fed_rxready     : std_logic_vector(1 to FED_NRXLINK); -- Flag for rx reset done
+  signal fed_reset       : std_logic;
 
   signal fed_prbs_tx_en   : std_logic_vector(4 downto 1);
   signal fed_prbs_rx_en   : std_logic_vector(4 downto 1);
@@ -558,7 +565,8 @@ architecture Behavioral of odmb7_ucsb_dev is
   --------------------------------------
   signal vme_diagout   : std_logic_vector(17 downto 0) := (others => '0');
   signal ila_data_alct : std_logic_vector(83 downto 0);  -- ILA data related to ALCT
-  signal ila_data_fed0 : std_logic_vector(111 downto 0);  -- ILA data related to ALCT
+  signal ila_data_fed0 : std_logic_vector(111 downto 0); -- ILA data related to FED
+  signal ila_data_fed1 : std_logic_vector(71 downto 0);  -- ILA data related to FED
   signal diagout_inner : std_logic_vector(17 downto 0) := (others => '0');
   signal pon_reset_cnt : unsigned(7 downto 0) := (others => '0');
 
@@ -1250,36 +1258,45 @@ begin
   --===============================================--
   -- Temporary GBT sender to make ALCT GBTx locked --
   --===============================================--
-  GTH_FED : entity work.mgt_fed
-    generic map (
-      NLINK        => 1
+  GBT_FED : entity work.gbt_wrapper
+    generic map(
+      NUM_LINKS       => 1,
+      LINK_TYPE       => 1,
+      TX_ENCODING     => 0, -- Sending in GBT format
+      RX_ENCODING     => 0  -- Receiving in Wide-bus format
       )
     port map (
-      mgtrefclk    => mgtrefclk0_225,   -- 120.24 MHz
-      cmsclk       => cmsclk,
-      drpclk       => mgtclk4,          -- 120.24 MHz
-      ilaclk       => sysclk320,        -- 320.63 MHz
-      txusrclk     => usrclk_fed_tx,    -- 120.24 MHz
-      txclken      => fed_txclken,
-      rxusrclk     => usrclk_fed_rx,    -- 120.24 MHz
-      rxclken      => fed_rxclken,
-      daq_rx_n(1)  => BCK_PRS_N,
-      daq_rx_p(1)  => BCK_PRS_P,
-      daq_tx_n(1)  => DAQ_TX_N(1),
-      daq_tx_p(1)  => DAQ_TX_P(1),
-      txdata       => fed_txdata,
-      txd_valid    => fed_txd_valid,
-      txready      => fed_txready,
-      rxdata       => fed_rxdata,
-      rxd_valid    => fed_rxd_valid,
-      rxready      => fed_rxready,
-      bad_rx       => fed_bad_rx,
-      reset        => opt_reset
+      MGT_REFCLK      => mgtrefclk0_225,
+      GBT_FRAMECLK    => cmsclk,  -- 40.079 MHz
+      MGT_DRP_CLK     => mgtclk4, -- 120.24 MHz from mgtrefclk0_225
+
+      GBT_TXUSRCLK_o  => usrclk_fed_tx,
+      GBT_RXUSRCLK_o  => usrclk_fed_rx,
+      GBT_TXCLKEN_o   => fed_txclken,           -- from pattern generator, to be evaluated
+      GBT_RXCLKEN_o   => fed_rxclken,      -- to pattern checker, to be evaluated
+
+      MGT_RX_P(1)     => BCK_PRS_P,
+      MGT_RX_N(1)     => BCK_PRS_N,
+      MGT_TX_P(1)     => DAQ_TX_P(1),
+      MGT_TX_N(1)     => DAQ_TX_N(1),
+
+      GBT_TXDATA_i(1) => fed_txdata_gbt(1),
+      GBT_RXDATA_o(1) => fed_rxdata_gbt(1),
+      WB_TXDATA_i(1)  => fed_txdata_wb(1),
+      WB_RXDATA_o(1)  => fed_rxdata_wb(1),
+      TXD_VALID_i(1)  => fed_txd_valid(1),
+      RXD_VALID_o(1)  => fed_rxd_valid(1),
+
+      MGT_TXREADY_o   => fed_mgt_txready,
+      MGT_RXREADY_o   => fed_mgt_rxready,
+      GBT_TXREADY_o   => fed_gbt_txready,
+      GBT_RXREADY_o   => fed_gbt_rxready,
+      GBT_BAD_RX_o    => fed_bad_rx,
+      RESET_i         => opt_reset
       );
 
-
-  fed_txdata(1) <= x"BABEAC1DACDCFFFFF"; -- Fix pattern
-  fed_txd_valid(1) <= '0';
+  fed_txdata_gbt(1) <= x"CF00BABEAC1DACDCFFFFF";
+  fed_txdata_wb(1)  <= x"BEEFCAFE";
 
   ila_data_alct(0) <= int_alct_dav;
   ila_data_alct(1) <= raw_l1a;
@@ -1298,6 +1315,26 @@ begin
       probe1 => alct_rxdata,
       probe2 => ila_data_alct,
       probe3(0) => alct_rxclken
+      );
+
+  ila_data_fed0(0) <= fed_txd_valid(1);
+  ila_data_fed0(1) <= fed_rxd_valid(1);
+  ila_data_fed0(2) <= fed_mgt_txready(1);
+  ila_data_fed0(3) <= fed_mgt_rxready(1);
+  ila_data_fed0(4) <= fed_gbt_txready(1);
+  ila_data_fed0(5) <= fed_gbt_rxready(1);
+  ila_data_fed0(6) <= fed_bad_rx(1);
+  ila_data_fed0(7) <= fed_txclken(1);
+
+  ila_data_fed1(31 downto 0) <= fed_txdata_wb(1);
+
+  ila_fed_rx : ila_gbt
+    port map (
+      clk => usrclk_fed_rx(1),
+      probe0 => ila_data_fed0,
+      probe1 => ila_data_fed1,
+      probe2 => fed_rxdata_gbt(1),
+      probe3(0) => fed_rxclken(1)
       );
 
 end Behavioral;
