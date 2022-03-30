@@ -85,6 +85,7 @@ architecture DCFEB_AUTOKILL_ARCH of DCFEB_AUTOKILL is
   signal good_dcfeb_pulse         : std_logic_vector(NCFEB downto 1) := (others => '0');
   signal good_dcfeb_fiber         : std_logic_vector(NCFEB downto 1);
   signal good_dcfeb_fiber_q       : std_logic_vector(NCFEB downto 1);
+  signal bad_dcfeb_cont           : std_logic_vector(NCFEB downto 1);
   signal opt_reset_out            : std_logic := '0';
   signal opt_reset_cd             : std_logic := '0';
 
@@ -166,8 +167,9 @@ begin
     
     -- Generating pulse if no fiber errors in 1.6 us time window and no auto-killed DCFEB
     recover_cntr_rst(dev) <= RESET or (not autokilled_dcfebs_fiber(dev));
-    fiberr_recover_gen : TIME_AVERAGE generic map (NCYCLES => 256, THRESHOLD => 32)
-      port map (DOUT => good_dcfeb_fiber(dev), CLK => DCFEBCLK, RST => recover_cntr_rst(dev), DIN => DCFEB_BAD_RX(dev));
+    good_dcfeb_fiber(dev) <= not bad_dcfeb_cont(dev);
+    fiberr_recover_gen : TIME_AVERAGE generic map (NCYCLES => 256, THRESHOLD => 1)
+      port map (DOUT => bad_dcfeb_cont(dev), CLK => DCFEBCLK, RST => recover_cntr_rst(dev), DIN => DCFEB_BAD_RX(dev));
 
     FD_BADFIBER  : FDC port map(Q => bad_dcfeb_fiber_q(dev),  C => DCFEBCLK, CLR => RESET, D => bad_dcfeb_fiber(dev));
     FD_BADFIBERQ : FDC port map(Q => bad_dcfeb_fiber_qq(dev), C => DCFEBCLK, CLR => RESET, D => bad_dcfeb_fiber_q(dev));
