@@ -19,7 +19,11 @@ use work.ucsb_types.all;
 --! data acquisition firmware has not yet been developed
 entity odmb7_ucsb_dev is
   generic (
+<<<<<<< HEAD
     ENABLE_SPY_TO_DDU : std_logic_vector := "01"
+=======
+    ENABLE_SPY_TO_DDU : std_logic_vector := "00"
+>>>>>>> 2b8d2cb (Working optical interface; Initial attempt at sending DAQ to B04 through FEDFIFO)
     );
   port (
     --------------------
@@ -164,10 +168,17 @@ entity odmb7_ucsb_dev is
 
     SPY_TX_P     : out std_logic;                          --! Finisar (spy) optical TX output to PC.
     SPY_TX_N     : out std_logic;                          --! Finisar (spy) optical TX output to PC.
+<<<<<<< HEAD
     DAQ_TX_P     : out std_logic_vector(2 downto 2);       --! B04 optical TX, output to FED.
     DAQ_TX_N     : out std_logic_vector(2 downto 2);       --! B04 optical TX, output to FED.
     --DAQ_TX_P     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
     --DAQ_TX_N     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
+=======
+    -- DAQ_TX_P     : out std_logic_vector(2 downto 2);       --! B04 optical TX, output to FED.
+    -- DAQ_TX_N     : out std_logic_vector(2 downto 2);       --! B04 optical TX, output to FED.
+    DAQ_TX_P     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
+    DAQ_TX_N     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
+>>>>>>> 2b8d2cb (Working optical interface; Initial attempt at sending DAQ to B04 through FEDFIFO)
 
     --------------------------------
     -- Optical control signals
@@ -1305,6 +1316,65 @@ begin
   -- The second is "SPY configuration" where the SPY port is used to send packets to PC and B04 to DDU
   -- The third is "run 3 configuration" where the SPY port is used to send packets to DDU
   generate_run4 : if ENABLE_SPY_TO_DDU = "00" generate
+<<<<<<< HEAD
+=======
+    GTH_PC : entity work.mgt_pc
+      port map (
+        mgtrefclk       => mgtrefclk1_226, -- mgtrefclk1_226 is sourced from the 125 MHz crystal for 1.25 Gb/s
+        txusrclk        => usrclk_pc,  -- 125 MHz for 1.25 Gb/s with 8b/10b encoding
+        rxusrclk        => open, --output rx clock
+        sysclk          => cmsclk,    -- maximum DRP clock frequency 62.5 MHz for 1.25 Gb/s line rate
+        spy_rx_n        => spy_rx_n, --to pins
+        spy_rx_p        => spy_rx_p, --to pins
+        spy_tx_n        => SPY_TX_N, --to pins
+        spy_tx_p        => SPY_TX_P, --to pins
+        txready         => open,     --unused
+        rxready         => open,     --unused
+        txdata          => pc_data,  --spy_txdata,
+        txd_valid       => pc_data_valid, --spy_txd_valid,
+        end_of_header   => gl_pc_tx_ack,     --end of header signal to PCFIFO
+        txdiffctrl      => spy_txdiffctrl,   --unused
+        loopback        => spy_loopback,     --unused
+        rxdata          => open,             --unused
+        rxd_valid       => open,             --unused
+        bad_rx          => open,             --unused
+        prbs_type       => mgt_prbs_type,    --from ODMB_VME
+        prbs_tx_en      => spy_prbs_tx_en,   --from ODMB_VME
+        prbs_rx_en      => spy_prbs_rx_en,   --from ODMB_VME
+        prbs_tst_cnt    => spy_prbs_tst_cnt, --from ODMB_VME
+        prbs_err_cnt    => open,             --from ODMB_VME
+        reset           => opt_reset         --reset signal
+        );
+    GTH_B04 : entity work.mgt_b04
+      port map (
+        mgtrefclk           => mgtrefclk0_226, -- 156.25 MHz for 4 * 12.5 Gb/s FED transmission
+        sysclk              => cmsclk,      -- maximum DRP clock frequency 62.5 MHz for 1.25 Gb/s line rate
+        clk80               => sysclk80,    -- Sys Clk 80 MHz
+        dduclk              => usrclk_ddu,  -- 80 MHz for DDU
+        txusrclk            => usrclk_fed,  -- 312.5 MHz for 12.5 Gb/s with 8b/10b encoding?
+        ch0_gthrxn_in       => BCK_PRS_N,   --to pins
+        ch0_gthrxp_in       => BCK_PRS_P,   --to pins
+        ch0_gthtxn_out      => DAQ_TX_N(1), --to pins
+        ch0_gthtxp_out      => DAQ_TX_P(1), --to pins
+        ch1_gthrxn_in       => B04_RX_N(2), --to pins
+        ch1_gthrxp_in       => B04_RX_P(2), --to pins
+        ch1_gthtxn_out      => DAQ_TX_N(2), --to pins
+        ch1_gthtxp_out      => DAQ_TX_P(2), --to pins
+        ch2_gthrxn_in       => B04_RX_N(3), --to pins
+        ch2_gthrxp_in       => B04_RX_P(3), --to pins
+        ch2_gthtxn_out      => DAQ_TX_N(3), --to pins
+        ch2_gthtxp_out      => DAQ_TX_P(3), --to pins
+        ch3_gthrxn_in       => B04_RX_N(4), --to pins
+        ch3_gthrxp_in       => B04_RX_P(4), --to pins
+        ch3_gthtxn_out      => DAQ_TX_N(4), --to pins
+        ch3_gthtxp_out      => DAQ_TX_P(4), --to pins
+        txdata              => fed_data,  --spy_txdata,
+        txd_valid           => fed_data_valid, --spy_txd_valid,
+        reset               => opt_reset    --reset signal
+        );
+  end generate generate_run4;
+  generate_spy_pc : if ENABLE_SPY_TO_DDU = "01" generate
+>>>>>>> 2b8d2cb (Working optical interface; Initial attempt at sending DAQ to B04 through FEDFIFO)
     GTH_PC : entity work.mgt_pc
       port map (
         mgtrefclk       => mgtrefclk1_226, -- mgtrefclk1_226 is sourced from the 125 MHz crystal for 1.25 Gb/s

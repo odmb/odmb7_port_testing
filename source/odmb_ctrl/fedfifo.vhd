@@ -19,7 +19,11 @@ entity fedfifo is
   port(
 
     clk_in  : in std_logic; --! user clock from DDU mgt (80 MHz)
+<<<<<<< HEAD
     clk_out : in std_logic; --! tx user clock from B04 mgt (312.5 MHz)
+=======
+    clk_out : in std_logic; --! user clock from PC(spy) mgt (62.5 MHz)
+>>>>>>> 2b8d2cb (Working optical interface; Initial attempt at sending DAQ to B04 through FEDFIFO)
     rst     : in std_logic; --! reset
 
     dv_in   : in std_logic;                     --! data valid from CONTROL_FSM
@@ -51,6 +55,7 @@ architecture fedfifo_architecture of fedfifo is
       );
   end component;
 
+<<<<<<< HEAD
   COMPONENT ila_fedfifo_in
   PORT (
       clk : IN STD_LOGIC;
@@ -68,6 +73,8 @@ architecture fedfifo_architecture of fedfifo is
   );
   END COMPONENT;
     
+=======
+>>>>>>> 2b8d2cb (Working optical interface; Initial attempt at sending DAQ to B04 through FEDFIFO)
   type fsm_state_type is (IDLE, FIFO_TX, DONE);
   signal fedfifo_current_state : fsm_state_type := IDLE;
   signal fedfifo_next_state    : fsm_state_type := IDLE;
@@ -97,6 +104,7 @@ architecture fedfifo_architecture of fedfifo is
   
 begin
 
+<<<<<<< HEAD
 -- Evaldas implementation: simply run the data through the FIFO to cross the clock domain, and read whenever the output is valid (fifo empty = 0),
 -- this will result in gaps in valid signal on the output bus within an event, but as far as I can tell it's fine for the FED link, and may actually be beneficial since that will cause more frequent IDLEs
 
@@ -107,6 +115,33 @@ begin
   dv_out <= not fifo_empty;
   data_out <= fifo_out(15 downto 0);
 
+=======
+
+-- FIFOs
+  DV_PULSE : PULSE2SAME port map(DOUT => dv_in_pulse, CLK_DOUT => clk_in, RST => rst, DIN => dv_in);
+  FDLDIN   : FD port map(Q => ld_in_q, C => clk_in, D => ld_in);
+
+  --not sure of FDCP port order, but I don't think this bit matters -MO
+  --FDFIRST : FDCP port map(Q => first_in, C => ld_in_q, CLR => dv_in_pulse, D => '1', PRE => rst);
+  FDFIRST : process(ld_in, ld_in_q, dv_in_pulse, rst)
+  begin
+    if (ld_in_q='1') then
+      first_in <= '0';
+    elsif (rst='1') then
+      first_in <= '1';
+    elsif (ld_in='1' and ld_in_q='0') then
+      first_in <= '1';
+    end if;
+  end process FDFIRST;
+  
+  
+  fifo_wren <= dv_in;
+  fifo_in   <= first_in & ld_in & data_in;
+
+  L1ARESETPULSE : NPULSE2FAST port map(DOUT => fifo_rst, CLK_DOUT => CLK_OUT, RST => '0', NPULSE => 5, DIN => RST);
+  
+  
+>>>>>>> 2b8d2cb (Working optical interface; Initial attempt at sending DAQ to B04 through FEDFIFO)
   FED_FIFO : FED_PACKET_FIFO
     port map(
       SRST        => fifo_rst,
@@ -122,6 +157,7 @@ begin
       RD_RST_BUSY => open
       );
 
+<<<<<<< HEAD
   i_ila_fedfifo_in : ila_fedfifo_in
     port map(
       clk    => clk_in,
@@ -280,5 +316,104 @@ begin
 --    end case;
     
 --  end process;
+=======
+  fedfifo_out   <= fifo_out(15 downto 0);
+  fedfifo_ld    <= fifo_out(16);
+
+-- FSMs
+  DS_LDIN     : DELAY_SIGNAL generic map (NCYCLES_MAX => nwait_fifo) port map (DOUT => q_ld_in, CLK => CLK_IN, NCYCLES => nwait_fifo, DIN => ld_in);
+  LDIN_PULSE  : PULSE2FAST port map(DOUT => ld_in_pulse, CLK_DOUT => CLK_OUT, RST => RST, DIN => q_ld_in);
+  LDOUT_PULSE : PULSE2SAME port map(DOUT => ld_out_pulse, CLK_DOUT => CLK_OUT, RST => RST, DIN => ld_out);
+
+  pkt_cnt : process (ld_in_pulse, ld_out_pulse, rst, clk_out)
+    variable pkt_cnt_data : std_logic_vector(7 downto 0) := (others => '0');
+  begin
+    if (rst = '1') then
+      pkt_cnt_data := (others => '0');
+    elsif (rising_edge(clk_out)) then
+      if (ld_in_pulse = '1') and (ld_out_pulse = '0') then
+        pkt_cnt_data := pkt_cnt_data + 1;
+      elsif (ld_in_pulse = '0') and (ld_out_pulse = '1') then
+        pkt_cnt_data := pkt_cnt_data - 1;
+      end if;
+    end if;
+
+    pkt_cnt_out <= pkt_cnt_data;
+    
+  end process;
+
+  fedfifo_fsm_regs : process (fedfifo_next_state, rst, clk_out, idle_cnt)
+  begin
+    if (rst = '1') then
+      fedfifo_current_state <= IDLE;
+    elsif rising_edge(clk_out) then
+      fedfifo_current_state <= fedfifo_next_state;
+      if(idle_cnt_rst = '1') then
+        idle_cnt <= 0;
+      elsif(idle_cnt_en = '1') then
+        idle_cnt <= idle_cnt + 1;
+      end if;
+    end if;
+    
+  end process;
+
+  fedfifo_fsm_logic : process (fedfifo_current_state, fedfifo_out, fedfifo_ld, pkt_cnt_out, idle_cnt)
+  begin
+    case fedfifo_current_state is
+      when IDLE =>
+        dv_out       <= '0';
+        data_out     <= (others => '0');
+        ld_out       <= '0';
+        idle_cnt_rst <= '0';
+        idle_cnt_en  <= '0';
+        if (pkt_cnt_out = "00000000") then
+          fedfifo_rden       <= '0';
+          fedfifo_next_state <= IDLE;
+        else
+          fedfifo_rden       <= '1';
+          fedfifo_next_state <= FIFO_TX;
+        end if;
+        
+      when FIFO_TX =>
+        dv_out       <= '1';
+        data_out     <= fedfifo_out;
+        idle_cnt_rst <= '0';
+        idle_cnt_en  <= '0';
+        ld_out       <= '0';
+        if (fedfifo_ld = '1') then
+          fedfifo_next_state <= DONE;
+          fedfifo_rden       <= '0';
+        else
+          fedfifo_next_state <= FIFO_TX;
+          fedfifo_rden       <= '1';
+        end if;
+
+      when DONE =>
+        dv_out       <= '0';
+        data_out     <= (others => '0');
+        ld_out       <= '0';
+        fedfifo_rden  <= '0';
+        idle_cnt_en  <= '1';
+        if (idle_cnt > 12) then
+          fedfifo_next_state <= IDLE;
+          idle_cnt_rst      <= '1';
+        else
+          fedfifo_next_state <= DONE;
+          idle_cnt_rst      <= '0';
+        end if;
+
+      when others =>
+        dv_out            <= '0';
+        data_out          <= (others => '0');
+        fedfifo_rden       <= '0';
+        ld_out            <= '0';
+        idle_cnt_rst      <= '0';
+        idle_cnt_en       <= '0';
+        fedfifo_next_state <= IDLE;
+        
+    end case;
+    
+  end process;
+>>>>>>> 2b8d2cb (Working optical interface; Initial attempt at sending DAQ to B04 through FEDFIFO)
 
 end fedfifo_architecture;

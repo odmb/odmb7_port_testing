@@ -389,8 +389,12 @@ module mgt_b04 (
 
   (* DONT_TOUCH = "TRUE" *)
   gtwizard_ultrascale_0_example_reset_synchronizer example_stimulus_reset_synchronizer_inst (
+<<<<<<< HEAD
     //.clk_in  (gtwiz_userclk_tx_usrclk2_in),
     .clk_in  (hb0_gtwiz_userclk_tx_usrclk2_int),
+=======
+    .clk_in  (gtwiz_userclk_tx_usrclk2_in),
+>>>>>>> 2b8d2cb (Working optical interface; Initial attempt at sending DAQ to B04 through FEDFIFO)
     .rst_in  (example_stimulus_reset_int),
     .rst_out (example_stimulus_reset_sync)
   );
@@ -449,6 +453,7 @@ module mgt_b04 (
   assign hb2_gtwiz_userdata_tx_int = txdata_reg2;
   assign hb3_gtwiz_userdata_tx_int = txdata_reg2;
 
+<<<<<<< HEAD
   // Comment above TXDATA section and use below PRBS data if PRBS-31 patterns need to be sent for testing
 
 //  // PRBS-based data stimulus module for transceiver channel 0
@@ -557,6 +562,8 @@ module mgt_b04 (
 //    .prbs_match_out              (prbs_match_int[3])
 //  );
 
+=======
+>>>>>>> 2b8d2cb (Working optical interface; Initial attempt at sending DAQ to B04 through FEDFIFO)
   // ===================================================================================================================
   // INITIALIZATION
   // ===================================================================================================================
@@ -574,12 +581,20 @@ module mgt_b04 (
   
   assign ila_data[127:0] = gtwiz_userdata_rx_int;
   assign ila_data[255:128] = gtwiz_userdata_tx_int;
+<<<<<<< HEAD
   // assign ila_data[259:256] = prbs_match_int;
   //assign ila_data[260] = hb0_gtwiz_userclk_rx_usrclk2_int;
   assign ila_data[261] = hb0_gtwiz_userclk_rx_active_int;
   assign ila_data[262] = hb_gtwiz_reset_all_int;
   assign ila_data[263] = hb0_gtwiz_reset_rx_done_int;
   //assign ila_data[264] = hb0_gtwiz_userclk_tx_usrclk2_int;
+=======
+  assign ila_data[260] = hb0_gtwiz_userclk_rx_usrclk2_int;
+  assign ila_data[261] = hb0_gtwiz_userclk_rx_active_int;
+  assign ila_data[262] = hb_gtwiz_reset_all_int;
+  assign ila_data[263] = hb0_gtwiz_reset_rx_done_int;
+  assign ila_data[264] = hb0_gtwiz_userclk_tx_usrclk2_int;
+>>>>>>> 2b8d2cb (Working optical interface; Initial attempt at sending DAQ to B04 through FEDFIFO)
   assign ila_data[265] = hb0_gtwiz_userclk_tx_active_int;
   assign ila_data[269:266] = rx8b10ben_int;
   assign ila_data[273:270] = rxcommadeten_int;
@@ -608,11 +623,19 @@ module mgt_b04 (
   assign ila_data[833:822] = rxbufstatus_int;
   assign ila_data[841:834] = rxclkcorcnt_int;
 
+<<<<<<< HEAD
   //ila_0 ila_i (
   //  .clk(hb0_gtwiz_userclk_rx_usrclk2_int), // input wire clk
   //  //.probe0(ila_trigger), // input wire [7:0]  probe0
   //  .probe0(ila_data) // input wire [255:0]  probe1
   //);
+=======
+  ila_0 ila_i (
+    .clk(hb0_gtwiz_userclk_rx_usrclk2_int), // input wire clk
+    //.probe0(ila_trigger), // input wire [7:0]  probe0
+    .probe0(ila_data) // input wire [255:0]  probe1
+  );
+>>>>>>> 2b8d2cb (Working optical interface; Initial attempt at sending DAQ to B04 through FEDFIFO)
 
   // ===================================================================================================================
   // EXAMPLE WRAPPER INSTANCE
