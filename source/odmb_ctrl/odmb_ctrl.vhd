@@ -23,6 +23,7 @@ entity ODMB_CTRL is
     DDUCLK       : in std_logic;                      --! 80 MHz clock to FED gth domain
     CMSCLK       : in std_logic;                      --! ~40 MHz clock
     PCCLK        : in std_logic;                      --! 62.5 MHz clock for PC ethernet gth
+    FEDCLK       : in std_logic;                      --! 312.5 MHz clock for FED
 
     CCB_CMD      : in  std_logic_vector (5 downto 0); --! CCB command to CCBCODE
     CCB_CMD_S    : in  std_logic;                     --! CCB strobe to CCBCODE
@@ -110,6 +111,8 @@ entity ODMB_CTRL is
     DDU_DATA_VALID : out std_logic;                           --! Data valid to DDU gth from CONTROL_FSM
     PC_DATA        : out std_logic_vector(15 downto 0);       --! Data to PC gth from PCFIFO
     PC_DATA_VALID  : out std_logic;                           --! Data valid to PC gth from PCFIFO
+    FED_DATA       : out std_logic_vector(15 downto 0);       --! Data to FED from FEDFIFO
+    FED_DATA_VALID : out std_logic;                           --! Data valid to FED from FEDFIFO
 
     -- For headers/trailers
     --DAQMBID : in std_logic_vector(11 downto 0);  -- From CRATEID in SETFEBDLY, and GA
@@ -241,6 +244,25 @@ architecture Behavioral of ODMB_CTRL is
       rst     : in std_logic;
 
       tx_ack : in std_logic;
+
+      dv_in   : in std_logic;
+      ld_in   : in std_logic;
+      data_in : in std_logic_vector(15 downto 0);
+
+      dv_out   : out std_logic;
+      data_out : out std_logic_vector(15 downto 0)
+      );
+  end component;
+
+  component FEDFIFO is
+    generic (
+      NFIFO : integer range 1 to 16 := 8  -- Number of FIFOs in FEDFIFO
+      );  
+    port(
+
+      clk_in  : in std_logic;
+      clk_out : in std_logic;
+      rst     : in std_logic;
 
       dv_in   : in std_logic;
       ld_in   : in std_logic;
@@ -569,6 +591,23 @@ begin
 
       dv_out   => PC_DATA_VALID,
       data_out => PC_DATA
+      );
+
+  FEDFIFO_PM : FEDFIFO
+    generic map (NFIFO => NFIFO)
+
+    port map(
+
+      clk_in  => DDUCLK,
+      clk_out => FEDCLK,
+      rst     => l1acnt_rst,
+
+      data_in => ddu_data_inner,
+      dv_in   => ddu_data_valid_inner,
+      ld_in   => eof,
+
+      dv_out   => FED_DATA_VALID,
+      data_out => FED_DATA
       );
 
   CCBCODE_PM : CCBCODE
