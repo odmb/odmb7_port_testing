@@ -448,6 +448,114 @@ module mgt_b04 (
   assign hb2_gtwiz_userdata_tx_int = txdata_reg2;
   assign hb3_gtwiz_userdata_tx_int = txdata_reg2;
 
+  // Comment above TXDATA section and use below PRBS data if PRBS-31 patterns need to be sent for testing
+
+//  // PRBS-based data stimulus module for transceiver channel 0
+//  (* DONT_TOUCH = "TRUE" *)
+//  gtwizard_ultrascale_0_example_stimulus_8b10b example_stimulus_inst0 (
+//    .gtwiz_reset_all_in          (hb_gtwiz_reset_all_int || ~hb0_gtwiz_reset_rx_done_int ),
+//    .gtwiz_userclk_tx_usrclk2_in (hb0_gtwiz_userclk_tx_usrclk2_int),
+//    .gtwiz_userclk_tx_active_in  (hb0_gtwiz_userclk_tx_active_int),
+//    .txctrl0_out                 (txctrl0_int[15:0]),
+//    .txctrl1_out                 (txctrl1_int[15:0]),
+//    .txctrl2_out                 (txctrl2_int[7:0]),
+//    .txdata_out                  (hb0_gtwiz_userdata_tx_int)
+//  );
+
+//  // PRBS-based data stimulus module for transceiver channel 1
+//  (* DONT_TOUCH = "TRUE" *)
+//  gtwizard_ultrascale_0_example_stimulus_8b10b example_stimulus_inst1 (
+//    .gtwiz_reset_all_in          (hb_gtwiz_reset_all_int || ~hb0_gtwiz_reset_rx_done_int ),
+//    .gtwiz_userclk_tx_usrclk2_in (hb0_gtwiz_userclk_tx_usrclk2_int),
+//    .gtwiz_userclk_tx_active_in  (hb0_gtwiz_userclk_tx_active_int),
+//    .txctrl0_out                 (txctrl0_int[31:16]),
+//    .txctrl1_out                 (txctrl1_int[31:16]),
+//    .txctrl2_out                 (txctrl2_int[15:8]),
+//    .txdata_out                  (hb1_gtwiz_userdata_tx_int)
+//  );
+
+//  // PRBS-based data stimulus module for transceiver channel 2
+//  (* DONT_TOUCH = "TRUE" *)
+//  gtwizard_ultrascale_0_example_stimulus_8b10b example_stimulus_inst2 (
+//    .gtwiz_reset_all_in          (hb_gtwiz_reset_all_int || ~hb0_gtwiz_reset_rx_done_int ),
+//    .gtwiz_userclk_tx_usrclk2_in (hb0_gtwiz_userclk_tx_usrclk2_int),
+//    .gtwiz_userclk_tx_active_in  (hb0_gtwiz_userclk_tx_active_int),
+//    .txctrl0_out                 (txctrl0_int[47:32]),
+//    .txctrl1_out                 (txctrl1_int[47:32]),
+//    .txctrl2_out                 (txctrl2_int[23:16]),
+//    .txdata_out                  (hb2_gtwiz_userdata_tx_int)
+//  );
+
+//  // PRBS-based data stimulus module for transceiver channel 3
+//  (* DONT_TOUCH = "TRUE" *)
+//  gtwizard_ultrascale_0_example_stimulus_8b10b example_stimulus_inst3 (
+//    .gtwiz_reset_all_in          (hb_gtwiz_reset_all_int || ~hb0_gtwiz_reset_rx_done_int ),
+//    .gtwiz_userclk_tx_usrclk2_in (hb0_gtwiz_userclk_tx_usrclk2_int),
+//    .gtwiz_userclk_tx_active_in  (hb0_gtwiz_userclk_tx_active_int),
+//    .txctrl0_out                 (txctrl0_int[63:48]),
+//    .txctrl1_out                 (txctrl1_int[63:48]),
+//    .txctrl2_out                 (txctrl2_int[31:24]),
+//    .txdata_out                  (hb3_gtwiz_userdata_tx_int)
+//  );
+
+//  // PRBS checking
+//  // -------------------------------------------------------------------------------------------------------------------
+
+//  // Declare a signal vector of PRBS match indicators, with one indicator bit per transceiver channel
+//  wire [3:0] prbs_match_int;
+
+//  // PRBS-based data checking module for transceiver channel 0
+//  gtwizard_ultrascale_0_example_checking_8b10b example_checking_inst0 (
+//    .gtwiz_reset_all_in          (hb_gtwiz_reset_all_int || ~hb0_gtwiz_reset_rx_done_int ),
+//    .gtwiz_userclk_rx_usrclk2_in (hb0_gtwiz_userclk_rx_usrclk2_int),
+//    .gtwiz_userclk_rx_active_in  (hb0_gtwiz_userclk_rx_active_int),
+//    .rxctrl0_in                  (rxctrl0_int[15:0]),
+//    .rxctrl1_in                  (rxctrl1_int[15:0]),
+//    .rxctrl2_in                  (rxctrl2_int[7:0]),
+//    .rxctrl3_in                  (rxctrl3_int[7:0]),
+//    .rxdata_in                   (hb0_gtwiz_userdata_rx_int),
+//    .prbs_match_out              (prbs_match_int[0])
+//  );
+
+//  // PRBS-based data checking module for transceiver channel 1
+//  gtwizard_ultrascale_0_example_checking_8b10b example_checking_inst1 (
+//    .gtwiz_reset_all_in          (hb_gtwiz_reset_all_int || ~hb0_gtwiz_reset_rx_done_int ),
+//    .gtwiz_userclk_rx_usrclk2_in (hb0_gtwiz_userclk_rx_usrclk2_int),
+//    .gtwiz_userclk_rx_active_in  (hb0_gtwiz_userclk_rx_active_int),
+//    .rxctrl0_in                  (rxctrl0_int[31:16]),
+//    .rxctrl1_in                  (rxctrl1_int[31:16]),
+//    .rxctrl2_in                  (rxctrl2_int[15:8]),
+//    .rxctrl3_in                  (rxctrl3_int[15:8]),
+//    .rxdata_in                   (hb1_gtwiz_userdata_rx_int),
+//    .prbs_match_out              (prbs_match_int[1])
+//  );
+
+//  // PRBS-based data checking module for transceiver channel 2
+//  gtwizard_ultrascale_0_example_checking_8b10b example_checking_inst2 (
+//    .gtwiz_reset_all_in          (hb_gtwiz_reset_all_int || ~hb0_gtwiz_reset_rx_done_int ),
+//    .gtwiz_userclk_rx_usrclk2_in (hb0_gtwiz_userclk_rx_usrclk2_int),
+//    .gtwiz_userclk_rx_active_in  (hb0_gtwiz_userclk_rx_active_int),
+//    .rxctrl0_in                  (rxctrl0_int[47:32]),
+//    .rxctrl1_in                  (rxctrl1_int[47:32]),
+//    .rxctrl2_in                  (rxctrl2_int[23:16]),
+//    .rxctrl3_in                  (rxctrl3_int[23:16]),
+//    .rxdata_in                   (hb2_gtwiz_userdata_rx_int),
+//    .prbs_match_out              (prbs_match_int[2])
+//  );
+
+//  // PRBS-based data checking module for transceiver channel 3
+//  gtwizard_ultrascale_0_example_checking_8b10b example_checking_inst3 (
+//    .gtwiz_reset_all_in          (hb_gtwiz_reset_all_int || ~hb0_gtwiz_reset_rx_done_int ),
+//    .gtwiz_userclk_rx_usrclk2_in (hb0_gtwiz_userclk_rx_usrclk2_int),
+//    .gtwiz_userclk_rx_active_in  (hb0_gtwiz_userclk_rx_active_int),
+//    .rxctrl0_in                  (rxctrl0_int[63:48]),
+//    .rxctrl1_in                  (rxctrl1_int[63:48]),
+//    .rxctrl2_in                  (rxctrl2_int[31:24]),
+//    .rxctrl3_in                  (rxctrl3_int[31:24]),
+//    .rxdata_in                   (hb3_gtwiz_userdata_rx_int),
+//    .prbs_match_out              (prbs_match_int[3])
+//  );
+
   // ===================================================================================================================
   // INITIALIZATION
   // ===================================================================================================================
@@ -465,6 +573,7 @@ module mgt_b04 (
   
   assign ila_data[127:0] = gtwiz_userdata_rx_int;
   assign ila_data[255:128] = gtwiz_userdata_tx_int;
+  // assign ila_data[259:256] = prbs_match_int;
   assign ila_data[260] = hb0_gtwiz_userclk_rx_usrclk2_int;
   assign ila_data[261] = hb0_gtwiz_userclk_rx_active_int;
   assign ila_data[262] = hb_gtwiz_reset_all_int;
