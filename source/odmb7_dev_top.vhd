@@ -1417,4 +1417,56 @@ begin
       reset        => opt_reset
       );
 
+  -------------------------------------------------
+  -- ALCT receiver for ODMB7
+  -------------------------------------------------
+  GTH_ALCT : entity work.mgt_alct
+    generic map (
+      NUM_LINKS    => 1
+      )
+    port map (
+        -- Clocks       --
+        MGTREFCLK_BUF      => mgtclk4,
+        XCVRCLK            => mgtrefclk0_225,
+        RX_FRAMECLK_O      => open,
+        RX_WORDCLK_O       => open,
+        TX_FRAMECLK_O      => open,
+        TX_WORDCLK_O       => open,
+        RX_FRAMECLK_RDY_O  => open,
+        -- Serial lanes --
+        GBTBANK_MGT_RX_P(1) => DAQ_RX_P(7),
+        GBTBANK_MGT_RX_N(1) => DAQ_RX_N(7),
+        GBTBANK_MGT_TX_P => open,
+        GBTBANK_MGT_TX_N => open,
+        -- Data         --
+        GBTBANK_GBT_DATA_I(1) => (others => '0'),
+        GBTBANK_WB_DATA_I(1)  => (others => '0'),
+        TX_DATA_O          => open,
+        WB_DATA_O          => open,
+        GBTBANK_GBT_DATA_O => open,
+        GBTBANK_WB_DATA_O  => open,
+        -- Reconf.         --
+        GBTBANK_MGT_DRP_RST => opt_reset,
+        GBTBANK_MGT_DRP_CLK => sysclk80,
+        ---- TX Status    --
+        --GBTBANK_GBTTX_READY_O      => open,
+        --GBTBANK_GBTRX_READY_O      => open, 
+        --GBTBANK_LINK_READY_O       => open, 
+        --GBTBANK_TX_MATCHFLAG_O     => open, 
+        --GBTBANK_TX_ALIGNED_O       => open, 
+        --GBTBANK_TX_ALIGNCOMPUTED_O => open, 
+        ---- RX Status    --
+        --GBTBANK_GBTRXREADY_LOST_FLAG_O               => open,
+        --GBTBANK_RXDATA_ERRORSEEN_FLAG_O              => open,
+        --GBTBANK_RXEXTRADATA_WIDEBUS_ERRORSEEN_FLAG_O => open,
+        --GBTBANK_RX_MATCHFLAG_O                       => open,
+        --GBTBANK_RX_ISDATA_SEL_O                      => open,
+        --GBTBANK_RX_ERRORDETECTED_O                   => open,
+        GBTBANK_RX_BITMODIFIED_FLAG_O                => open,
+        GBTBANK_RXBITSLIP_RST_CNT_O                  => open,
+        -- XCVR ctrl    --
+        GBTBANK_TX_POL(1)     => '0',
+        GBTBANK_RX_POL(1)     => '0'
+      );
+
 end Behavioral;
