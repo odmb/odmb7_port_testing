@@ -331,8 +331,8 @@ begin
   -- );
 
 -- FSM 
-  alct_tx_start_d <= not alct_l1a_cnt_h_fifo_empty;
-  otmb_tx_start_d <= not otmb_l1a_cnt_h_fifo_empty;
+  alct_tx_start_d <= not alct_l1a_cnt_l_fifo_empty;
+  otmb_tx_start_d <= not otmb_l1a_cnt_l_fifo_empty;
   FDALCT_START : FD port map(alct_tx_start, CLK, alct_tx_start_d);
   FDOTMB_START : FD port map(otmb_tx_start, CLK, otmb_tx_start_d);
 

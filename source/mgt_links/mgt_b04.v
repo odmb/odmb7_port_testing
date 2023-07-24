@@ -389,7 +389,8 @@ module mgt_b04 (
 
   (* DONT_TOUCH = "TRUE" *)
   gtwizard_ultrascale_0_example_reset_synchronizer example_stimulus_reset_synchronizer_inst (
-    .clk_in  (gtwiz_userclk_tx_usrclk2_in),
+    //.clk_in  (gtwiz_userclk_tx_usrclk2_in),
+    .clk_in  (hb0_gtwiz_userclk_tx_usrclk2_int),
     .rst_in  (example_stimulus_reset_int),
     .rst_out (example_stimulus_reset_sync)
   );
