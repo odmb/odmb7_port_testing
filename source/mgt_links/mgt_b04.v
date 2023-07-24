@@ -390,11 +390,16 @@ module mgt_b04 (
   (* DONT_TOUCH = "TRUE" *)
   gtwizard_ultrascale_0_example_reset_synchronizer example_stimulus_reset_synchronizer_inst (
 <<<<<<< HEAD
+<<<<<<< HEAD
     //.clk_in  (gtwiz_userclk_tx_usrclk2_in),
     .clk_in  (hb0_gtwiz_userclk_tx_usrclk2_int),
 =======
     .clk_in  (gtwiz_userclk_tx_usrclk2_in),
 >>>>>>> 2b8d2cb (Working optical interface; Initial attempt at sending DAQ to B04 through FEDFIFO)
+=======
+    //.clk_in  (gtwiz_userclk_tx_usrclk2_in),
+    .clk_in  (hb0_gtwiz_userclk_tx_usrclk2_int),
+>>>>>>> e9707ec (Fix bugs in DAQ simulation and FED FIFO)
     .rst_in  (example_stimulus_reset_int),
     .rst_out (example_stimulus_reset_sync)
   );
