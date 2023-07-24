@@ -19,7 +19,7 @@ entity fedfifo is
   port(
 
     clk_in  : in std_logic; --! user clock from DDU mgt (80 MHz)
-    clk_out : in std_logic; --! user clock from PC(spy) mgt (62.5 MHz)
+    clk_out : in std_logic; --! tx user clock from B04 mgt (312.5 MHz)
     rst     : in std_logic; --! reset
 
     dv_in   : in std_logic;                     --! data valid from CONTROL_FSM
@@ -83,7 +83,7 @@ begin
 
 -- FIFOs
   DV_PULSE : PULSE2SAME port map(DOUT => dv_in_pulse, CLK_DOUT => clk_in, RST => rst, DIN => dv_in);
-  FDLDIN   : FD port map(Q => ld_in_q, C => clk_in, D => ld_in);
+  FDLDIN   : FD port map(Q => ld_in_q, C => clk_in, D => ld_in); -- ld is last data
 
   --not sure of FDCP port order, but I don't think this bit matters -MO
   --FDFIRST : FDCP port map(Q => first_in, C => ld_in_q, CLR => dv_in_pulse, D => '1', PRE => rst);
@@ -97,12 +97,12 @@ begin
       first_in <= '1';
     end if;
   end process FDFIRST;
-  
+  -- first_in is 1 initally and becomes 0 after ld_in becomes 1
   
   fifo_wren <= dv_in;
-  fifo_in   <= first_in & ld_in & data_in;
+  fifo_in   <= first_in & ld_in & data_in; -- Data that goes into fifo. 2 bit + 16 bit
 
-  L1ARESETPULSE : NPULSE2FAST port map(DOUT => fifo_rst, CLK_DOUT => CLK_OUT, RST => '0', NPULSE => 5, DIN => RST);
+  L1ARESETPULSE : NPULSE2FAST port map(DOUT => fifo_rst, CLK_DOUT => CLK_OUT, RST => '0', NPULSE => 5, DIN => RST); -- 5 clock pulse
   
   
   FED_FIFO : FED_PACKET_FIFO
@@ -112,7 +112,7 @@ begin
       RD_CLK      => clk_out,
       DIN         => fifo_in,
       WR_EN       => fifo_wren,
-      RD_EN       => fedfifo_rden,
+      RD_EN       => fedfifo_rden, -- Determined below
       DOUT        => fifo_out,
       FULL        => fifo_full,
       EMPTY       => fifo_empty,
@@ -124,10 +124,11 @@ begin
   fedfifo_ld    <= fifo_out(16);
 
 -- FSMs
-  DS_LDIN     : DELAY_SIGNAL generic map (NCYCLES_MAX => nwait_fifo) port map (DOUT => q_ld_in, CLK => CLK_IN, NCYCLES => nwait_fifo, DIN => ld_in);
+  DS_LDIN     : DELAY_SIGNAL generic map (NCYCLES_MAX => nwait_fifo) port map (DOUT => q_ld_in, CLK => CLK_IN, NCYCLES => nwait_fifo, DIN => ld_in); -- DS is delayed signal
   LDIN_PULSE  : PULSE2FAST port map(DOUT => ld_in_pulse, CLK_DOUT => CLK_OUT, RST => RST, DIN => q_ld_in);
-  LDOUT_PULSE : PULSE2SAME port map(DOUT => ld_out_pulse, CLK_DOUT => CLK_OUT, RST => RST, DIN => ld_out);
+  LDOUT_PULSE : PULSE2SAME port map(DOUT => ld_out_pulse, CLK_DOUT => CLK_OUT, RST => RST, DIN => ld_out); -- ld_out is defined below.
 
+  -- Counts number of clock cycles for a packet of data
   pkt_cnt : process (ld_in_pulse, ld_out_pulse, rst, clk_out)
     variable pkt_cnt_data : std_logic_vector(7 downto 0) := (others => '0');
   begin
@@ -145,6 +146,7 @@ begin
     
   end process;
 
+  -- For FSM
   fedfifo_fsm_regs : process (fedfifo_next_state, rst, clk_out, idle_cnt)
   begin
     if (rst = '1') then
@@ -160,6 +162,7 @@ begin
     
   end process;
 
+  -- For FSM
   fedfifo_fsm_logic : process (fedfifo_current_state, fedfifo_out, fedfifo_ld, pkt_cnt_out, idle_cnt)
   begin
     case fedfifo_current_state is
@@ -175,6 +178,8 @@ begin
         else
           fedfifo_rden       <= '1';
           fedfifo_next_state <= FIFO_TX;
+          data_out     <= fedfifo_out;
+          dv_out       <= '1';
         end if;
         
       when FIFO_TX =>
@@ -185,7 +190,8 @@ begin
         ld_out       <= '0';
         if (fedfifo_ld = '1') then
           fedfifo_next_state <= DONE;
-          fedfifo_rden       <= '0';
+          --fedfifo_rden       <= '0';
+          ld_out             <= '1';
         else
           fedfifo_next_state <= FIFO_TX;
           fedfifo_rden       <= '1';

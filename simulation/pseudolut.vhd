@@ -18,6 +18,7 @@ architecture behavioral of pseudolut is
   type lut_array is array (0 to 15) of std_logic_vector(15 downto 0);
 
   --constant vme_addrs : lut_array := (x"4100", x"4200", x"4300", x"4100",
+<<<<<<< HEAD
   --                                   x"401C", x"3200", x"4100", x"4200",
   --                                   x"4300", x"4100", x"4200", x"4300",
   --                                   x"4100", x"4200", x"4300", x"4100");
@@ -35,6 +36,38 @@ architecture behavioral of pseudolut is
                                      x"0001", x"0001", x"0026", x"0003",
                                      x"0021", x"0000", x"2EAD", x"2EAD",
                                      x"2EAD", x"2EAD", x"2EAD", x"2EAD");
+=======
+  --                                   x"401C", x"3200", -- Do not kill anything, Request packet
+  --                                   x"4100", x"4200", x"4300", 
+  --                                   x"4100", x"4200", x"4300",
+  --                                   x"4100", x"4200", x"4300", 
+  --                                   x"4100");
+  --constant vme_datas : lut_array := (x"2EAD", x"2EAD", x"2EAD", x"2EAD",
+  --                                   x"0000", x"0004", 
+  --                                   x"2EAD", x"2EAD", x"2EAD", 
+  --                                   x"2EAD", x"2EAD", x"2EAD",
+  --                                   x"2EAD", x"2EAD", x"2EAD", 
+  --                                   x"2EAD");
+
+  constant vme_addrs : lut_array := (x"4100", x"4200", x"4300", x"4100",
+                                     x"401C", -- Do not kill anything,
+                                     x"4028", -- Number of dummy words
+                                     x"3300", -- Dummy data
+                                     x"3304", -- Internal triggers
+                                     x"3200", -- Request packet
+                                     x"4100", x"4200", x"4300", 
+                                     x"4100", x"4200", x"4300",
+                                     x"4100");
+  constant vme_datas : lut_array := (x"2EAD", x"2EAD", x"2EAD", x"2EAD",
+                                     x"0000", -- Do not kill anything,
+                                     x"0020", -- Number of dummy words
+                                     x"0001", -- Dummy data
+                                     x"0001", -- Internal triggers
+                                     x"0004", -- Request packet
+                                     x"2EAD", x"2EAD", x"2EAD", 
+                                     x"2EAD", x"2EAD", x"2EAD",
+                                     x"2EAD");
+>>>>>>> e9707ec (Fix bugs in DAQ simulation and FED FIFO)
 
   -- Does nothing
   --constant vme_addrs : lut_array := (x"4100", x"4200", x"4300", x"4100",
