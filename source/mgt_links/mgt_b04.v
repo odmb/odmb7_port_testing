@@ -575,11 +575,11 @@ module mgt_b04 (
   assign ila_data[127:0] = gtwiz_userdata_rx_int;
   assign ila_data[255:128] = gtwiz_userdata_tx_int;
   // assign ila_data[259:256] = prbs_match_int;
-  assign ila_data[260] = hb0_gtwiz_userclk_rx_usrclk2_int;
+  //assign ila_data[260] = hb0_gtwiz_userclk_rx_usrclk2_int;
   assign ila_data[261] = hb0_gtwiz_userclk_rx_active_int;
   assign ila_data[262] = hb_gtwiz_reset_all_int;
   assign ila_data[263] = hb0_gtwiz_reset_rx_done_int;
-  assign ila_data[264] = hb0_gtwiz_userclk_tx_usrclk2_int;
+  //assign ila_data[264] = hb0_gtwiz_userclk_tx_usrclk2_int;
   assign ila_data[265] = hb0_gtwiz_userclk_tx_active_int;
   assign ila_data[269:266] = rx8b10ben_int;
   assign ila_data[273:270] = rxcommadeten_int;
@@ -608,11 +608,11 @@ module mgt_b04 (
   assign ila_data[833:822] = rxbufstatus_int;
   assign ila_data[841:834] = rxclkcorcnt_int;
 
-  ila_0 ila_i (
-    .clk(hb0_gtwiz_userclk_rx_usrclk2_int), // input wire clk
-    //.probe0(ila_trigger), // input wire [7:0]  probe0
-    .probe0(ila_data) // input wire [255:0]  probe1
-  );
+  //ila_0 ila_i (
+  //  .clk(hb0_gtwiz_userclk_rx_usrclk2_int), // input wire clk
+  //  //.probe0(ila_trigger), // input wire [7:0]  probe0
+  //  .probe0(ila_data) // input wire [255:0]  probe1
+  //);
 
   // ===================================================================================================================
   // EXAMPLE WRAPPER INSTANCE
