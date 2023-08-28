@@ -70,10 +70,14 @@ architecture Behavioral of gbt_alct is
                                          index : integer)
     return std_logic_vector is
   begin
-    return (data(104 + index) & data(96 + index) & data(88 + index) & data(80 + index) &
+    --return (data(104 + index) & data(96 + index) & data(88 + index) & data(80 + index) &
+    --        data( 72 + index) & data(64 + index) & data(56 + index) & data(48 + index) &
+    --        data( 40 + index) & data(32 + index) & data(24 + index) & data(16 + index) &
+    --        data(  8 + index) & data( 0 + index));
+    return (data( 24 + index) & data(16 + index) & data( 8 + index) & data(0 + index) &
+            data(104 + index) & data(96 + index) & data(88 + index) & data(80 + index) &
             data( 72 + index) & data(64 + index) & data(56 + index) & data(48 + index) &
-            data( 40 + index) & data(32 + index) & data(24 + index) & data(16 + index) &
-            data(  8 + index) & data( 0 + index));
+            data( 40 + index) & data(32 + index));
   end;
 
 begin
@@ -133,11 +137,12 @@ begin
       RESET_i           => reset
       );
 
-  alct_rxdata_raw <= alct_rxdata_wb & alct_rxdata_gbt(79 downto 0);
+  --alct_rxdata_raw <= alct_rxdata_wb & alct_rxdata_gbt(79 downto 0);
+  alct_rxdata_raw <= alct_rxdata_gbt(79 downto 0) & alct_rxdata_wb;
   alct_rxready <= alct_mgt_rxready and alct_gbt_rxready;
 
   rxdata_pkt_gen: for i in 0 to 7 generate
-    alct_rxdata_pkt(i) <= extract_alct_word_from_frame(alct_rxdata_raw, i);
+    alct_rxdata_pkt(7-i) <= extract_alct_word_from_frame(alct_rxdata_raw, i);
   end generate;
 
   alct_word_assemble : process (alct_rxusrclk, alct_rxclken)

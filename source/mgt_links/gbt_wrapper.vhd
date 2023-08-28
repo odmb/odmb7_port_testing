@@ -30,7 +30,7 @@ entity gbt_wrapper is
     --==============--
     MGT_REFCLK                                   : in  std_logic;
     GBT_FRAMECLK                                 : in  std_logic; -- 40 MHz
-    MGT_DRP_CLK                                  : in  std_logic;
+    MGT_DRP_CLK                                  : in  std_logic; -- 120.24 MHz,
 
     GBT_TXUSRCLK_o                               : out std_logic_vector(1 to NUM_LINKS);
     GBT_RXUSRCLK_o                               : out std_logic_vector(1 to NUM_LINKS);
@@ -129,6 +129,62 @@ architecture gbt_wrapper_inst of gbt_wrapper is
   --     );
   -- end component;
 
+   COMPONENT ila_256 PORT(
+     CLK: in std_logic;
+     PROBE0: in std_logic_vector(255 downto 0)
+   );
+   END COMPONENT;
+   signal dpr_clk_probe : std_logic_vector(255 downto 0);
+   signal gbtbank_rxbitslip_rst_cnt_s : gbt_reg8_A(1 to NUM_LINKS);
+   signal rx_clk_probe : std_logic_vector(255 downto 0);
+   signal tx_clk_probe : std_logic_vector(255 downto 0);
+   signal gbtbank_rx_bitmodified_flag_s : gbt_reg84_A(1 to NUM_LINKS);
+   signal gbtbank_rx_errordetected_s : std_logic_vector(1 to NUM_LINKS);
+   signal gbt_bad_rx_s : std_logic_vector(1 to NUM_LINKS);
+   signal rxd_valid_s : std_logic_vector(1 to NUM_LINKS);
+   signal wb_rxdata_s : gbt_reg32_A(1 to NUM_LINKS);
+   signal gbt_rxdata_s : gbt_reg84_A(1 to NUM_LINKS);
+
+   COMPONENT vio_gbt
+     PORT (
+       clk : IN STD_LOGIC;
+       probe_out0 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+       probe_out1 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+       probe_out2 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+       probe_out3 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+       probe_out4 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+       probe_out5 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
+     );
+   END COMPONENT;
+   signal gbt_vio_enable     : std_logic := '0';
+   signal gbt_reset_from_vio      : std_logic := '0';
+   signal gbt_tx_reset_from_vio   : std_logic := '0';
+   signal gbt_rx_reset_from_vio   : std_logic := '0';
+   signal gbt_txencoding_from_vio : std_logic := '0';
+   signal gbt_rxencoding_from_vio : std_logic := '0';
+   signal reset_s                 : std_logic := '0';
+   signal gbt_tx_reset_s          : std_logic := '0';
+   signal gbt_rx_reset_s          : std_logic := '0';
+
+   COMPONENT vio_gbt_tx
+     PORT (
+       clk : IN STD_LOGIC;
+       probe_out0 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0);
+       probe_out1 : OUT STD_LOGIC_VECTOR(1 DOWNTO 0);
+       probe_out2 : OUT STD_LOGIC_VECTOR(79 DOWNTO 0);
+       probe_out3 : OUT STD_LOGIC_VECTOR(31 DOWNTO 0);
+       probe_out4 : OUT STD_LOGIC_VECTOR(0 DOWNTO 0)
+     );
+   END COMPONENT;
+   signal gbt_tx_vio_enable       : std_logic := '0';
+   signal gbt_tx_valid_from_vio   : std_logic := '0';
+   signal tx_scec_from_vio        : std_logic_vector (1 downto 0) := "11";
+   signal tx_data_from_vio        : std_logic_vector (79 downto 0);
+   signal tx_wb_data_from_vio     : std_logic_vector (31 downto 0);
+   signal txd_valid_s             : std_logic_vector (1 to NUM_LINKS) := (others => '0');
+   signal gbt_txdata_s            : gbt_reg84_A(1 to NUM_LINKS);
+   signal wb_txdata_s             : gbt_reg32_A(1 to NUM_LINKS);
+
 --=================================================================================================--
 begin                 --========####   Architecture Body   ####========--
 --=================================================================================================--
@@ -149,10 +205,10 @@ begin                 --========####   Architecture Body   ####========--
   gbtBank_Clk_gen: for i in 1 to NUM_LINKS generate
 
     -- Generate the TX Clock Enable signal every thrid clock --
-    txclken_gen: process(RESET_i, mgt_txwordclk_s(i))
+    txclken_gen: process(reset_s, mgt_txwordclk_s(i))
       variable flagCnterV : integer range 0 to GBT_WORD_RATIO;
     begin
-      if RESET_i = '1' then
+      if reset_s = '1' then
         gbt_txclken_s(i) <= '0';
         flagCnterV := 0;
 
@@ -212,9 +268,9 @@ begin                 --========####   Architecture Body   ####========--
         --===============--
         -- Resets scheme --
         --===============--
-        GENERAL_RESET_I                        => RESET_i,
-        TX_RESET_I                             => '0',
-        RX_RESET_I                             => '0',
+        GENERAL_RESET_I                        => reset_s,
+        TX_RESET_I                             => gbt_tx_reset_s,
+        RX_RESET_I                             => gbt_rx_reset_s,
 
         MGT_TX_RESET_O                         => mgt_txreset_s(i),
         MGT_RX_RESET_O                         => mgt_rxreset_s(i),
@@ -306,7 +362,7 @@ begin                 --========####   Architecture Body   ####========--
       --================--
       -- GBT TX Control --
       --================--
-      GBT_ISDATAFLAG_i         => TXD_VALID_i,
+      GBT_ISDATAFLAG_i         => txd_valid_s,
       TX_ENCODING_SEL_i        => gbt_txencoding_s,    --! Select the Tx encoding in dynamic mode ('1': GBT / '0': WideBus)
 
       --=================--
@@ -324,9 +380,11 @@ begin                 --========####   Architecture Body   ####========--
       -- GBT RX Status   --
       --=================--
       GBT_RXREADY_o            => gbt_rxready_s,
-      GBT_ISDATAFLAG_o         => RXD_VALID_o,
-      GBT_ERRORDETECTED_o      => GBT_BAD_RX_o,
-      GBT_ERRORFLAG_o          => open,
+      --GBT_ISDATAFLAG_o         => RXD_VALID_o,
+      GBT_ISDATAFLAG_o         => rxd_valid_s,
+      --GBT_ERRORDETECTED_o      => GBT_BAD_RX_o,
+      GBT_ERRORDETECTED_o      => gbt_bad_rx_s,
+      GBT_ERRORFLAG_o          => gbtbank_rx_bitmodified_flag_s,
 
       --================--
       -- MGT Control    --
@@ -343,20 +401,26 @@ begin                 --========####   Architecture Body   ####========--
       MGT_DEVSPECIFIC_o        => mgt_devspecific_from_s,
       MGT_HEADERFLAG_o         => mgt_headerflag_s,
       MGT_HEADERLOCKED_o       => open,
-      MGT_RSTCNT_o             => open,
+      MGT_RSTCNT_o             => gbtbank_rxbitslip_rst_cnt_s,
 
       ILA_DATA_o               => ila_data_mgt,
 
       --========--
       -- Data   --
       --========--
-      GBT_TXDATA_i             => GBT_TXDATA_i,
-      GBT_RXDATA_o             => GBT_RXDATA_o,
+      GBT_TXDATA_i             => gbt_txdata_s,
+      --GBT_RXDATA_o             => GBT_RXDATA_o,
+      GBT_RXDATA_o             => gbt_rxdata_s,
 
-      WB_TXDATA_i              => WB_TXDATA_i,
-      WB_RXDATA_o              => WB_RXDATA_o
+      WB_TXDATA_i              => wb_txdata_s,
+      --WB_RXDATA_o              => WB_RXDATA_o
+      WB_RXDATA_o              => wb_rxdata_s
 
       );
+      GBT_BAD_RX_o <= gbt_bad_rx_s;
+      RXD_VALID_o <= rxd_valid_s;
+      WB_RXDATA_o <= wb_rxdata_s;
+      GBT_RXDATA_o <= gbt_rxdata_s;
 
   -- ila_gbt_wrapper : ila_gbt_exde
   --   port map (
@@ -366,6 +430,93 @@ begin                 --========####   Architecture Body   ####========--
   --     probe2(0) => gbt_rxclken_s(1),
   --     probe3(0) => gbt_rxclkenLogic_s(1)
   --     );
+
+  --=============--
+  -- ILA --
+  --=============--
+   dpr_clk_ila : ila_256
+     port map (
+       CLK => MGT_DRP_CLK, -- 120.24 MHz
+       PROBE0 => dpr_clk_probe 
+     );
+   dpr_clk_probe(22) <= mgt_rxready_s(1);
+   dpr_clk_probe(21) <= mgt_txready_s(1);
+   dpr_clk_probe(20 downto 13) <= gbtbank_rxbitslip_rst_cnt_s(1);
+   dpr_clk_probe(8) <= gbt_rxencoding_s(1);
+   dpr_clk_probe(7) <= gbt_rxreset_s(1);
+   dpr_clk_probe(6) <= mgt_rxreset_s(1);
+   dpr_clk_probe(5) <= gbt_txencoding_s(1);
+   dpr_clk_probe(4) <= gbt_txreset_s(1);
+   dpr_clk_probe(3) <= mgt_txreset_s(1);
+   dpr_clk_probe(2) <= gbt_rx_reset_s;
+   dpr_clk_probe(1) <= gbt_tx_reset_s;
+   dpr_clk_probe(0) <= reset_s;
+
+   rx_clk_ila : ila_256
+     port map (
+       CLK => mgt_rxwordclk_s(1), -- recovered 120.237 MHz in FULL_MGTREFQ scheme
+       PROBE0 => rx_clk_probe 
+     );
+   rx_clk_probe(205) <= gbt_rxclkenLogic_s(1);
+   rx_clk_probe(203 downto 120) <= gbtbank_rx_bitmodified_flag_s(1);
+   rx_clk_probe(119) <= gbt_bad_rx_s(1);
+   rx_clk_probe(118) <= gbt_rxready_s(1);
+   rx_clk_probe(117) <= mgt_headerflag_s(1);
+   rx_clk_probe(116) <= rxd_valid_s(1);
+   rx_clk_probe(115 downto 84) <= wb_rxdata_s(1);
+   rx_clk_probe(83 downto 0) <= gbt_rxdata_s(1);
+
+   tx_clk_ila : ila_256
+     port map (
+       CLK => mgt_txwordclk_s(1), -- refclk 120.237 MHz in FULL_MGTREFQ scheme
+       PROBE0 => tx_clk_probe 
+     );
+   tx_clk_probe(117) <= gbt_txclken_s(1);
+   tx_clk_probe(116) <= txd_valid_s(1);
+   tx_clk_probe(115 downto 84) <= wb_txdata_s(1);
+   tx_clk_probe(83 downto 0) <= gbt_txdata_s(1);
+
+   -- Setup vio
+   vio_gbt_i : vio_gbt
+     port map (
+       clk        => MGT_DRP_CLK, -- 120.24 MHz,
+       probe_out0(0) => gbt_reset_from_vio,
+       probe_out1(0) => gbt_tx_reset_from_vio,
+       probe_out2(0) => gbt_rx_reset_from_vio,
+       probe_out3(0) => gbt_txencoding_from_vio,
+       probe_out4(0) => gbt_rxencoding_from_vio,
+       probe_out5(0) => gbt_vio_enable
+   );
+   reset_s <= gbt_reset_from_vio when gbt_vio_enable = '1' else RESET_i;
+   gbt_tx_reset_s <= gbt_tx_reset_from_vio when gbt_vio_enable = '1' else '0';
+   gbt_rx_reset_s <= gbt_rx_reset_from_vio when gbt_vio_enable = '1' else '0';
+   vio_gbt_gen: for i in 1 to NUM_LINKS generate
+     gbt_txencoding_s(i) <= gbt_txencoding_from_vio when gbt_vio_enable = '1' else 
+                            '0' when TX_ENCODING = WIDE_BUS else
+                            '1' when TX_ENCODING = GBT_FRAME; -- Select encoding in dynamic mode ('1': GBT / '0': WideBus)
+     gbt_rxencoding_s(i) <= gbt_rxencoding_from_vio when gbt_vio_enable = '1' else 
+                            '0' when RX_ENCODING = WIDE_BUS else
+                            '1' when RX_ENCODING = GBT_FRAME; -- Select encoding in dynamic mode ('1': GBT / '0': WideBus)
+   end generate;
+
+   vio_gbt_tx_i : vio_gbt_tx
+     port map (
+       clk        => mgt_txwordclk_s(1), -- 120.24 MHz,
+       probe_out0(0) => gbt_tx_valid_from_vio,
+       probe_out1 => tx_scec_from_vio,
+       probe_out2 => tx_data_from_vio,
+       probe_out3 => tx_wb_data_from_vio,
+       probe_out4(0) => gbt_tx_vio_enable
+   );
+   vio_gbt_tx_gen: for i in 1 to NUM_LINKS generate
+     txd_valid_s(i) <= gbt_tx_valid_from_vio when gbt_tx_vio_enable = '1' else TXD_VALID_i(i);
+     -- Comment: The patter is constant "11" in order to reset the SC FSM of the GBTx ASIC.
+     gbt_txdata_s(i)(83 downto 82) <= "11"             when gbt_tx_vio_enable = '1' else GBT_TXDATA_i(i)(83 downto 82);
+     gbt_txdata_s(i)(81 downto 80) <= tx_scec_from_vio when gbt_tx_vio_enable = '1' else GBT_TXDATA_i(i)(81 downto 80);
+     gbt_txdata_s(i)(79 downto  0) <= tx_data_from_vio when gbt_tx_vio_enable = '1' else GBT_TXDATA_i(i)(79 downto  0);
+     wb_txdata_s(i)                <= tx_wb_data_from_vio when gbt_tx_vio_enable = '1' else WB_TXDATA_i(i);
+   end generate;
+
 
 --=====================================================================================--
 end gbt_wrapper_inst;
