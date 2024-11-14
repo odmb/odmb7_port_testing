@@ -49,6 +49,14 @@ entity cafifo is
     cafifo_lost_pckt : out std_logic_vector(NCFEB+2 downto 1); --! Lost packet # of current row, to control_fsm
     cafifo_lone      : out std_logic;                          --! FEB data-less flag, to control_fsm
 
+    -- For parallelization
+    cafifo_l1a_match_1 : out std_logic_vector(NCFEB+2 downto 1);  --! Same as above
+    cafifo_l1a_cnt_1   : out std_logic_vector(23 downto 0);       --! Same as above
+    cafifo_l1a_dav_1   : out std_logic_vector(NCFEB+2 downto 1);  --! Same as above
+    cafifo_bx_cnt_1    : out std_logic_vector(11 downto 0);       --! Same as above
+    cafifo_lost_pckt_1 : out std_logic_vector(NCFEB+2 downto 1);  --! Same as above
+    cafifo_lone_1      : out std_logic;                           --! Same as above
+
     control_debug    : in  std_logic_vector(143 downto 0)      --! Debug signal
     );
 
@@ -83,7 +91,7 @@ architecture cafifo_architecture of cafifo is
   signal cafifo_wren_q, cafifo_rden_q                         : std_logic                        := '0';
   signal wr_addr_out, rd_addr_out, prev_rd_addr, next_rd_addr : integer range 0 to CAFIFO_SIZE-1 := 0;
   -- Add new rd_addr_out signals (1 more for now)
-  signal rd_addr_out_1 : integer range 0 to CAFIFO_SIZE-1 := 0;
+  signal rd_addr_out_1, prev_rd_addr_1, next_rd_addr_1 : integer range 0 to CAFIFO_SIZE-1 := 0;  -- For parallelization
 
   signal cafifo_wren, cafifo_rden  : std_logic;
   signal cafifo_empty, cafifo_full : std_logic;
@@ -177,6 +185,13 @@ architecture cafifo_architecture of cafifo is
   signal current_bx_cnt                                               : std_logic_vector(11 downto 0);
   signal current_l1a_cnt                                              : std_logic_vector(23 downto 0);
   signal current_lone, current_lone_d, current_lone_dd                : std_logic;
+
+  signal current_l1a_match_1, current_l1a_match_d_1, current_l1a_match_dd_1 : std_logic_vector(NCFEB+2 downto 1);
+  signal current_l1a_dav_1, current_lost_pckt_1                       : std_logic_vector(NCFEB+2 downto 1);
+  signal current_bx_cnt_1                                             : std_logic_vector(11 downto 0);
+  signal current_l1a_cnt_1                                            : std_logic_vector(23 downto 0);
+  signal current_lone_1, current_lone_d_1, current_lone_dd_1          : std_logic;
+
 begin
 
   -- Initial assignments
@@ -200,6 +215,14 @@ begin
   current_l1a_dav   <= l1a_dav(rd_addr_out);
   current_lost_pckt <= lost_pckt(rd_addr_out);
 
+  -- Add another set of "current_" variables for parallelization
+  current_l1a_match_1 <= l1a_match(rd_addr_out_1);
+  current_bx_cnt_1    <= bx_cnt(rd_addr_out_1);
+  current_lone_1      <= lone(rd_addr_out_1);
+  current_l1a_cnt_1   <= l1a_cnt(rd_addr_out_1);
+  current_l1a_dav_1   <= l1a_dav(rd_addr_out_1);
+  current_lost_pckt_1 <= lost_pckt(rd_addr_out_1);
+
   -- Adding flip-flops to make sure L1A_CNT has updated, and lone_in is synced with L1A_MATCH
   -- Using CROSSCLOCK to cross outputs into the DDU clock domain
   -- Add FDC to LONE and L1A_MATCH to ensure L1A_CNT has been updated in the ODMB header
@@ -210,21 +233,41 @@ begin
     FDL1AM        : FD port map(Q => l1a_match_in_reg(dev),   C => CLK, D => l1a_match_in_reg_d(dev));
     CF_L1AM_FD    : FDC port map(Q => current_l1a_match_d(dev),  C => CLK, CLR => L1ACNT_RST, D => current_l1a_match(dev));
     CF_L1AM_FDD   : FDC port map(Q => current_l1a_match_dd(dev), C => CLK, CLR => L1ACNT_RST, D => current_l1a_match_d(dev));
+    -- For parallelization
+    CF_L1AM_FD_1  : FDC port map(Q => current_l1a_match_d_1(dev),  C => CLK, CLR => L1ACNT_RST, D => current_l1a_match_1(dev));
+    CF_L1AM_FDD_1 : FDC port map(Q => current_l1a_match_dd_1(dev), C => CLK, CLR => L1ACNT_RST, D => current_l1a_match_d_1(dev));
+    --
     CF_L1AM_CROSS : CROSSCLOCK port map(DOUT => CAFIFO_L1A_MATCH(dev), CLK_DOUT => DDUCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_l1a_match_dd(dev));
     CF_DAV_CROSS  : CROSSCLOCK port map(DOUT => CAFIFO_L1A_DAV(dev),   CLK_DOUT => DDUCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_l1a_dav(dev));
     CF_LOST_CROSS : CROSSCLOCK port map(DOUT => CAFIFO_LOST_PCKT(dev), CLK_DOUT => DDUCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_lost_pckt(dev));
+    -- For parallelization
+    CF_L1AM_CROSS_1 : CROSSCLOCK port map(DOUT => CAFIFO_L1A_MATCH_1(dev), CLK_DOUT => DDUCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_l1a_match_dd_1(dev));
+    CF_DAV_CROSS_1  : CROSSCLOCK port map(DOUT => CAFIFO_L1A_DAV_1(dev),   CLK_DOUT => DDUCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_l1a_dav_1(dev));
+    CF_LOST_CROSS_1 : CROSSCLOCK port map(DOUT => CAFIFO_LOST_PCKT_1(dev), CLK_DOUT => DDUCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_lost_pckt_1(dev));
+    --
   end generate GEN_L1AM_REG;
   GEN_BX_REG : for dev in 0 to 11 generate
     FDL1AMD     : FD port map(Q => bx_cnt_out_reg_d(dev), C => CLK, D => bx_cnt_out(dev));
     FDL1AM      : FD port map(Q => bx_cnt_out_reg(dev),   C => CLK, D => bx_cnt_out_reg_d(dev));
     CF_BX_CROSS : CROSSCLOCK port map(DOUT => CAFIFO_BX_CNT(dev), CLK_DOUT => DDUCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_bx_cnt(dev));
+    -- For parallelization
+    CF_BX_CROSS_1 : CROSSCLOCK port map(DOUT => CAFIFO_BX_CNT_1(dev), CLK_DOUT => DDUCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_bx_cnt_1(dev));
+    --
   end generate GEN_BX_REG;
   GEN_L1A_REG : for dev in 0 to 23 generate
     CF_L1A_CROSS : CROSSCLOCK port map(DOUT => CAFIFO_L1A_CNT(dev), CLK_DOUT => DDUCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_l1a_cnt(dev));
+    -- For parallelization
+    CF_L1A_CROSS_1 : CROSSCLOCK port map(DOUT => CAFIFO_L1A_CNT_1(dev), CLK_DOUT => DDUCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_l1a_cnt_1(dev));
+    -- 
   end generate GEN_L1A_REG;
   CF_LONE_FD    : FDC port map(Q => current_lone_d, C => CLK, CLR => L1ACNT_RST, D => current_lone);
   CF_LONE_FDD   : FDC port map(Q => current_lone_dd, C => CLK, CLR => L1ACNT_RST, D => current_lone_d);
   CF_LONE_CROSS : CROSSCLOCK port map(DOUT => CAFIFO_LONE, CLK_DOUT => DDUCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_lone_dd);
+  -- For parallelization
+  CF_LONE_FD_1  : FDC port map(Q => current_lone_d_1, C => CLK, CLR => L1ACNT_RST, D => current_lone_1);
+  CF_LONE_FDD_1 : FDC port map(Q => current_lone_dd_1,C => CLK, CLR => L1ACNT_RST, D => current_lone_d_1);
+  CF_LONE_CROSS_1 : CROSSCLOCK port map(DOUT => CAFIFO_LONE_1, CLK_DOUT => DDUCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_lone_dd_1);
+  --
 
   -------------------- L1A Counter        --------------------
 
@@ -446,6 +489,7 @@ begin
   begin
     if (l1acnt_rst = '1') then
       rd_addr_out <= 0;
+      rd_addr_out_1 <= 1;  -- For parallelization; make sure that the values are not initialized to be the same value
       wr_addr_out <= 0;
     elsif (rising_edge(clk)) then
       if (wr_addr_en = '1') then
@@ -458,12 +502,25 @@ begin
       if (rd_addr_en = '1') then
         if (rd_addr_out = CAFIFO_SIZE-1) then
           rd_addr_out <= 0;
+        elsif (rd_addr_out_1 = CAFIFO_SIZE-1) then
+          rd_addr_out_1 <= 0; -- Need to handle this in a separate process
         else
           rd_addr_out <= rd_addr_out + 1;
+          rd_addr_out_1 <= rd_addr_out_1 + 1;
         end if;
       end if;
     end if;
   end process;
+
+  -- FSM that makes sure that the different rd_addr_out counters are never equal to each other (to prevent duplicate data being sent out)
+  --addr_unique: process (clk, rd_addr_out, rd_addr_out_1)
+  --begin
+  --  if (rising_edge(clk)) then
+  --    if (rd_addr_out = rd_addr_out_1) then
+  --      rd_addr_out_1 <= rd_addr_out_1 + 1;
+  --    end if;
+  --  end if;
+  --end process;
 
   -- FSM that checks whether we can add more rows or not
   fsm_regs : process (next_state, l1acnt_rst, clk)
@@ -475,6 +532,7 @@ begin
     end if;
   end process;
 
+  -- TODO: modify this process to account for more rd_addr_out signals
   fsm_logic : process (cafifo_wren_q, cafifo_rden_q, current_state, wr_addr_out, rd_addr_out)
   begin
     case current_state is
@@ -553,6 +611,8 @@ begin
 
   prev_rd_addr               <= rd_addr_out-1 when rd_addr_out > 0             else CAFIFO_SIZE-1;
   next_rd_addr               <= rd_addr_out+1 when rd_addr_out < CAFIFO_SIZE-1 else 0;
+  --prev_rd_addr_1             <= rd_addr_out_1-1 when rd_addr_out_1 > 0         else CAFIFO_SIZE-1;
+  --next_rd_addr_1             <= rd_addr_out_1+1 when rd_addr_out_1 < CAFIFO_SIZE-1 else 0;
   -- cafifo_prev_next_l1a_match <= l1a_match(prev_rd_addr)(NCFEB+1 downto 1) & l1a_match(next_rd_addr)(NCFEB+1 downto 1);
   -- cafifo_prev_next_l1a       <= l1a_cnt(prev_rd_addr)(7 downto 0) & l1a_cnt(next_rd_addr)(7 downto 0);
 
