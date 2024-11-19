@@ -20,7 +20,8 @@ use unimacro.vcomponents.all;
 entity cafifo is
   generic (
     NCFEB       : integer range 1 to 7   := 7;   --! Number of DCFEBS, 7/5
-    CAFIFO_SIZE : integer range 1 to 128 := 128  --! Number of CAFIFO words (events)
+    CAFIFO_SIZE : integer range 1 to 128 := 128;  --! Number of CAFIFO words (events)
+    NLINKS      : integer range 1 to 8   := 2   --! Number of parallel links (for parallelization)
     );
   port(
 
@@ -92,6 +93,9 @@ architecture cafifo_architecture of cafifo is
   signal wr_addr_out, rd_addr_out, prev_rd_addr, next_rd_addr : integer range 0 to CAFIFO_SIZE-1 := 0;
   -- Add new rd_addr_out signals (1 more for now)
   signal rd_addr_out_1, prev_rd_addr_1, next_rd_addr_1 : integer range 0 to CAFIFO_SIZE-1 := 0;  -- For parallelization
+
+  -- For parallelization
+  signal counter_link : integer range 0 to 100000 := 0;  --! Used for switching between output links
 
   signal cafifo_wren, cafifo_rden  : std_logic;
   signal cafifo_empty, cafifo_full : std_logic;
@@ -297,6 +301,7 @@ begin
       end if;
       if (cafifo_rden = '1') then
         l1a_cnt(rd_addr_out) <= (others => '1');
+	l1a_cnt(rd_addr_out_1) <= (others => '1');
       end if;
     end if;
   end process;
@@ -328,6 +333,7 @@ begin
       end if;
       if (cafifo_rden = '1') then
         l1a_match(rd_addr_out) <= (others => '0');
+        l1a_match(rd_addr_out_1) <= (others => '0');
       end if;
     end if;
   end process;
@@ -345,6 +351,7 @@ begin
       end if;
       if (cafifo_rden = '1') then
         lone(rd_addr_out) <= '0';
+        lone(rd_addr_out_1) <= '0';
       end if;
     end if;
   end process;
@@ -376,11 +383,11 @@ begin
   end generate GEN_L1ACNT_DAV;
 
   -- asynchronous fifo for lost_pckt and l1a_dav
-  DAV_LOST_PRO : process(L1ACNT_RST, CLK, cafifo_rden, rd_addr_out, l1a_dav_en, lost_pckt_en)
+  DAV_LOST_PRO : process(L1ACNT_RST, CLK, cafifo_rden, rd_addr_out, rd_addr_out_1, l1a_dav_en, lost_pckt_en)
   begin
     for dev in 1 to NCFEB+2 loop
       for index in 0 to CAFIFO_SIZE-1 loop
-        if (l1acnt_rst = '1' or (cafifo_rden = '1' and index = rd_addr_out)) then
+        if (l1acnt_rst = '1' or (cafifo_rden = '1' and (index = rd_addr_out or index = rd_addr_out_1))) then
           l1a_dav(index)(dev)   <= '0';
           lost_pckt(index)(dev) <= '0';
         elsif rising_edge(CLK) then
@@ -488,6 +495,7 @@ begin
   addr_counter : process (clk, wr_addr_en, rd_addr_en, l1acnt_rst)
   begin
     if (l1acnt_rst = '1') then
+      counter_link <= 0;
       rd_addr_out <= 0;
       rd_addr_out_1 <= 1;  -- For parallelization; make sure that the values are not initialized to be the same value
       wr_addr_out <= 0;
@@ -500,20 +508,26 @@ begin
         end if;
       end if;
       if (rd_addr_en = '1') then
+        counter_link <= counter_link + 1;
         if (rd_addr_out = CAFIFO_SIZE-1) then
           rd_addr_out <= 0;
         elsif (rd_addr_out_1 = CAFIFO_SIZE-1) then
           rd_addr_out_1 <= 0; -- Need to handle this in a separate process
         else
-          rd_addr_out <= rd_addr_out + 1;
-          rd_addr_out_1 <= rd_addr_out_1 + 1;
+          --rd_addr_out <= rd_addr_out + 1;
+          --rd_addr_out_1 <= rd_addr_out_1 + 1;
+	  if ( counter_link mod NLINKS = 1 ) then
+		rd_addr_out_1 <= rd_addr_out_1 + 2;  --! Increment past the other rd_addr_out 
+          else
+		rd_addr_out <= rd_addr_out + 2; 
+          end if;
         end if;
       end if;
     end if;
   end process;
 
   -- FSM that makes sure that the different rd_addr_out counters are never equal to each other (to prevent duplicate data being sent out)
-  --addr_unique: process (clk, rd_addr_out, rd_addr_out_1)
+  --addr_unique: process (clk, rd_addr_out, prev_rd_addr, next_rd_addr, rd_addr_out_1, prev_rd_addr_1, next_rd_addr_1)
   --begin
   --  if (rising_edge(clk)) then
   --    if (rd_addr_out = rd_addr_out_1) then
@@ -611,8 +625,8 @@ begin
 
   prev_rd_addr               <= rd_addr_out-1 when rd_addr_out > 0             else CAFIFO_SIZE-1;
   next_rd_addr               <= rd_addr_out+1 when rd_addr_out < CAFIFO_SIZE-1 else 0;
-  --prev_rd_addr_1             <= rd_addr_out_1-1 when rd_addr_out_1 > 0         else CAFIFO_SIZE-1;
-  --next_rd_addr_1             <= rd_addr_out_1+1 when rd_addr_out_1 < CAFIFO_SIZE-1 else 0;
+  prev_rd_addr_1             <= rd_addr_out_1-1 when rd_addr_out_1 > 0         else CAFIFO_SIZE-1;
+  next_rd_addr_1             <= rd_addr_out_1+1 when rd_addr_out_1 < CAFIFO_SIZE-1 else 0;
   -- cafifo_prev_next_l1a_match <= l1a_match(prev_rd_addr)(NCFEB+1 downto 1) & l1a_match(next_rd_addr)(NCFEB+1 downto 1);
   -- cafifo_prev_next_l1a       <= l1a_cnt(prev_rd_addr)(7 downto 0) & l1a_cnt(next_rd_addr)(7 downto 0);
 

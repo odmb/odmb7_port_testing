@@ -14,15 +14,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="863305fs"></ZoomStartTime>
-      <ZoomEndTime time="1035470fs"></ZoomEndTime>
+      <ZoomStartTime time="0fs"></ZoomStartTime>
+      <ZoomEndTime time="1714875fs"></ZoomEndTime>
       <Cursor1Time time="1000000fs"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="126"></NameColumnWidth>
-      <ValueColumnWidth column_width="66"></ValueColumnWidth>
+      <NameColumnWidth column_width="189"></NameColumnWidth>
+      <ValueColumnWidth column_width="125"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="32" />
+   <WVObjectSize size="44" />
    <wvobject fp_name="divider412" type="divider">
       <obj_property name="label">Clocks</obj_property>
       <obj_property name="DisplayName">label</obj_property>
@@ -127,6 +127,10 @@
       <obj_property name="ElementShortName">cafifo_l1a_match_out[9:1]</obj_property>
       <obj_property name="ObjectShortName">cafifo_l1a_match_out[9:1]</obj_property>
    </wvobject>
+   <wvobject type="array" fp_name="/Firmware_tb/odmb_i/MBC/CAFIFO_PM/cafifo_l1a_match">
+      <obj_property name="ElementShortName">cafifo_l1a_match[9:1]</obj_property>
+      <obj_property name="ObjectShortName">cafifo_l1a_match[9:1]</obj_property>
+   </wvobject>
    <wvobject type="array" fp_name="/Firmware_tb/odmb_i/cafifo_l1a_cnt">
       <obj_property name="ElementShortName">cafifo_l1a_cnt[23:0]</obj_property>
       <obj_property name="ObjectShortName">cafifo_l1a_cnt[23:0]</obj_property>
@@ -138,6 +142,50 @@
    <wvobject type="array" fp_name="/Firmware_tb/odmb_i/cafifo_bx_cnt">
       <obj_property name="ElementShortName">cafifo_bx_cnt[11:0]</obj_property>
       <obj_property name="ObjectShortName">cafifo_bx_cnt[11:0]</obj_property>
+   </wvobject>
+   <wvobject type="other" fp_name="/Firmware_tb/odmb_i/MBC/CAFIFO_PM/prev_rd_addr">
+      <obj_property name="ElementShortName">prev_rd_addr</obj_property>
+      <obj_property name="ObjectShortName">prev_rd_addr</obj_property>
+   </wvobject>
+   <wvobject type="other" fp_name="/Firmware_tb/odmb_i/MBC/CAFIFO_PM/rd_addr_out">
+      <obj_property name="ElementShortName">rd_addr_out</obj_property>
+      <obj_property name="ObjectShortName">rd_addr_out</obj_property>
+   </wvobject>
+   <wvobject type="other" fp_name="/Firmware_tb/odmb_i/MBC/CAFIFO_PM/next_rd_addr">
+      <obj_property name="ElementShortName">next_rd_addr</obj_property>
+      <obj_property name="ObjectShortName">next_rd_addr</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Firmware_tb/odmb_i/MBC/CAFIFO_PM/cafifo_l1a_match_1">
+      <obj_property name="ElementShortName">cafifo_l1a_match_1[9:1]</obj_property>
+      <obj_property name="ObjectShortName">cafifo_l1a_match_1[9:1]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Firmware_tb/odmb_i/MBC/CAFIFO_PM/cafifo_l1a_cnt_1">
+      <obj_property name="ElementShortName">cafifo_l1a_cnt_1[23:0]</obj_property>
+      <obj_property name="ObjectShortName">cafifo_l1a_cnt_1[23:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Firmware_tb/odmb_i/MBC/CAFIFO_PM/cafifo_l1a_dav_1">
+      <obj_property name="ElementShortName">cafifo_l1a_dav_1[9:1]</obj_property>
+      <obj_property name="ObjectShortName">cafifo_l1a_dav_1[9:1]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Firmware_tb/odmb_i/MBC/CAFIFO_PM/cafifo_bx_cnt_1">
+      <obj_property name="ElementShortName">cafifo_bx_cnt_1[11:0]</obj_property>
+      <obj_property name="ObjectShortName">cafifo_bx_cnt_1[11:0]</obj_property>
+   </wvobject>
+   <wvobject type="other" fp_name="/Firmware_tb/odmb_i/MBC/CAFIFO_PM/prev_rd_addr_1">
+      <obj_property name="ElementShortName">prev_rd_addr_1</obj_property>
+      <obj_property name="ObjectShortName">prev_rd_addr_1</obj_property>
+   </wvobject>
+   <wvobject type="other" fp_name="/Firmware_tb/odmb_i/MBC/CAFIFO_PM/rd_addr_out_1">
+      <obj_property name="ElementShortName">rd_addr_out_1</obj_property>
+      <obj_property name="ObjectShortName">rd_addr_out_1</obj_property>
+   </wvobject>
+   <wvobject type="other" fp_name="/Firmware_tb/odmb_i/MBC/CAFIFO_PM/next_rd_addr_1">
+      <obj_property name="ElementShortName">next_rd_addr_1</obj_property>
+      <obj_property name="ObjectShortName">next_rd_addr_1</obj_property>
+   </wvobject>
+   <wvobject type="other" fp_name="/Firmware_tb/odmb_i/MBC/CAFIFO_PM/counter_link">
+      <obj_property name="ElementShortName">counter_link</obj_property>
+      <obj_property name="ObjectShortName">counter_link</obj_property>
    </wvobject>
    <wvobject fp_name="divider412" type="divider">
       <obj_property name="label">CONTROL_FSM</obj_property>

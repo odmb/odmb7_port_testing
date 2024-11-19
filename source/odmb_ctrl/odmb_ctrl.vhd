@@ -572,6 +572,8 @@ begin
       cafifo_bx_cnt    => cafifo_bx_cnt_out,
       cafifo_lost_pckt => cafifo_lost_pckt_out,
       cafifo_lone      => cafifo_lone
+
+      --TODO: ADD MORE LINES HERE FOR PARALLELIZATION
       );
 
   PCFIFO_PM : PCFIFO
