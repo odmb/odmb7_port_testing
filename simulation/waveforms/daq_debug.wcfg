@@ -14,15 +14,15 @@
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="0fs"></ZoomStartTime>
-      <ZoomEndTime time="1714875fs"></ZoomEndTime>
-      <Cursor1Time time="1000000fs"></Cursor1Time>
+      <ZoomStartTime time="133.724060 us"></ZoomStartTime>
+      <ZoomEndTime time="197.074061 us"></ZoomEndTime>
+      <Cursor1Time time="186.515727 us"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
       <NameColumnWidth column_width="189"></NameColumnWidth>
-      <ValueColumnWidth column_width="125"></ValueColumnWidth>
+      <ValueColumnWidth column_width="113"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="44" />
+   <WVObjectSize size="49" />
    <wvobject fp_name="divider412" type="divider">
       <obj_property name="label">Clocks</obj_property>
       <obj_property name="DisplayName">label</obj_property>
@@ -186,6 +186,26 @@
    <wvobject type="other" fp_name="/Firmware_tb/odmb_i/MBC/CAFIFO_PM/counter_link">
       <obj_property name="ElementShortName">counter_link</obj_property>
       <obj_property name="ObjectShortName">counter_link</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/MBC/CAFIFO_PM/L1ACNT_RST">
+      <obj_property name="ElementShortName">L1ACNT_RST</obj_property>
+      <obj_property name="ObjectShortName">L1ACNT_RST</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/MBC/CAFIFO_PM/BXCNT_RST">
+      <obj_property name="ElementShortName">BXCNT_RST</obj_property>
+      <obj_property name="ObjectShortName">BXCNT_RST</obj_property>
+   </wvobject>
+   <wvobject type="other" fp_name="/Firmware_tb/odmb_i/MBC/CAFIFO_PM/wr_addr_out">
+      <obj_property name="ElementShortName">wr_addr_out</obj_property>
+      <obj_property name="ObjectShortName">wr_addr_out</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/MBC/CAFIFO_PM/cafifo_rden">
+      <obj_property name="ElementShortName">cafifo_rden</obj_property>
+      <obj_property name="ObjectShortName">cafifo_rden</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/MBC/CAFIFO_PM/cafifo_rden_q">
+      <obj_property name="ElementShortName">cafifo_rden_q</obj_property>
+      <obj_property name="ObjectShortName">cafifo_rden_q</obj_property>
    </wvobject>
    <wvobject fp_name="divider412" type="divider">
       <obj_property name="label">CONTROL_FSM</obj_property>

@@ -274,7 +274,7 @@ begin
   --
 
   -------------------- L1A Counter        --------------------
-
+-- TODO: modify logic here for parallelization
   l1a_counter : process (clk, l1a, l1acnt_rst)
   begin
     if (l1acnt_rst = '1') then
@@ -289,6 +289,8 @@ begin
   ---------------------- Memory           ----------------------
   --synchronous FIFOs (L1A, BX, L1A_MATCH, LONE)
 
+
+-- TODO: modify logic here for parallelization
   l1a_cnt_fifo : process (cafifo_wren, wr_addr_out, l1acnt_rst, clk, l1a_cnt_out)
   begin
     if (l1acnt_rst = '1') then
@@ -301,12 +303,12 @@ begin
       end if;
       if (cafifo_rden = '1') then
         l1a_cnt(rd_addr_out) <= (others => '1');
-	l1a_cnt(rd_addr_out_1) <= (others => '1');
+	    l1a_cnt(rd_addr_out_1) <= (others => '1');
       end if;
     end if;
   end process;
 
-
+-- TODO: modify logic here for parallelization
   bx_cnt_fifo : process (cafifo_wren, wr_addr_out, bxcnt_rst, clk, bx_cnt_out_reg)
   begin
     if (bxcnt_rst = '1') then
@@ -320,12 +322,12 @@ begin
     end if;
   end process;
 
-
+-- TODO: modify logic here for parallelization
   l1a_match_fifo : process (cafifo_wren, wr_addr_out, l1acnt_rst, clk, l1a_match_in_reg)
   begin
     if l1acnt_rst = '1' then
       for index in 0 to CAFIFO_SIZE-1 loop
-        l1a_match(index) <= (others => '0');
+        l1a_match(index) <= (others => '0');  -- This is where the l1a_match gets reset to its initial value
       end loop;
     elsif falling_edge(clk) then
       if (cafifo_wren = '1') then
@@ -338,7 +340,7 @@ begin
     end if;
   end process;
 
-
+-- TODO: modify logic here for parallelization
   lone_fifo : process (cafifo_wren, wr_addr_out, l1acnt_rst, clk, lone_in_reg)
   begin
     if l1acnt_rst = '1' then
@@ -504,9 +506,9 @@ begin
         if (wr_addr_out = CAFIFO_SIZE-1) then
           wr_addr_out <= 0;
         else
-          wr_addr_out <= wr_addr_out + 1;
+          wr_addr_out <= wr_addr_out + 1;  
         end if;
-      end if;
+      end if; 
       if (rd_addr_en = '1') then
         counter_link <= counter_link + 1;
         if (rd_addr_out = CAFIFO_SIZE-1) then
@@ -517,7 +519,7 @@ begin
           --rd_addr_out <= rd_addr_out + 1;
           --rd_addr_out_1 <= rd_addr_out_1 + 1;
 	  if ( counter_link mod NLINKS = 1 ) then
-		rd_addr_out_1 <= rd_addr_out_1 + 2;  --! Increment past the other rd_addr_out 
+		rd_addr_out_1 <= rd_addr_out_1 + 2;  --! Increment past the other rd_addr_out
           else
 		rd_addr_out <= rd_addr_out + 2; 
           end if;
@@ -567,7 +569,7 @@ begin
         cafifo_empty <= '0';
         cafifo_full  <= '0';
         if (cafifo_wren_q = '1' and cafifo_rden_q = '0') then
-          if ((wr_addr_out = rd_addr_out-1) or (wr_addr_out = CAFIFO_SIZE-1 and rd_addr_out = 0)) then
+          if ((wr_addr_out = rd_addr_out-1) or (wr_addr_out = CAFIFO_SIZE-1 and rd_addr_out = 0)) then  -- Add logic here for other rd_addr_out signals
             next_state <= FIFO_FULL;
           else
             next_state <= FIFO_NOT_EMPTY;
@@ -575,7 +577,7 @@ begin
           wr_addr_en <= '1';
           rd_addr_en <= '0';
         elsif (cafifo_rden_q = '1' and cafifo_wren_q = '0') then
-          if (rd_addr_out = wr_addr_out-1 or (rd_addr_out = CAFIFO_SIZE-1 and wr_addr_out = 0)) then
+          if (rd_addr_out = wr_addr_out-1 or (rd_addr_out = CAFIFO_SIZE-1 and wr_addr_out = 0)) then   -- Add logic here for other rd_addr_out signals
             next_state <= FIFO_EMPTY;
           else
             next_state <= FIFO_NOT_EMPTY;
