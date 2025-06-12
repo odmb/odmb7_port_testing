@@ -219,6 +219,12 @@ architecture ODMB_DATA_ARCH of odmb_data is
   signal l1acnt_fifo_rst : std_logic := '0';
   signal datafifo_mask   : std_logic := '0';
 
+  --TEST COUNTER SIGNAL
+  signal counter : unsigned(17 downto 0) := (others => '0');
+  type fm_dout is array(NCFEB+2 downto 1) of std_logic_vector(17 downto 0);
+  type multi_fm_dout is array (4 downto 1) of fm_dout;
+  signal multi_fm_out_inst : multi_fm_dout;
+  
 begin
 
 
@@ -476,5 +482,68 @@ begin
   end generate;
 
   -- fifo_empty <= alct_fifo_empty & otmb_fifo_empty & dcfeb_fifo_empty;
+
+  COUNTER_PROCESS : process (CMSCLK)
+  begin
+    if rising_edge(CMSCLK) then
+        counter <= counter + 1;
+    end if;
+  end process;
+        
+
+  -- Test the multiplication of the FIFOs: adding 4x more FIFOs
+  FIFO_MULT : for J in 4 downto 1 generate
+  begin
+
+    G2_DCFEB : for K in NCFEB downto 1 generate
+    begin
+      datafifo_dcfeb_pm : datafifo_dcfeb
+        port map(
+          --need change due to use auto-kill
+          --rst       => dcfeb_fifo_rst(I),
+          srst      => '0',
+          wr_clk    => DCFEBCLK,
+          rd_clk    => DDUCLK,
+          din       => std_logic_vector(counter),
+          wr_en     => '1',
+          rd_en     => '1',
+          dout      => multi_fm_out_inst(J)(K),
+          full      => open,
+          empty     => open,
+          prog_full => open
+          );
+    end generate G2_DCFEB;
+
+
+    -- datafifo for alct and otmb
+    datafifo_alct_pm : datafifo_40mhz
+      port map(
+          srst      => '0',
+          wr_clk    => CMSCLK,
+          rd_clk    => DDUCLK,
+          din       => std_logic_vector(counter),
+          wr_en     => '1',
+          rd_en     => '1',
+          dout      => multi_fm_out_inst(J)(NCFEB+2),
+          full      => open,
+          empty     => open,
+          prog_full => open        
+          );
+
+    datafifo_otmb_pm : datafifo_40mhz
+      port map(
+          srst      => '0',
+          wr_clk    => CMSCLK,
+          rd_clk    => DDUCLK,
+          din       => std_logic_vector(counter),
+          wr_en     => '1',
+          rd_en     => '1',
+          dout      => multi_fm_out_inst(J)(NCFEB+1),
+          full      => open,
+          empty     => open,
+          prog_full => open
+        );
+
+  end generate FIFO_MULT;
 
 end ODMB_DATA_ARCH;
