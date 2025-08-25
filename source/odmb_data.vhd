@@ -43,7 +43,11 @@ entity odmb_data is
 
     FIFO_RE_B           : in std_logic_vector(NCFEB+2 downto 1);
     FIFO_OE_B           : in std_logic_vector(NCFEB+2 downto 1);
-    FIFO_DOUT           : out std_logic_vector(17 downto 0);
+    FIFO_DOUT          : out std_logic_vector(17 downto 0);
+    
+    FIFO_DOUT1          : out std_logic_vector(17 downto 0);
+    FIFO_DOUT2          : out std_logic_vector(17 downto 0);
+    
     FIFO_EMPTY          : out std_logic_vector(NCFEB+2 downto 1);
     FIFO_HALF_FULL      : out std_logic_vector(NCFEB+2 downto 1)
   );
@@ -67,7 +71,9 @@ architecture ODMB_DATA_ARCH of odmb_data is
       rd_rst_busy : out std_logic
       );
   end component;
-
+  
+  
+  
   component datafifo_dcfeb
     port (
       srst : in std_logic;
@@ -224,6 +230,11 @@ architecture ODMB_DATA_ARCH of odmb_data is
   type fm_dout is array(NCFEB+2 downto 1) of std_logic_vector(17 downto 0);
   type multi_fm_dout is array (4 downto 1) of fm_dout;
   signal multi_fm_out_inst : multi_fm_dout;
+  attribute dont_touch : string;
+  attribute dont_touch of counter : signal is "true";
+  attribute dont_touch of multi_fm_out_inst : signal is "true";
+  attribute dont_touch of datafifo_40mhz : component is "yes";
+  attribute dont_touch of datafifo_dcfeb : component is "yes";
   
 begin
 
@@ -492,7 +503,7 @@ begin
         
 
   -- Test the multiplication of the FIFOs: adding 4x more FIFOs
-  FIFO_MULT : for J in 4 downto 1 generate
+  FIFO_MULT : for J in 2 downto 1 generate
   begin
 
     G2_DCFEB : for K in NCFEB downto 1 generate
@@ -504,7 +515,7 @@ begin
           srst      => '0',
           wr_clk    => DCFEBCLK,
           rd_clk    => DDUCLK,
-          din       => std_logic_vector(counter),
+          din       => eofgen_dcfeb_fifo_in(K),
           wr_en     => '1',
           rd_en     => '1',
           dout      => multi_fm_out_inst(J)(K),
@@ -521,7 +532,7 @@ begin
           srst      => '0',
           wr_clk    => CMSCLK,
           rd_clk    => DDUCLK,
-          din       => std_logic_vector(counter),
+          din       => alct_fifo_data_in,
           wr_en     => '1',
           rd_en     => '1',
           dout      => multi_fm_out_inst(J)(NCFEB+2),
@@ -535,7 +546,7 @@ begin
           srst      => '0',
           wr_clk    => CMSCLK,
           rd_clk    => DDUCLK,
-          din       => std_logic_vector(counter),
+          din       => otmb_fifo_data_in,
           wr_en     => '1',
           rd_en     => '1',
           dout      => multi_fm_out_inst(J)(NCFEB+1),
@@ -546,4 +557,32 @@ begin
 
   end generate FIFO_MULT;
 
+
+  u_dout_assign_7_2 : if NCFEB = 7 generate
+    FIFO_DOUT1 <= multi_fm_out_inst(1)(1)  when FIFO_OE_B = "111111110" else
+                 multi_fm_out_inst(1)(2)  when FIFO_OE_B = "111111101" else
+                 multi_fm_out_inst(1)(3)  when FIFO_OE_B = "111111011" else
+                 multi_fm_out_inst(1)(4)  when FIFO_OE_B = "111110111" else
+                 multi_fm_out_inst(1)(5)  when FIFO_OE_B = "111101111" else
+                 multi_fm_out_inst(1)(6)  when FIFO_OE_B = "111011111" else
+                 multi_fm_out_inst(1)(7)  when FIFO_OE_B = "110111111" else
+                 multi_fm_out_inst(1)(8) when FIFO_OE_B = "101111111" else
+                 multi_fm_out_inst(1)(9) when FIFO_OE_B = "011111111" else
+                 (others => '0');
+  end generate;
+ 
+  u_dout_assign_7_3 : if NCFEB = 7 generate
+    FIFO_DOUT1 <= multi_fm_out_inst(2)(1)  when FIFO_OE_B = "111111110" else
+                 multi_fm_out_inst(2)(2)  when FIFO_OE_B = "111111101" else
+                 multi_fm_out_inst(2)(3)  when FIFO_OE_B = "111111011" else
+                 multi_fm_out_inst(2)(4)  when FIFO_OE_B = "111110111" else
+                 multi_fm_out_inst(2)(5)  when FIFO_OE_B = "111101111" else
+                 multi_fm_out_inst(2)(6)  when FIFO_OE_B = "111011111" else
+                 multi_fm_out_inst(2)(7)  when FIFO_OE_B = "110111111" else
+                 multi_fm_out_inst(2)(8) when FIFO_OE_B = "101111111" else
+                 multi_fm_out_inst(2)(9) when FIFO_OE_B = "011111111" else
+                 (others => '0');
+  end generate;
+ 
+  
 end ODMB_DATA_ARCH;

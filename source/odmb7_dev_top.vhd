@@ -593,6 +593,8 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal fifo_empty     : std_logic_vector(NCFEB+2 downto 1);
 
   signal fifo_dout : std_logic_vector(17 downto 0);
+  signal fifo_dout1 : std_logic_vector(17 downto 0);
+  signal fifo_dout2 : std_logic_vector(17 downto 0);
   signal fifo_oe_b : std_logic_vector(NCFEB+2 downto 1) := (others => '1');
   signal fifo_re_b : std_logic_vector(NCFEB+2 downto 1) := (others => '1');
 
@@ -658,6 +660,8 @@ begin
       FIFO_RE_B           => fifo_re_b,
       FIFO_OE_B           => fifo_oe_b,
       FIFO_DOUT           => fifo_dout,
+      FIFO_DOUT1           => fifo_dout1,
+      FIFO_DOUT2           => fifo_dout2,
       FIFO_EMPTY          => fifo_empty,
       FIFO_HALF_FULL      => fifo_half_full
       );
@@ -1188,6 +1192,9 @@ begin
       FIFO_RE_B  => fifo_re_b,
       FIFO_OE_B  => fifo_oe_b,
       FIFO_DOUT  => fifo_dout,
+      FIFO_DOUT1  => fifo_dout1,
+      FIFO_DOUT2  => fifo_dout2,
+      
       -- FIFO_EOF => fifo_eof,
       FIFO_EMPTY   => fifo_empty,  -- emptyf*(7 DOWNTO 1) - from FIFOs
       FIFO_HALF_FULL => fifo_half_full

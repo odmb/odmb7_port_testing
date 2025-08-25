@@ -121,6 +121,8 @@ entity ODMB_CTRL is
     FIFO_RE_B      : out std_logic_vector(NCFEB+2 downto 1);  --! From CONTROL_FSM to read FE FIFO
     FIFO_OE_B      : out std_logic_vector(NCFEB+2 downto 1);  --! From CONTROL_FSM to select FE FIFO
     FIFO_DOUT      : in std_logic_vector(17 downto 0);        --! Output from FE FIFOs to CONTROL_FSM
+    FIFO_DOUT1      : in std_logic_vector(17 downto 0); 
+    FIFO_DOUT2      : in std_logic_vector(17 downto 0); 
     FIFO_EMPTY     : in std_logic_vector(NCFEB+2 downto 1);   --! Empty from FE FIFOs to CONTROL_FSM
     FIFO_HALF_FULL : in std_logic_vector(NCFEB+2 downto 1)    --! Full from FE FIFOs to CONTROL_FSM
     );
@@ -522,8 +524,14 @@ begin
       -- from Data FIFOs
       FIFO_HALF_FULL => fifo_half_full,
       FFOR_B         => fifo_empty,
+      
       DATAIN         => FIFO_DOUT(15 downto 0),
+      DATAIN         => FIFO_DOUT1(15 downto 0),
+      DATAIN         => FIFO_DOUT2(15 downto 0),
+      
       DATAIN_LAST    => FIFO_DOUT(17),
+      DATAIN_LAST    => FIFO_DOUT1(17),
+      DATAIN_LAST    => FIFO_DOUT2(17),
 
       -- From JTAGCOM
       JOEF => joef,       -- from LOADFIFO
