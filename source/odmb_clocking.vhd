@@ -31,6 +31,7 @@ entity odmb_clocking is
     CLK_125_REF_P : in std_logic;       --! refclk1 to MGT quad 226
     CLK_125_REF_N : in std_logic;       --! refclk1 to MGT quad 226
     LF_CLK : in std_logic;              --! Low frequency, 10 kHz
+    EMCCLK : in std_logic;              --! 128 MHz clock for programming the FPGA
 
     --------------------
     -- Output clocks
@@ -61,7 +62,7 @@ entity odmb_clocking is
     clk_mgtclk5 : out std_logic;        --! buffered clock from MGT quad 227 clock 1, from REF_CLK_5
     clk_mgtclk125 : out std_logic;      --! buffered clock from MGT quad 226 clock 1, from CLK_125_REF
 
-    led_clkfreqs : out std_logic_vector(7 downto 0) --! blinking signals at ~1Hz for the input clocks
+    led_clkfreqs : out std_logic_vector(11 downto 0) --! blinking signals at ~1Hz for the input clocks
 
     );
 end odmb_clocking;
@@ -104,6 +105,10 @@ architecture Clocking_Arch of odmb_clocking is
   signal clk_cmsclk_unbuf : std_logic;
   signal clk_gp6_unbuf : std_logic;
   signal clk_gp7_unbuf : std_logic;
+  
+  signal clk_emcclk : std_logic;
+  signal clk_lfclk_int : std_logic;
+  signal blink_1hz : std_logic := '0';
 
   signal cntr_cmsclk    : unsigned(40 downto 0) := (others => '0');
   signal cntr_mgtclk1   : unsigned(40 downto 0) := (others => '0');
@@ -114,6 +119,9 @@ architecture Clocking_Arch of odmb_clocking is
   signal cntr_mgtclk125 : unsigned(40 downto 0) := (others => '0');
   signal cntr_clkgp6    : unsigned(40 downto 0) := (others => '0');
   signal cntr_clkgp7    : unsigned(40 downto 0) := (others => '0');
+  signal cntr_lfclk     : unsigned(40 downto 0) := (others => '0');
+  signal cntr_emcclk    : unsigned(40 downto 0) := (others => '0');
+  --signal cntr_1hz       : unsigned(12 downto 0) := (others => '0');
 
 begin
 
@@ -206,7 +214,10 @@ begin
   u_bufg_gp7 : BUFG port map (I => clk_gp7_unbuf, O => clk_gp7);
   u_bufg_gp6 : BUFG port map (I => clk_gp6_unbuf, O => clk_gp6);
   u_bufg_cms : BUFG port map (I => clk_cmsclk_unbuf, O => clk_cmsclk);
-  u_bufg_lfc : BUFG port map (I => LF_CLK, O => clk_lfclk);
+  u_bufg_lfc : BUFG port map (I => LF_CLK, O => clk_lfclk_int);
+  --u_bufg_emc : BUFG port map (I => EMCCLK, O => clk_emcclk);
+  
+  clk_lfclk <= clk_lfclk_int;
 
   -- BUFG for GT clocks
   u_mgtclk0_q224 : BUFG_GT
@@ -312,15 +323,27 @@ begin
   -- Generate Human readable LED signals
   -------------------------------------------------------------------------------------------
   -- 2^25 = 33'554'432, 2^26 = 67'108'864, 2^27 = 134'217'728, 2^28 = 268'435'456, 2^30 = 1'073'741'824
+--  LEDS_CFV(0)  <= led_clkfreqs(0);  -- cmsclk   :  40 MHz = led at 40/33.5 ~ 1.2 Hz
+--  LEDS_CFV(1)  <= led_clkfreqs(1);
+--  LEDS_CFV(2)  <= led_clkfreqs(1);  -- mgtclk1  : 160 MHz = led at 160/134 ~ 1.2 Hz
+--  LEDS_CFV(4)  <= led_clkfreqs(3);  -- mgtclk3  : 160 MHz = led at 160/134 ~ 1.2 Hz
+--  LEDS_CFV(6)  <= led_clkfreqs(4);  -- mgtclk4  : 120 MHz = led at 120/134 ~ 0.9 Hz
+--  LEDS_CFV(8)  <= led_clkfreqs(6);  -- mgtclk125: 125 MHz = led at 125/134 ~ 0.9 Hz
+--  LEDS_CFV(10) <= led_clkfreqs(7);  -- clk_gp7  : 80 MHz = led at 80/67.1 ~ 1.2 Hz
+
 
   led_clkfreqs(0) <= std_logic(cntr_cmsclk(24));    -- clk at  40 MHz = led at 40/33.5 ~ 1.2 Hz
   led_clkfreqs(1) <= std_logic(cntr_mgtclk1(26));   -- clk at 160 MHz = led at 160/134 ~ 1.2 Hz 
   led_clkfreqs(2) <= std_logic(cntr_mgtclk2(26));   -- clk at 160 MHz = led at 160/134 ~ 1.2 Hz 
   led_clkfreqs(3) <= std_logic(cntr_mgtclk3(26));   -- clk at 160 MHz = led at 160/134 ~ 1.2 Hz 
   led_clkfreqs(4) <= std_logic(cntr_mgtclk4(26));   -- clk at 120 MHz = led at 120/134 ~ 0.9 Hz
-  led_clkfreqs(5) <= std_logic(cntr_mgtclk5(26));   -- clk at 160 MHz = led at 160/134 ~ 1.2 Hz 
-  led_clkfreqs(6) <= std_logic(cntr_mgtclk125(26)); -- clk at 125 MHz = led at 125/134 ~ 0.9 Hz
-  led_clkfreqs(7) <= std_logic(cntr_clkgp7(25));    -- clk at  80 MHz = led at 80/67.1 ~ 1.2 Hz
+  led_clkfreqs(5) <= std_logic(cntr_mgtclk5(26));   -- clk at 160 MHz = led at 160/134 ~ 1.2 Hz
+  led_clkfreqs(6) <= std_logic(cntr_mgtclk125(26)); -- clk at 125 MHz = led at 125/134 ~ 0.9 Hz 
+  led_clkfreqs(7) <= std_logic(cntr_lfclk(12));     -- clk at 10  kHz = led at 8192/10000 ~ 0.8 Hz
+  led_clkfreqs(8) <= std_logic(cntr_emcclk(26));    -- clk at 128 MHz = led at 128/134 ~ 1.0 Hz
+  led_clkfreqs(9) <= std_logic(cntr_clkgp6(25));    -- clk at  80 MHz = led at 80/67.1 ~ 1.2 Hz
+  led_clkfreqs(10)<= std_logic(cntr_clkgp7(25));    -- clk at  80 MHz = led at 80/67.1 ~ 1.2 Hz
+  led_clkfreqs(11)<= std_logic(blink_1hz);          -- 1Hz blinking signal
 
    cntr_cmsclk    <= cntr_cmsclk    + 1 when rising_edge(clk_cmsclk_unbuf);
    cntr_mgtclk1   <= cntr_mgtclk1   + 1 when rising_edge(mgtclk1);
@@ -331,5 +354,24 @@ begin
    cntr_mgtclk125 <= cntr_mgtclk125 + 1 when rising_edge(mgtclk125);
    cntr_clkgp6    <= cntr_clkgp6    + 1 when rising_edge(clk_gp6_unbuf);
    cntr_clkgp7    <= cntr_clkgp7    + 1 when rising_edge(clk_gp7_unbuf);
-
+   cntr_lfclk     <= cntr_lfclk     + 1 when rising_edge(clk_lfclk_int);
+   cntr_emcclk    <= cntr_emcclk    + 1 when rising_edge(emcclk);
+   
+   --blink_1hz <= not blink_1hz when cntr_lfclk(12 downto 0)="1001110001000";
+   
+    done_fsm_logic : process (clk_lfclk_int)
+        variable cntr_1hz : unsigned(12 downto 0) := (others=>'0');
+        begin
+            if(rising_edge(clk_lfclk_int)) then
+                --Every clock cycle add 1 to the counter
+                cntr_1hz := cntr_1hz+1;
+                
+                --If the counter has reached 0.5s flip LED and reset
+                if(cntr_1hz(12 downto 0) >= "1001110001000") then 
+                    blink_1hz <= not blink_1hz;
+                    cntr_1hz := (others=>'0');
+                end if;
+            end if;
+        end process;
+        
 end Clocking_Arch;

@@ -44,7 +44,8 @@ entity odmb5_ucsb_dev is
     CLK_125_REF_P  : in std_logic;                         --! From clock synthesizer, refclk1 to GTH quad 226.
     CLK_125_REF_N  : in std_logic;                         --! From clock synthesizer, refclk1 to GTH quad 226.
     LF_CLK         : in std_logic;                         --! From clock synthesizer, 10 kHz. General purpose low frequency clock, currently unused. Connected to bank 45.
-
+    EMCCLK         : in std_logic;                          --! From clock synthesizer, 128 MHz clock for programming FPGA from EEPROM. Unused in firmware
+    
     --------------------
     -- Signals controlled by ODMB_VME
     --------------------
@@ -680,6 +681,7 @@ begin
       CLK_125_REF_P  => CLK_125_REF_P,
       CLK_125_REF_N  => CLK_125_REF_N,
       LF_CLK         => LF_CLK,
+      EMCCLK         => EMCCLK,
       mgtrefclk0_224 => mgtrefclk0_224,
       mgtrefclk0_225 => mgtrefclk0_225,
       mgtrefclk0_226 => mgtrefclk0_226,
@@ -702,7 +704,8 @@ begin
       clk_mgtclk3    => mgtclk3,
       clk_mgtclk4    => mgtclk4,
       clk_mgtclk5    => mgtclk5,
-      clk_mgtclk125  => mgtclk125
+      clk_mgtclk125  => mgtclk125,
+      led_clkfreqs   => leds_cfv
       );
 
   -------------------------------------------------------------------------------------------

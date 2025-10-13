@@ -29,7 +29,7 @@ set_property -dict { PACKAGE_PIN AK23  IOSTANDARD LVDS  DIFF_TERM_ADV TERM_100 }
 set_property -dict { PACKAGE_PIN E18   IOSTANDARD LVDS  DIFF_TERM_ADV TERM_100 } [get_ports GP_CLK_7_P]
 set_property -dict { PACKAGE_PIN E17   IOSTANDARD LVDS  DIFF_TERM_ADV TERM_100 } [get_ports GP_CLK_7_N]
 
-# set_property -dict { PACKAGE_PIN K20   IOSTANDARD LVCMOS18 } [get_ports EMCCLK]
+set_property -dict { PACKAGE_PIN K20   IOSTANDARD LVCMOS18 } [get_ports EMCCLK]
 set_property -dict { PACKAGE_PIN AJ16  IOSTANDARD LVCMOS18 } [get_ports LF_CLK]
 
 set_property -dict { PACKAGE_PIN AF6  } [get_ports REF_CLK_1_P]

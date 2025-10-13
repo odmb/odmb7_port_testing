@@ -44,6 +44,7 @@ entity odmb7_ucsb_dev is
     CLK_125_REF_P  : in std_logic;                         --! From clock synthesizer, refclk1 to GTH quad 226.
     CLK_125_REF_N  : in std_logic;                         --! From clock synthesizer, refclk1 to GTH quad 226.
     LF_CLK         : in std_logic;                         --! From clock synthesizer, 10 kHz. General purpose low frequency clock, currently unused. Connected to bank 45.
+    EMCCLK         : in std_logic;                         --! From clock synthesizer, 10 kHz. General purpose low frequency clock, currently unused. Connected to bank 45.
 
     --------------------
     -- Signals controlled by ODMB_VME
@@ -281,7 +282,7 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal mgtclk4 : std_logic;
   signal mgtclk5 : std_logic;
   signal mgtclk125 : std_logic;
-  signal led_clkfreqs : std_logic_vector(7 downto 0);
+  signal led_clkfreqs : std_logic_vector(11 downto 0);
 
   --------------------------------------
   -- VME signals
@@ -609,6 +610,19 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal otmb_push_dly : integer range 0 to 63;
   signal test_otmb_dav, test_alct_dav              : std_logic := '0';
 
+    --signals for vio
+  signal vio_select : std_logic := 'U';
+  signal vio_leds : std_logic_vector(11 downto 0) := (others => '0');
+  
+  --Manually control the blinking of leds
+  component vio_0
+  port(
+    clk : in std_logic;
+    probe_out0 : out std_logic;
+    probe_out1 : out std_logic_vector(11 downto 0)
+  );
+  end component;
+
 begin
 
   -------------------------------------------------------------------------------------------
@@ -686,6 +700,7 @@ begin
       CLK_125_REF_P  => CLK_125_REF_P,
       CLK_125_REF_N  => CLK_125_REF_N,
       LF_CLK         => LF_CLK,
+      EMCCLK         => EMCCLK,
       -- Output clocks
       mgtrefclk0_224 => mgtrefclk0_224,
       mgtrefclk0_225 => mgtrefclk0_225,
@@ -714,12 +729,24 @@ begin
       );
 
   -- Make LED lights blink to reflect clock frequencies
-  LEDS_CFV(0)  <= led_clkfreqs(0);  -- cmsclk   :  40 MHz = led at 40/33.5 ~ 1.2 Hz
-  LEDS_CFV(2)  <= led_clkfreqs(1);  -- mgtclk1  : 160 MHz = led at 160/134 ~ 1.2 Hz
-  LEDS_CFV(4)  <= led_clkfreqs(3);  -- mgtclk3  : 160 MHz = led at 160/134 ~ 1.2 Hz
-  LEDS_CFV(6)  <= led_clkfreqs(4);  -- mgtclk4  : 120 MHz = led at 120/134 ~ 0.9 Hz
-  LEDS_CFV(8)  <= led_clkfreqs(6);  -- mgtclk125: 125 MHz = led at 125/134 ~ 0.9 Hz
-  LEDS_CFV(10) <= led_clkfreqs(7);  -- clk_gp7  : 80 MHz = led at 80/67.1 ~ 1.2 Hz
+  u_vio_0 : vio_0
+  port map(
+    clk => cmsclk,
+    probe_out0 => vio_select,
+    probe_out1 => vio_leds
+  );
+  
+--  LEDS_CFV <= (others => led_clkfreqs(0)) when vio_select = '0' else vio_leds;
+  
+  LEDS_CFV <= led_clkfreqs;
+  
+--  LEDS_CFV(0)  <= led_clkfreqs(0);  -- cmsclk   :  40 MHz = led at 40/33.5 ~ 1.2 Hz
+--  LEDS_CFV(1)  <= led_clkfreqs(1);
+--  LEDS_CFV(2)  <= led_clkfreqs(1);  -- mgtclk1  : 160 MHz = led at 160/134 ~ 1.2 Hz
+--  LEDS_CFV(4)  <= led_clkfreqs(3);  -- mgtclk3  : 160 MHz = led at 160/134 ~ 1.2 Hz
+--  LEDS_CFV(6)  <= led_clkfreqs(4);  -- mgtclk4  : 120 MHz = led at 120/134 ~ 0.9 Hz
+--  LEDS_CFV(8)  <= led_clkfreqs(6);  -- mgtclk125: 125 MHz = led at 125/134 ~ 0.9 Hz
+--  LEDS_CFV(10) <= led_clkfreqs(7);  -- clk_gp7  : 80 MHz = led at 80/67.1 ~ 1.2 Hz
 
   -------------------------------------------------------------------------------------------
   -- Handle VME signals
