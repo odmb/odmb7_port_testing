@@ -23,7 +23,7 @@ include:
 
 
 variables:
-        HOG_DEVELOP_BRANCH: "develop"
+        HOG_DEVELOP_BRANCH: "add-hog"
         VIVADO_VERSION: 2019.2
 
 ### Generic FW build rule ###
