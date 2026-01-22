@@ -1,5 +1,5 @@
 include:
-  - project: 'hog-cern/Hog'
+  - project: 'hog/Hog'
     file: '/hog.yml'
     ref: 'v9.54.6'  
 .only-default: &only-default
