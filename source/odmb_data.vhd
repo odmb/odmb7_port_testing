@@ -15,6 +15,7 @@ entity odmb_data is
   port (
     CMSCLK              : in std_logic;
     DDUCLK              : in std_logic;
+    CLK_160             : in std_logic;
     DCFEBCLK            : in std_logic;
     RESET               : in std_logic;
     L1ACNT_RST          : in std_logic;
@@ -45,7 +46,8 @@ entity odmb_data is
     FIFO_OE_B           : in std_logic_vector(NCFEB+2 downto 1);
     FIFO_DOUT           : out std_logic_vector(17 downto 0);
     FIFO_EMPTY          : out std_logic_vector(NCFEB+2 downto 1);
-    FIFO_HALF_FULL      : out std_logic_vector(NCFEB+2 downto 1)
+    FIFO_HALF_FULL      : out std_logic_vector(NCFEB+2 downto 1);
+    FIFO_FULL           : out std_logic_vector(NCFEB+2 downto 1) --! adding FIFO full flag as output
   );
 end odmb_data;
 
@@ -216,6 +218,7 @@ architecture ODMB_DATA_ARCH of odmb_data is
   signal pulse_eof40, pulse_eof160  : std_logic_vector(NCFEB downto 1);
 
   -- signal l1acnt_rst       : std_logic := '0';
+  signal fifo_full_cmsclk: std_logic_vector(NCFEB+2 downto 1);
   signal l1acnt_fifo_rst : std_logic := '0';
   signal datafifo_mask   : std_logic := '0';
 
@@ -310,7 +313,7 @@ begin
       wr_en     => data_fifo_we(NCFEB+2),
       rd_en     => data_fifo_re(NCFEB+2),
       dout      => alct_fifo_data_out,
-      full      => alct_fifo_full,
+      full      => FIFO_FULL_CMSCLK(NCFEB+2), --alct_fifo_full,
       empty     => FIFO_EMPTY(NCFEB+2),
       prog_full => FIFO_HALF_FULL(NCFEB+2)
       );
@@ -324,7 +327,7 @@ begin
       wr_en     => data_fifo_we(NCFEB+1),
       rd_en     => data_fifo_re(NCFEB+1),
       dout      => otmb_fifo_data_out,
-      full      => otmb_fifo_full,
+      full      => FIFO_FULL_CMSCLK(NCFEB+1), --otmb_fifo_full,
       empty     => FIFO_EMPTY(NCFEB+1),
       prog_full => FIFO_HALF_FULL(NCFEB+1)
       );
@@ -409,7 +412,7 @@ begin
         wr_en     => data_fifo_we(I),
         rd_en     => data_fifo_re(I),
         dout      => dcfeb_fifo_out(I),
-        full      => dcfeb_fifo_full(I),
+        full      => FIFO_FULL_CMSCLK(I), --dcfeb_fifo_full(I),
         empty     => FIFO_EMPTY(I),
         prog_full => FIFO_HALF_FULL(I)
         );
@@ -429,6 +432,14 @@ begin
   begin
     data_fifo_re(index) <= datafifo_mask and not fifo_re_b(index);
   end generate GENFIFORE;
+  
+  FIFO_FULL_CDC: for dev in NCFEB+1 to NCFEB+2 generate
+    CDC_PER_FULL: CROSSCLOCK port map(DOUT => FIFO_FULL(dev), CLK_DOUT=>DDUCLK, CLK_DIN=>CMSCLK, RST => L1ACNT_FIFO_RST, DIN=>FIFO_FULL_CMSCLK(dev));
+  end generate FIFO_FULL_CDC;
+  
+  FIFO_FULL_CDC_DCFEB: for dev in 1 to NCFEB generate
+    CDC_PER_FULL: CROSSCLOCK port map(DOUT => FIFO_FULL(dev), CLK_DOUT=>DDUCLK, CLK_DIN=>CLK_160, RST => L1ACNT_FIFO_RST, DIN=>FIFO_FULL_CMSCLK(dev));
+  end generate FIFO_FULL_CDC_DCFEB;
 
   -------------------------------------------------------------------------------------------
   -- Handle data readout

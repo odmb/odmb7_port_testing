@@ -41,6 +41,7 @@ entity CONTROL_FSM is
 
     -- from FIFOs
     FIFO_HALF_FULL : in std_logic_vector(NCFEB+2 downto 1); --! for status words, programmable full signal
+    FIFO_FULL      : in std_logic_vector(NCFEB+2 downto 1); --! routing FIFO full signals 
     FFOR_B         : in std_logic_vector(NCFEB+2 downto 1); --! debug signal, fifo empty signal
     DATAIN         : in std_logic_vector(15 downto 0); --! data from FIFO (lower 15 bits in FIFOs)
     DATAIN_LAST    : in std_logic; --! indicates last word, top bit in data FIFOs
@@ -100,7 +101,7 @@ architecture CONTROL_arch of CONTROL_FSM is
   constant sync             : std_logic_vector(3 downto 0)      := "0000";
   constant alct_to_end      : std_logic                         := '0';
   constant otmb_to_end      : std_logic                         := '0';
-  constant data_fifo_full   : std_logic_vector(NCFEB+2 downto 1) := (others => '0');
+  -- constant data_fifo_full   : std_logic_vector(NCFEB+2 downto 1) := (others => '0');
   -- constant data_fifo_half   : std_logic_vector(NCFEB+2 downto 1) := (others => '0');
   constant dmb_l1pipe       : std_logic_vector(7 downto 0)      := (others => '0');
   constant wait_max         : integer := 16;
@@ -467,13 +468,13 @@ begin
   tail_word(1) <= x"F" & alct_to_end & cafifo_bx_cnt(4 downto 0) & cafifo_l1a_cnt(5 downto 0);
   --tail_word(2) <= x"F" & ovlp & AUTOKILLED_DCFEBS;
   tail_word(2) <= x"F" & ovlp & "000" & x"0"; -- Set timeout to 0 to avoid DDU errors
-  tail_word(3) <= x"F" & data_fifo_full(3 downto 1) & cafifo_lost_pckt(NCFEB+1) & dmb_l1pipe;
+  tail_word(3) <= x"F" & FIFO_FULL(3 downto 1) & cafifo_lost_pckt(NCFEB+1) & dmb_l1pipe; -- using FIFO_FULL signals routed from odmb_data
   -- tail_word(4) <= x"F" & cafifo_lost_pckt(9) & cafifo_lost_pckt(7 downto 1)
   --                 & data_fifo_full(7 downto 4);
   tail_word(4) <= x"F" & cafifo_lost_pckt(NCFEB+2) & "000" & x"0" -- Set timeout to 0 to avoid DDU errors
-                  & data_fifo_full(7 downto 4);
-  tail_word(5) <= x"E" & data_fifo_full(NCFEB+2 downto NCFEB+1) & not FIFO_HALF_FULL(NCFEB+2 downto NCFEB+1)
-                  & otmb_to_end & not fifo_half_full_cfeb_big(7 downto 1);
+                  & FIFO_FULL(7 downto 4);
+  tail_word(5) <= x"E" & FIFO_FULL(NCFEB+2 downto NCFEB+1) & FIFO_HALF_FULL(NCFEB+2 downto NCFEB+1)
+                  & otmb_to_end & fifo_half_full_cfeb_big(7 downto 1);
   tail_word(6) <= x"E" & DAQMBID(11 downto 0);
   tail_word(7) <= x"E" & REG_CRC(22) & REG_CRC(10 downto 0);
   tail_word(8) <= x"E" & REG_CRC(23) & REG_CRC(21 downto 11);

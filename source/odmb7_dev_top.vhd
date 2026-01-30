@@ -272,6 +272,7 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal sysclk20 : std_logic;
   signal sysclk40 : std_logic;
   signal sysclk80 : std_logic;
+  signal sysclk160 : std_logic;
   signal cmsclk : std_logic;
   signal clk_lfclk : std_logic;
   signal clk_gp6 : std_logic;
@@ -592,6 +593,7 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal into_fifo_dav  : std_logic_vector(NCFEB+2 downto 1);
   signal fifo_half_full : std_logic_vector(NCFEB+2 downto 1);
   signal fifo_empty     : std_logic_vector(NCFEB+2 downto 1);
+  signal fifo_full      : std_logic_vector(NCFEB+2 downto 1);
 
   signal fifo_dout : std_logic_vector(17 downto 0);
   signal fifo_oe_b : std_logic_vector(NCFEB+2 downto 1) := (others => '1');
@@ -611,17 +613,17 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal test_otmb_dav, test_alct_dav              : std_logic := '0';
 
     --signals for vio
-  signal vio_select : std_logic := 'U';
+  signal vio_select : std_logic := '0';
   signal vio_leds : std_logic_vector(11 downto 0) := (others => '0');
   
   --Manually control the blinking of leds
-  component vio_0
-  port(
-    clk : in std_logic;
-    probe_out0 : out std_logic;
-    probe_out1 : out std_logic_vector(11 downto 0)
-  );
-  end component;
+  --component vio_0
+--  port(
+--    clk : in std_logic;
+--    probe_out0 : out std_logic;
+--    probe_out1 : out std_logic_vector(11 downto 0)
+--  );
+--  end component;
 
 begin
 
@@ -643,6 +645,7 @@ begin
     port map (
       CMSCLK              => cmsclk,
       DDUCLK              => usrclk_ddu,
+      CLK_160             => usrclk_mgtc,
       DCFEBCLK            => usrclk_mgtc,
       RESET               => reset,
       L1ACNT_RST          => l1acnt_rst,
@@ -673,7 +676,8 @@ begin
       FIFO_OE_B           => fifo_oe_b,
       FIFO_DOUT           => fifo_dout,
       FIFO_EMPTY          => fifo_empty,
-      FIFO_HALF_FULL      => fifo_half_full
+      FIFO_HALF_FULL      => fifo_half_full,
+      FIFO_FULL           => fifo_full
       );
 
   -------------------------------------------------------------------------------------------
@@ -715,6 +719,7 @@ begin
       clk_sysclk20   => sysclk20,
       clk_sysclk40   => sysclk40,
       clk_sysclk80   => sysclk80,
+      clk_sysclk160  => sysclk160,
       clk_cmsclk     => cmsclk,
       clk_lfclk      => clk_lfclk,
       clk_gp6        => clk_gp6,
@@ -729,12 +734,12 @@ begin
       );
 
   -- Make LED lights blink to reflect clock frequencies
-  u_vio_0 : vio_0
-  port map(
-    clk => cmsclk,
-    probe_out0 => vio_select,
-    probe_out1 => vio_leds
-  );
+--  u_vio_0 : vio_0
+--  port map(
+--    clk => cmsclk,
+--    probe_out0 => vio_select,
+--    probe_out1 => vio_leds
+--  );
   
 --  LEDS_CFV <= (others => led_clkfreqs(0)) when vio_select = '0' else vio_leds;
   
@@ -1217,7 +1222,8 @@ begin
       FIFO_DOUT  => fifo_dout,
       -- FIFO_EOF => fifo_eof,
       FIFO_EMPTY   => fifo_empty,  -- emptyf*(7 DOWNTO 1) - from FIFOs
-      FIFO_HALF_FULL => fifo_half_full
+      FIFO_HALF_FULL => fifo_half_full,
+      FIFO_FULL  => fifo_full
       );
 
 

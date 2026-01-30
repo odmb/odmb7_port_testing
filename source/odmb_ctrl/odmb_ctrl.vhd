@@ -122,7 +122,8 @@ entity ODMB_CTRL is
     FIFO_OE_B      : out std_logic_vector(NCFEB+2 downto 1);  --! From CONTROL_FSM to select FE FIFO
     FIFO_DOUT      : in std_logic_vector(17 downto 0);        --! Output from FE FIFOs to CONTROL_FSM
     FIFO_EMPTY     : in std_logic_vector(NCFEB+2 downto 1);   --! Empty from FE FIFOs to CONTROL_FSM
-    FIFO_HALF_FULL : in std_logic_vector(NCFEB+2 downto 1)    --! Full from FE FIFOs to CONTROL_FSM
+    FIFO_HALF_FULL : in std_logic_vector(NCFEB+2 downto 1);   --! Full from FE FIFOs to CONTROL_FSM
+    FIFO_FULL      : in std_logic_vector(NCFEB+2 downto 1)
     );
 end ODMB_CTRL;
 
@@ -277,6 +278,7 @@ architecture Behavioral of ODMB_CTRL is
 
       -- from FIFOs
       FIFO_HALF_FULL : in std_logic_vector(NCFEB+2 downto 1);
+      FIFO_FULL      : in std_logic_vector(NCFEB+2 downto 1); --! from odmb_data
       FFOR_B         : in std_logic_vector(NCFEB+2 downto 1);
       DATAIN         : in std_logic_vector(15 downto 0);
       DATAIN_LAST    : in std_logic;
@@ -521,6 +523,7 @@ begin
 
       -- from Data FIFOs
       FIFO_HALF_FULL => fifo_half_full,
+      FIFO_FULL      => FIFO_FULL,
       FFOR_B         => fifo_empty,
       DATAIN         => FIFO_DOUT(15 downto 0),
       DATAIN_LAST    => FIFO_DOUT(17),

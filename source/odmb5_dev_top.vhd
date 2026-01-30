@@ -586,6 +586,7 @@ architecture Behavioral of odmb5_ucsb_dev is
   signal into_fifo_dav  : std_logic_vector(NCFEB+2 downto 1);
   signal fifo_half_full : std_logic_vector(NCFEB+2 downto 1);
   signal fifo_empty     : std_logic_vector(NCFEB+2 downto 1);
+  signal fifo_full      : std_logic_vector(NCFEB+2 downto 1);
 
   signal fifo_dout : std_logic_vector(17 downto 0);
   signal fifo_oe_b : std_logic_vector(NCFEB+2 downto 1) := (others => '1');
@@ -624,6 +625,7 @@ begin
     port map (
       CMSCLK              => cmsclk,
       DDUCLK              => usrclk_ddu,
+      CLK_160             => usrclk_mgtc,
       DCFEBCLK            => usrclk_mgtc,
       RESET               => reset,
       L1ACNT_RST          => l1acnt_rst,
@@ -654,7 +656,8 @@ begin
       FIFO_OE_B           => fifo_oe_b,
       FIFO_DOUT           => fifo_dout,
       FIFO_EMPTY          => fifo_empty,
-      FIFO_HALF_FULL      => fifo_half_full
+      FIFO_HALF_FULL      => fifo_half_full,
+      FIFO_FULL           => fifo_full
       );
 
   -------------------------------------------------------------------------------------------
@@ -1176,7 +1179,8 @@ begin
       FIFO_DOUT  => fifo_dout,
       -- FIFO_EOF => fifo_eof,
       FIFO_EMPTY   => fifo_empty,  -- emptyf*(7 DOWNTO 1) - from FIFOs
-      FIFO_HALF_FULL => fifo_half_full
+      FIFO_HALF_FULL => fifo_half_full,
+      FIFO_FULL => fifo_full
       );
 
 
