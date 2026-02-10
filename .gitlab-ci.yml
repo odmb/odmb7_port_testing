@@ -1,7 +1,7 @@
 include:
   - project: 'hog/Hog'
     file: '/hog.yml'
-    ref: 'v9.54.6'  
+    ref: 'v10.1.1'  
 .only-default: &only-default
   rules:
     - if: '$CI_COMMIT_REF_NAME =~ /^test\/.*$/i'
@@ -23,7 +23,7 @@ include:
 
 
 variables:
-        HOG_DEVELOP_BRANCH: "add-hog"
+        HOG_DEVELOP_BRANCH: "develop"
         VIVADO_VERSION: 2019.2
 
 ### Generic FW build rule ###
@@ -50,11 +50,11 @@ odmb5_ucsb_dev:
                 extends: .vars
                 PROJECT_NAME: $CI_JOB_NAME
                 HOG_ONLY_SYNTH: 0 # if 1 runs only the synthesis
-                VIVADO_VERSION: 2023.2
+                VIVADO_VERSION: 2019.2
 odmb7_ucsb_dev:
         extends: .firmware_build
         variables:
                 extends: .vars
                 PROJECT_NAME: $CI_JOB_NAME
                 HOG_ONLY_SYNTH: 0 # if 1 runs only the synthesis
-                VIVADO_VERSION: 2023.2
+                VIVADO_VERSION: 2019.2
