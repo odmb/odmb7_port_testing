@@ -9,12 +9,13 @@ variables:
 debug_pipeline:
   image: gitlab-registry.cern.ch/cce/docker_build/vivado:2019.2
   stage: check
+  extends: .vars
   rules:
     - when: always
   script:
     - echo "=== Pipeline Debug Info ==="
-    - echo "Branch:"
-    - echo $(CI_COMMIT_REF_NAME)
+    - echo "CI_COMMIT_REF_NAME:"
+    - echo $CI_COMMIT_REF_NAME
     - echo "CI_MERGE_REQUEST_TARGET_BRANCH_NAME:"
     - echo $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
     - echo "HOG_DEVELOP_BRANCH:"
