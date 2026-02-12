@@ -16,7 +16,7 @@ debug_pipeline:
     - echo "Branch:"
     - echo $(CI_COMMIT_REF_NAME)
     - echo "CI_MERGE_REQUEST_TARGET_BRANCH_NAME:"
-    - $CI_MERGE_REQUEST_TARGET_BRANCH_NAME"
+    - echo $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
     - echo "HOG_DEVELOP_BRANCH:"
     - echo $HOG_DEVELOP_BRANCH
     - echo "HOG_TARGET_BRANCH:"
