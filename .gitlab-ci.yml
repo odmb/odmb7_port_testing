@@ -9,7 +9,6 @@ variables:
 debug_pipeline:
   image: gitlab-registry.cern.ch/cce/docker_build/vivado:2019.2
   stage: check
-  extends: .vars
   rules:
     - when: always
   script:
