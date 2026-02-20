@@ -86,3 +86,5 @@ Currently, the firmware is developed under the assumption that config similar to
 
 - [ ] Develop Run4 DAQ logic
 
+
+## Hog
