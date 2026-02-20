@@ -94,3 +94,5 @@ so that the project path is correct. An example is shown below,
 `<Project Version="7" Minor="44" Path="/higgs-data/jbkim/odmb/odmb_daq/odmb7_port_testing/project/odmb7_ucsb_dev.xpr">`
 
 To simulate the project, first `Run Synthesis` to generate the IP files, and then `Run Simulation`.
+
+## Hog
