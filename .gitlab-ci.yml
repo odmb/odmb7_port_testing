@@ -27,41 +27,35 @@ debug_pipeline:
     - echo "CI_EXTERNAL_PULL_REQUEST_TARGET_BRANCH_NAME:"
     - echo $CI_EXTERNAL_PULL_REQUEST_TARGET_BRANCH_NAME
 
+## Generic FW build rule ###
+.firmware_build:
+        image: gitlab-registry.cern.ch/cce/docker_build/vivado:2019.2
+        extends: .generate_project
+        variables:
+                extends: .vars
+                PROJECT_NAME: $CI_JOB_NAME
+                HOG_ONLY_SYNTH: 0 # if 1 runs only the synthesis
+        artifacts:
+                when: always
+                name: bitfiles
+                paths:
+                        - bin
+                        - bit
+                expire_in: never
+
+
+#### FW Builds ###
 odmb5_ucsb_dev:
-  image: gitlab-registry.cern.ch/cce/docker_build/vivado:2019.2
-  extends: .generate_project
-  variables:
-    PROJECT_NAME: odmb5_ucsb_dev
-
-### Generic FW build rule ###
-# .firmware_build:
-#         image: gitlab-registry.cern.ch/cce/docker_build/vivado:2019.2
-#         extends: .generate_project
-#         variables:
-#                 extends: .vars
-#                 PROJECT_NAME: $CI_JOB_NAME
-#                 HOG_ONLY_SYNTH: 0 # if 1 runs only the synthesis
-#         artifacts:
-#                 when: always
-#                 name: bitfiles
-#                 paths:
-#                         - bin
-#                         - bit
-#                 expire_in: never
-
-
-# #### FW Builds ###
-# odmb5_ucsb_dev:
-#         extends: .firmware_build
-#         variables:
-#                 extends: .vars
-#                 PROJECT_NAME: $CI_JOB_NAME
-#                 HOG_ONLY_SYNTH: 0 # if 1 runs only the synthesis
-#                 VIVADO_VERSION: $VIVADO_VERSION
-# odmb7_ucsb_dev:
-#         extends: .firmware_build
-#         variables:
-#                 extends: .vars
-#                 PROJECT_NAME: $CI_JOB_NAME
-#                 HOG_ONLY_SYNTH: 0 # if 1 runs only the synthesis
-#                 VIVADO_VERSION: $VIVADO_VERSION
+        extends: .firmware_build
+        variables:
+                extends: .vars
+                PROJECT_NAME: $CI_JOB_NAME
+                HOG_ONLY_SYNTH: 0 # if 1 runs only the synthesis
+                VIVADO_VERSION: $VIVADO_VERSION
+odmb7_ucsb_dev:
+        extends: .firmware_build
+        variables:
+                extends: .vars
+                PROJECT_NAME: $CI_JOB_NAME
+                HOG_ONLY_SYNTH: 0 # if 1 runs only the synthesis
+                VIVADO_VERSION: $VIVADO_VERSION
