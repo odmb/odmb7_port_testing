@@ -42,6 +42,16 @@ debug_pipeline:
                         - bin
                         - bit
                 expire_in: never
+        script:
+                - yum update -y
+                - yum install wget which zlib-devel perl-devel -y
+                - wget https://github.com/git/git/archive/v2.53.0.tar.gz -O /tmp/git.tar.gz
+                - cd /tmp && tar -zxf git.tar.gz
+                - cd /tmp/git-2.53.0
+                - make configure
+                - ./configure --prefix=/usr/local # standard way
+                - make install
+                - git --version
 
 
 #### FW Builds ###
