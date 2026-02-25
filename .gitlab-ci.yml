@@ -44,7 +44,7 @@ debug_pipeline:
                 expire_in: never
         script:
                 - yum update -y
-                - yum install wget which zlib-devel perl-devel -y
+                - yum install wget which zlib-devel perl-devel gettext -y
                 - wget https://github.com/git/git/archive/v2.7.2.tar.gz -O /tmp/git.tar.gz
                 - cd /tmp && tar -zxf git.tar.gz
                 - cd /tmp/git-2.7.2
