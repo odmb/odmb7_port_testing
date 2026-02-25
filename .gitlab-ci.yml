@@ -7,26 +7,6 @@ variables:
         VIVADO_VERSION: 2019.2
         HOG_DEVELOP_BRANCH: 'develop'
 
-debug_pipeline:
-  image: gitlab-registry.cern.ch/cce/docker_build/vivado:2019.2
-  stage: check
-  rules:
-    - when: always
-  script:
-    - echo "=== Pipeline Debug Info ==="
-    - echo "CI_COMMIT_REF_NAME:"
-    - echo $CI_COMMIT_REF_NAME
-    - echo "CI_MERGE_REQUEST_TARGET_BRANCH_NAME:"
-    - echo $CI_MERGE_REQUEST_TARGET_BRANCH_NAME
-    - echo "HOG_DEVELOP_BRANCH:"
-    - echo $HOG_DEVELOP_BRANCH
-    - echo "HOG_TARGET_BRANCH:"
-    - echo $HOG_TARGET_BRANCH
-    - echo "CI_PIPELINE_SOURCE:"
-    - echo $CI_PIPELINE_SOURCE
-    - echo "CI_EXTERNAL_PULL_REQUEST_TARGET_BRANCH_NAME:"
-    - echo $CI_EXTERNAL_PULL_REQUEST_TARGET_BRANCH_NAME
-
 ## Generic FW build rule ###
 .firmware_build:
         image: gitlab-registry.cern.ch/cce/docker_build/vivado:2019.2
@@ -52,6 +32,10 @@ debug_pipeline:
                 - make configure
                 - ./configure
                 - make install
+                - git --version
+                - echo "=== Pre Get Sources Script Completed ==="
+        before_script:
+                - echo "=== Before Script ==="
                 - git --version
 
 
