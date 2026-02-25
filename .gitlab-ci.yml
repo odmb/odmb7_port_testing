@@ -42,7 +42,8 @@ debug_pipeline:
                         - bin
                         - bit
                 expire_in: never
-        before_script:
+        hooks:
+                pre_get_sources_script:
                 - yum update -y
                 - yum install wget which zlib-devel perl-devel gettext -y
                 - wget https://github.com/git/git/archive/v2.7.2.tar.gz -O /tmp/git.tar.gz
