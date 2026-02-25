@@ -9,7 +9,9 @@ variables:
 
 ## Generic FW build rule ###
 .firmware_build:
-        image: gitlab-registry.cern.ch/cce/docker_build/vivado:2019.2
+        image: vivado-git:2019.2 # Changed to local version \
+        # because gitlab-registry.cern.ch/cce/docker_build/vivado:2019.2 \
+        # has too old of git version for Hog
         extends: .generate_project
         variables:
                 extends: .vars
@@ -22,18 +24,6 @@ variables:
                         - bin
                         - bit
                 expire_in: never
-        hooks:
-                pre_get_sources_script:
-                        - yum update -y
-                        - yum install wget which zlib-devel perl-devel gettext -y
-                        - wget https://github.com/git/git/archive/v2.7.2.tar.gz -O /tmp/git.tar.gz
-                        - cd /tmp && tar -zxf git.tar.gz
-                        - cd /tmp/git-2.7.2
-                        - make configure
-                        - ./configure
-                        - make install
-                        - git --version
-                        - echo "=== Pre Get Sources Script Completed ==="
         before_script:
                 - echo "=== Before Script ==="
                 - git --version
