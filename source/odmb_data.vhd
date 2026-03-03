@@ -47,7 +47,10 @@ entity odmb_data is
     FIFO_DOUT           : out std_logic_vector(17 downto 0);
     FIFO_EMPTY          : out std_logic_vector(NCFEB+2 downto 1);
     FIFO_HALF_FULL      : out std_logic_vector(NCFEB+2 downto 1);
-    FIFO_FULL           : out std_logic_vector(NCFEB+2 downto 1) --! adding FIFO full flag as output
+    FIFO_FULL           : out std_logic_vector(NCFEB+2 downto 1); --! adding FIFO full flag as output
+    
+    FIFO_WR_RST              : out std_logic_vector(NCFEB+2 downto 1);
+    FIFO_RD_RST              : out std_logic_vector(NCFEB+2 downto 1)
   );
 end odmb_data;
 
@@ -315,7 +318,9 @@ begin
       dout      => alct_fifo_data_out,
       full      => FIFO_FULL_CMSCLK(NCFEB+2), --alct_fifo_full,
       empty     => FIFO_EMPTY(NCFEB+2),
-      prog_full => FIFO_HALF_FULL(NCFEB+2)
+      prog_full => FIFO_HALF_FULL(NCFEB+2),
+      wr_rst_busy => FIFO_WR_RST(NCFEB+2),
+      rd_rst_busy => FIFO_RD_RST(NCFEB+2)
       );
 
   datafifo_otmb_pm : datafifo_40mhz
@@ -329,7 +334,9 @@ begin
       dout      => otmb_fifo_data_out,
       full      => FIFO_FULL_CMSCLK(NCFEB+1), --otmb_fifo_full,
       empty     => FIFO_EMPTY(NCFEB+1),
-      prog_full => FIFO_HALF_FULL(NCFEB+1)
+      prog_full => FIFO_HALF_FULL(NCFEB+1),
+      wr_rst_busy => FIFO_WR_RST(NCFEB+1),
+      rd_rst_busy => FIFO_RD_RST(NCFEB+1)
       );
 
   -- eof_data
@@ -414,7 +421,9 @@ begin
         dout      => dcfeb_fifo_out(I),
         full      => FIFO_FULL_CMSCLK(I), --dcfeb_fifo_full(I),
         empty     => FIFO_EMPTY(I),
-        prog_full => FIFO_HALF_FULL(I)
+        prog_full => FIFO_HALF_FULL(I),
+        wr_rst_busy => FIFO_WR_RST(I),
+        rd_rst_busy => FIFO_RD_RST(I)
         );
 
     --pulse_eof160(i) <= eofgen_dcfeb_fifo_in(I)(17) and not kill(i) and not bad_dcfeb_pulse_long(i);

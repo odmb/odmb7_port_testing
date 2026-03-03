@@ -595,6 +595,9 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal fifo_empty     : std_logic_vector(NCFEB+2 downto 1);
   signal fifo_full      : std_logic_vector(NCFEB+2 downto 1);
 
+  signal fifo_wr_rst         : std_logic_vector(NCFEB+2 downto 1);
+  signal fifo_rd_rst         : std_logic_vector(NCFEB+2 downto 1);
+
   signal fifo_dout : std_logic_vector(17 downto 0);
   signal fifo_oe_b : std_logic_vector(NCFEB+2 downto 1) := (others => '1');
   signal fifo_re_b : std_logic_vector(NCFEB+2 downto 1) := (others => '1');
@@ -603,7 +606,9 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal ddu_data_valid, ddu_eof : std_logic;
   signal pc_data                 : std_logic_vector(15 downto 0);
   signal pc_data_valid           : std_logic;
-
+  signal pc_txready              : std_logic;
+  signal pc_rxready              : std_logic;
+  
   signal gl_pc_tx_ack            : std_logic;
 
   -- for TRGCNTRL
@@ -677,7 +682,10 @@ begin
       FIFO_DOUT           => fifo_dout,
       FIFO_EMPTY          => fifo_empty,
       FIFO_HALF_FULL      => fifo_half_full,
-      FIFO_FULL           => fifo_full
+      FIFO_FULL           => fifo_full,
+      
+      FIFO_WR_RST              => fifo_wr_rst,
+      FIFO_RD_RST              => fifo_rd_rst
       );
 
   -------------------------------------------------------------------------------------------
@@ -1310,8 +1318,8 @@ begin
         spy_rx_p        => spy_rx_p, --to pins
         spy_tx_n        => SPY_TX_N, --to pins
         spy_tx_p        => SPY_TX_P, --to pins
-        txready         => open,     --unused
-        rxready         => open,     --unused
+        txready         => pc_txready,     --unused
+        rxready         => pc_rxready,     --unused
         txdata          => pc_data,  --spy_txdata,
         txd_valid       => pc_data_valid, --spy_txd_valid,
         end_of_header   => gl_pc_tx_ack,     --end of header signal to PCFIFO
@@ -1371,8 +1379,8 @@ begin
         spy_rx_p        => B04_RX_P(2), --to pins
         spy_tx_n        => DAQ_TX_N(2), --to pins
         spy_tx_p        => DAQ_TX_P(2), --to pins
-        txready         => open,     --unused
-        rxready         => open,     --unused
+        txready         => pc_txready,     --unused
+        rxready         => pc_rxready,     --unused
         txdata          => pc_data,  --spy_txdata,
         txd_valid       => pc_data_valid, --spy_txd_valid,
         end_of_header   => gl_pc_tx_ack,     --end of header signal to PCFIFO
