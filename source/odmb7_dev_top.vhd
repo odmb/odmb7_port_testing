@@ -19,7 +19,7 @@ use work.ucsb_types.all;
 --! data acquisition firmware has not yet been developed
 entity odmb7_ucsb_dev is
   generic (
-    ENABLE_SPY_TO_DDU : std_logic_vector := "00"
+    ENABLE_SPY_TO_DDU : std_logic_vector := "01"
     );
   port (
     --------------------
@@ -164,10 +164,10 @@ entity odmb7_ucsb_dev is
 
     SPY_TX_P     : out std_logic;                          --! Finisar (spy) optical TX output to PC.
     SPY_TX_N     : out std_logic;                          --! Finisar (spy) optical TX output to PC.
-    -- DAQ_TX_P     : out std_logic_vector(2 downto 2);       --! B04 optical TX, output to FED.
-    -- DAQ_TX_N     : out std_logic_vector(2 downto 2);       --! B04 optical TX, output to FED.
-    DAQ_TX_P     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
-    DAQ_TX_N     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
+    DAQ_TX_P     : out std_logic_vector(2 downto 2);       --! B04 optical TX, output to FED.
+    DAQ_TX_N     : out std_logic_vector(2 downto 2);       --! B04 optical TX, output to FED.
+    --DAQ_TX_P     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
+    --DAQ_TX_N     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
 
     --------------------------------
     -- Optical control signals
@@ -650,6 +650,7 @@ begin
       DDUCLK              => usrclk_ddu,
       CLK_160             => usrclk_mgtc,
       DCFEBCLK            => usrclk_mgtc,
+      CLK_160             => usrclk_mgtc,
       RESET               => reset,
       L1ACNT_RST          => l1acnt_rst,
       KILL                => kill,
@@ -1360,6 +1361,12 @@ begin
         );
   end generate generate_run4;
   generate_spy_pc : if ENABLE_SPY_TO_DDU = "01" generate
+    --DAQ_TX_P(1) <= 'Z';
+    --DAQ_TX_N(1) <= 'Z';
+    --DAQ_TX_P(3) <= 'Z';
+    --DAQ_TX_N(3) <= 'Z';
+    --DAQ_TX_P(4) <= 'Z';
+    --DAQ_TX_N(4) <= 'Z';
     GTH_PC : entity work.mgt_pc
       generic map (
         CHANN_IDX       => 11
@@ -1486,6 +1493,9 @@ begin
   -------------------------------------------------
   -- DCFEB receiver for ODMB7
   -------------------------------------------------
+  dcfeb_datafifo_full <= FIFO_FULL(NCFEB downto 1);
+  dcfeb_datafifo_afull <= FIFO_HALF_FULL(NCFEB downto 1);
+  
   GTH_DCFEB : entity work.mgt_cfeb
     generic map (
       NLINK        => NCFEB,  -- number of links

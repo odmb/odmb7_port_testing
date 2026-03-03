@@ -468,12 +468,12 @@ begin
   tail_word(1) <= x"F" & alct_to_end & cafifo_bx_cnt(4 downto 0) & cafifo_l1a_cnt(5 downto 0);
   --tail_word(2) <= x"F" & ovlp & AUTOKILLED_DCFEBS;
   tail_word(2) <= x"F" & ovlp & "000" & x"0"; -- Set timeout to 0 to avoid DDU errors
-  tail_word(3) <= x"F" & FIFO_FULL(3 downto 1) & cafifo_lost_pckt(NCFEB+1) & dmb_l1pipe; -- using FIFO_FULL signals routed from odmb_data
+  tail_word(3) <= x"F" & fifo_full(3 downto 1) & cafifo_lost_pckt(NCFEB+1) & dmb_l1pipe;
   -- tail_word(4) <= x"F" & cafifo_lost_pckt(9) & cafifo_lost_pckt(7 downto 1)
   --                 & data_fifo_full(7 downto 4);
   tail_word(4) <= x"F" & cafifo_lost_pckt(NCFEB+2) & "000" & x"0" -- Set timeout to 0 to avoid DDU errors
-                  & FIFO_FULL(7 downto 4);
-  tail_word(5) <= x"E" & FIFO_FULL(NCFEB+2 downto NCFEB+1) & FIFO_HALF_FULL(NCFEB+2 downto NCFEB+1)
+                  & fifo_full(7 downto 4);
+  tail_word(5) <= x"E" & fifo_full(NCFEB+2 downto NCFEB+1) & FIFO_HALF_FULL(NCFEB+2 downto NCFEB+1)
                   & otmb_to_end & fifo_half_full_cfeb_big(7 downto 1);
   tail_word(6) <= x"E" & DAQMBID(11 downto 0);
   tail_word(7) <= x"E" & REG_CRC(22) & REG_CRC(10 downto 0);

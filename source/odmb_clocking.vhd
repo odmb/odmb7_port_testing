@@ -51,6 +51,7 @@ entity odmb_clocking is
     clk_sysclk40 : out std_logic;       --! buffered 40 MHz clock
     clk_sysclk80 : out std_logic;       --! buffered 80 MHz clock
     clk_sysclk160 : out std_logic;      --! buffered 160 MHz clock
+    clk_sysclk160 : out std_logic;      --! buffered 160 MHz clock
     clk_cmsclk : out std_logic;         --! buffered CMS (40.07897 MHz) clock
     clk_lfclk : out std_logic;          --! buffered 10 kHz clock
     clk_gp6 : out std_logic;            --! buffered 80 MHz cock
