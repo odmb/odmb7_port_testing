@@ -454,7 +454,7 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal dcfebrst_counter_reset       : std_logic := '1';
   signal dcfebrst_counter_reset_pulse : std_logic := '0';
   signal dcfebrst_counter_value : std_logic_vector(15 downto 0) := (others => '0');
-  constant dcfebrst_counter_target_value : std_logic_vector(15 downto 0) := "0000001111101000"; --1,000 10kHz clock cycles --> 100 ms
+  constant dcfebrst_counter_target_value : std_logic_vector(15 downto 0) := "0000010010110000"; --1,200 10kHz clock cycles --> 120 ms
   
   signal l1arst_counter             : integer := 0;
   signal l1arst_counter_enable      : std_logic := '0';
@@ -677,6 +677,8 @@ signal ccb_soft_reset_pulse : std_logic := '0';
 signal l1a_reset_ps_pulse : std_logic := '0';
 signal fifo_reset_pulse : std_logic := '0';
 
+signal ccb_l1a_rst_out : std_logic := '0';
+--signal ccb_l1a_rst_out_pulse : std_logic := '0';
 
 begin
 
@@ -1019,7 +1021,7 @@ begin
         if    fw_startup = '1' then next_rst_state <= DCFEB_RST;
         elsif fw_reset = '1' or ccb_soft_reset_pulse='1' then next_rst_state <= CLK_RST;
         elsif opt_reset_pulse = '1' then next_rst_state <= OPT_RST;
-        elsif l1a_reset_pulse = '1' then next_rst_state <= L1A_RST;
+        elsif l1a_reset_pulse = '1' or ccb_l1a_rst_out = '1' then next_rst_state <= L1A_RST;
         else                             next_rst_state <= IDLE;
         end if;      
 
@@ -1400,6 +1402,7 @@ begin
       CCB_BXRST_B  => ccb_bx_rst_b,
       CCB_L1ARST_B => ccb_l1a_rst_b,
       CCB_CLKEN    => ccb_clken,
+      CCB_L1A_RST  => ccb_l1a_rst_out, 
 
       TEST_CCBINJ => test_inj,
       TEST_CCBPLS => test_pls,

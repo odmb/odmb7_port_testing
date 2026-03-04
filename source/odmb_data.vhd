@@ -224,6 +224,17 @@ architecture ODMB_DATA_ARCH of odmb_data is
   signal fifo_full_cmsclk: std_logic_vector(NCFEB+2 downto 1);
   signal l1acnt_fifo_rst : std_logic := '0';
   signal datafifo_mask   : std_logic := '0';
+  
+  signal alct_fifo_wr_rst_busy : std_logic;
+  signal alct_fifo_rd_rst_busy : std_logic;
+  
+  signal otmb_fifo_wr_rst_busy : std_logic;
+  signal otmb_fifo_rd_rst_busy : std_logic;
+  
+  signal fifo_wr_rst_busy : std_logic_vector(NCFEB+2 downto 1);
+  signal fifo_rd_rst_busy : std_logic_vector(NCFEB+2 downto 1);
+  
+  
 
 begin
 
@@ -303,8 +314,11 @@ begin
       data_out => otmb_fifo_data_in
       );
 
-  data_fifo_we(NCFEB+2) <= alct_fifo_data_valid and datafifo_mask;
-  data_fifo_we(NCFEB+1) <= otmb_fifo_data_valid and datafifo_mask;
+  data_fifo_we(NCFEB+2) <= alct_fifo_data_valid and datafifo_mask and not fifo_wr_rst_busy(NCFEB+2);
+  data_fifo_we(NCFEB+1) <= otmb_fifo_data_valid and datafifo_mask and not fifo_wr_rst_busy(NCFEB+1);
+    
+  FIFO_WR_RST(NCFEB+2 downto 1) <= fifo_wr_rst_busy(NCFEB+2 downto 1);
+  FIFO_RD_RST(NCFEB+2 downto 1) <= fifo_rd_rst_busy(NCFEB+2 downto 1);
 
   -- datafifo for alct and otmb
   datafifo_alct_pm : datafifo_40mhz
@@ -313,14 +327,14 @@ begin
       wr_clk    => CMSCLK,
       rd_clk    => DDUCLK,
       din       => alct_fifo_data_in,
-      wr_en     => data_fifo_we(NCFEB+2),
+      wr_en     => data_fifo_we(NCFEB+2) ,
       rd_en     => data_fifo_re(NCFEB+2),
       dout      => alct_fifo_data_out,
       full      => FIFO_FULL_CMSCLK(NCFEB+2), --alct_fifo_full,
       empty     => FIFO_EMPTY(NCFEB+2),
       prog_full => FIFO_HALF_FULL(NCFEB+2),
-      wr_rst_busy => FIFO_WR_RST(NCFEB+2),
-      rd_rst_busy => FIFO_RD_RST(NCFEB+2)
+      wr_rst_busy => fifo_wr_rst_busy(NCFEB+2),
+      rd_rst_busy => fifo_rd_rst_busy(NCFEB+2)
       );
 
   datafifo_otmb_pm : datafifo_40mhz
@@ -335,8 +349,8 @@ begin
       full      => FIFO_FULL_CMSCLK(NCFEB+1), --otmb_fifo_full,
       empty     => FIFO_EMPTY(NCFEB+1),
       prog_full => FIFO_HALF_FULL(NCFEB+1),
-      wr_rst_busy => FIFO_WR_RST(NCFEB+1),
-      rd_rst_busy => FIFO_RD_RST(NCFEB+1)
+      wr_rst_busy => fifo_wr_rst_busy(NCFEB+1),
+      rd_rst_busy => fifo_rd_rst_busy(NCFEB+1)
       );
 
   -- eof_data
@@ -406,7 +420,7 @@ begin
         data_out => eofgen_dcfeb_fifo_in(I)
         );
 
-    data_fifo_we(I) <= eofgen_dcfeb_data_valid(I) and datafifo_mask and not dcfeb_fifo_rst(I);
+    data_fifo_we(I) <= eofgen_dcfeb_data_valid(I) and datafifo_mask and not dcfeb_fifo_rst(I) and not fifo_wr_rst_busy(I);
 
     datafifo_dcfeb_pm : datafifo_dcfeb
       port map(
@@ -422,8 +436,8 @@ begin
         full      => FIFO_FULL_CMSCLK(I), --dcfeb_fifo_full(I),
         empty     => FIFO_EMPTY(I),
         prog_full => FIFO_HALF_FULL(I),
-        wr_rst_busy => FIFO_WR_RST(I),
-        rd_rst_busy => FIFO_RD_RST(I)
+        wr_rst_busy => fifo_wr_rst_busy(I), --FIFO_WR_RST(I),
+        rd_rst_busy => fifo_rd_rst_busy(I)
         );
 
     --pulse_eof160(i) <= eofgen_dcfeb_fifo_in(I)(17) and not kill(i) and not bad_dcfeb_pulse_long(i);
@@ -439,7 +453,7 @@ begin
 
   GENFIFORE : for index in 1 to NCFEB+2 generate
   begin
-    data_fifo_re(index) <= datafifo_mask and not fifo_re_b(index);
+    data_fifo_re(index) <= datafifo_mask and not fifo_re_b(index) and not fifo_rd_rst_busy(index);
   end generate GENFIFORE;
   
   FIFO_FULL_CDC: for dev in NCFEB+1 to NCFEB+2 generate
