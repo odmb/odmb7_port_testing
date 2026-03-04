@@ -23,7 +23,7 @@ entity ODMB_CTRL is
     DDUCLK       : in std_logic;                      --! 80 MHz clock to FED gth domain
     CMSCLK       : in std_logic;                      --! ~40 MHz clock
     PCCLK        : in std_logic;                      --! 62.5 MHz clock for PC ethernet gth
-    FEDCLK       : in std_logic;                      --! 312.5 MHz clock for FED
+--    FEDCLK       : in std_logic;                      --! 312.5 MHz clock for FED
 
     CCB_CMD      : in  std_logic_vector (5 downto 0); --! CCB command to CCBCODE
     CCB_CMD_S    : in  std_logic;                     --! CCB strobe to CCBCODE
@@ -255,24 +255,24 @@ architecture Behavioral of ODMB_CTRL is
       );
   end component;
 
-  component FEDFIFO is
-    generic (
-      NFIFO : integer range 1 to 16 := 8  -- Number of FIFOs in FEDFIFO
-      );  
-    port(
+--  component FEDFIFO is
+--    generic (
+--      NFIFO : integer range 1 to 16 := 8  -- Number of FIFOs in FEDFIFO
+--      );  
+--    port(
 
-      clk_in  : in std_logic;
-      clk_out : in std_logic;
-      rst     : in std_logic;
+--      clk_in  : in std_logic;
+--      clk_out : in std_logic;
+--      rst     : in std_logic;
 
-      dv_in   : in std_logic;
-      ld_in   : in std_logic;
-      data_in : in std_logic_vector(15 downto 0);
+--      dv_in   : in std_logic;
+--      ld_in   : in std_logic;
+--      data_in : in std_logic_vector(15 downto 0);
 
-      dv_out   : out std_logic;
-      data_out : out std_logic_vector(15 downto 0)
-      );
-  end component;
+--      dv_out   : out std_logic;
+--      data_out : out std_logic_vector(15 downto 0)
+--      );
+--  end component;
 
   component CONTROL_FSM is
     generic (
@@ -596,22 +596,22 @@ begin
       data_out => PC_DATA
       );
 
-  FEDFIFO_PM : FEDFIFO
-    generic map (NFIFO => NFIFO)
+--FEDFIFO_PM : FEDFIFO
+--    generic map (NFIFO => NFIFO)
 
-    port map(
+--    port map(
 
-      clk_in  => DDUCLK,
-      clk_out => FEDCLK,
-      rst     => l1acnt_rst,
+--      clk_in  => DDUCLK,
+--      clk_out => FEDCLK,
+--      rst     => l1acnt_rst,
 
-      data_in => ddu_data_inner,
-      dv_in   => ddu_data_valid_inner,
-      ld_in   => eof,
+--      data_in => ddu_data_inner,
+--      dv_in   => ddu_data_valid_inner,
+--      ld_in   => eof,
 
-      dv_out   => FED_DATA_VALID,
-      data_out => FED_DATA
-      );
+--      dv_out   => FED_DATA_VALID,
+--      data_out => FED_DATA
+--      );
 
   CCBCODE_PM : CCBCODE
     port map(

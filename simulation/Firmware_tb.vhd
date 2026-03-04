@@ -320,7 +320,7 @@ begin
   oscclk160_n <= not cmsclk160_n after 3.125 ns;
   oscclk125_p <= not oscclk125_p after 4.0 ns;
   oscclk125_n <= not oscclk125_n after 4.0 ns;
-
+  cmsclk10 <= not cmsclk10 after 5 ns; --It is unbearable to watch this go at 10khz
   -- -- Input LUTs
   -- lut_input1_i: lut_input1
   --   port map(
@@ -468,7 +468,7 @@ begin
       REF_CLK_5_N          => cmsclk160_n,
       CLK_125_REF_P        => oscclk125_p,
       CLK_125_REF_N        => oscclk125_n,
-      --EMCCLK               => oscclk125_p, -- Low frequency, 133 MHz for SPI programing clock, use 160 for now...
+      EMCCLK               => oscclk125_p, -- Low frequency, 133 MHz for SPI programing clock, use 160 for now...
       LF_CLK               => cmsclk10, -- Low frequency, 10 kHz, use clk10 for now
 
       VME_DATA             => vme_data_io,
