@@ -450,25 +450,26 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal fw_startup      : std_logic := '1';
   
   signal lf_counter          : integer := 0;
-  signal dcfebrst_counter_enable      : std_logic := '1';
+  signal dcfebrst_counter_enable      : std_logic := '0';
   signal dcfebrst_counter_reset       : std_logic := '1';
-  signal dcfebrst_counter_reset_pulse : std_logic := '1';
+  signal dcfebrst_counter_reset_pulse : std_logic := '0';
   signal dcfebrst_counter_value : std_logic_vector(15 downto 0) := (others => '0');
   constant dcfebrst_counter_target_value : std_logic_vector(15 downto 0) := "0000001111101000"; --1,000 10kHz clock cycles --> 100 ms
   
   signal l1arst_counter             : integer := 0;
-  signal l1arst_counter_enable      : std_logic := '1';
+  signal l1arst_counter_enable      : std_logic := '0';
   signal l1arst_counter_reset       : std_logic := '1';
-  signal l1arst_counter_reset_pulse : std_logic := '1';
+  signal l1arst_counter_reset_pulse : std_logic := '0';
   signal l1arst_counter_value : std_logic_vector(15 downto 0) := (others => '0');
   constant l1arst_counter_target_value : std_logic_vector(15 downto 0) := "0000011111010000"; --2,000 at 40 MHz --> 50 microseconds
   
   signal fiforst_counter             : integer := 0;
-  signal fiforst_counter_enable      : std_logic := '1';
+  signal fiforst_counter_enable      : std_logic := '0';
   signal fiforst_counter_reset       : std_logic := '1';
-  signal fiforst_counter_reset_pulse : std_logic := '1';
+  signal fiforst_counter_reset_pulse : std_logic := '0';
   signal fiforst_counter_value : std_logic_vector(15 downto 0) := (others => '0');
-  constant fiforst_counter_target_value : std_logic_vector(15 downto 0) := "0010011100010000"; --10,000 at 40 MHZ  --> 250 microseconds
+  constant fiforst_counter_target_value : std_logic_vector(15 downto 0) := "0000001111101000";
+  -- "0010011100010000"; --10,000 at 40 MHZ  --> 250 microseconds
   
   signal clk_reset_ps : std_logic := '0';
   signal opt_reset_ps : std_logic := '0';
@@ -1012,7 +1013,10 @@ begin
     case current_rst_state is
     when IDLE =>
        
-        if    fw_startup = '1' or dcfeb_reprog_b_int='1' then next_rst_state <= DCFEB_RST;
+        --reprog_b is '1' in sim, so removing for now
+        --if    fw_startup = '1' or dcfeb_reprog_b_int='1' then next_rst_state <= DCFEB_RST;
+        
+        if    fw_startup = '1' then next_rst_state <= DCFEB_RST;
         elsif fw_reset = '1' or ccb_soft_reset_pulse='1' then next_rst_state <= CLK_RST;
         elsif opt_reset_pulse = '1' then next_rst_state <= OPT_RST;
         elsif l1a_reset_pulse = '1' then next_rst_state <= L1A_RST;
@@ -1094,7 +1098,7 @@ begin
         fiforst_counter_reset  <= '0';
         
         --Counted long enough, send clock resent and wait
-        if l1arst_counter_value >= l1arst_counter_target_value then
+        if fiforst_counter_value >= fiforst_counter_target_value then
             next_rst_state <= DONE;
         else
             next_rst_state <= FIFO_RST_CNTR;
@@ -1109,12 +1113,15 @@ begin
         fifo_reset_ps <= '0';
         
         --counter enables/resets
-        dcfebrst_counter_enable <= '1';
-        dcfebrst_counter_reset  <= '0';
+        dcfebrst_counter_enable <= '0';
+        dcfebrst_counter_reset  <= '1';
         fiforst_counter_enable <= '0';
         fiforst_counter_reset  <= '1';   
         l1arst_counter_enable <= '0';
         l1arst_counter_reset  <= '1';
+        
+        --End startup reset
+        fw_startup <= '0';
         
         --Done with the resets move back to IDLE
         next_rst_state <= IDLE;
@@ -1131,7 +1138,7 @@ begin
         clk=> clk_lfclk, 
         counter_enable=> dcfebrst_counter_enable, 
         counter_reset => dcfebrst_counter_reset, 
-        reset=> reset, 
+        reset=> '0', --reset, 
         count_out => dcfebrst_counter_value
      );
      
@@ -1141,7 +1148,7 @@ begin
         clk=> cmsclk, 
         counter_enable=> l1arst_counter_enable, 
         counter_reset => l1arst_counter_reset, 
-        reset=> reset, 
+        reset=> '0', --reset, 
         count_out => l1arst_counter_value
      );
      
@@ -1151,7 +1158,7 @@ begin
         clk=> cmsclk, 
         counter_enable=> fiforst_counter_enable, 
         counter_reset => fiforst_counter_reset, 
-        reset=> reset, 
+        reset=> '0', --reset, 
         count_out => fiforst_counter_value
      );
 
@@ -1208,6 +1215,8 @@ begin
     end if;
   end process;
   
+  DCFEB_REPROG_B <= DCFEB_REPROG_B_INT;
+  
   --Done reset is after DCFEBs have been loaded    usrclk_mgtc
   --FIFO_RESET : PULSE2FAST port map(DOUT => fifo_reset_pulse, CLK_DOUT => cmsclk, RST => reset, DIN => fiforst_counter_enable);
   FIFO_RESET : PULSE2FAST port map(DOUT => fifo_reset_pulse, CLK_DOUT => usrclk_mgtc, RST => reset, DIN => fiforst_counter_enable);
@@ -1233,7 +1242,7 @@ begin
   -------------------------------------------------------------------------------------------
   -- Sub-modules
   -------------------------------------------------------------------------------------------
-  DCFEB_REPROG_B <= DCFEB_REPROG_B_INT;
+ 
   MBV : entity work.ODMB_VME
     generic map (
       NCFEB => NCFEB
@@ -1381,7 +1390,8 @@ begin
       DDUCLK    => usrclk_ddu,
       CMSCLK    => cmsclk,
       PCCLK     => usrclk_pc,
-
+      --FEDCLK    => usrclk_fed,
+      
       CCB_CMD      => ccb_cmd,
       CCB_CMD_S    => ccb_cmd_s,
       CCB_DATA     => ccb_data,
