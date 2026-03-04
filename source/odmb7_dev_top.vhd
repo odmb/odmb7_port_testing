@@ -677,6 +677,7 @@ signal ccb_soft_reset_pulse : std_logic := '0';
 signal l1a_reset_ps_pulse : std_logic := '0';
 signal fifo_reset_pulse : std_logic := '0';
 
+--signal dcfeb_fifo_rst : std_logic_vector(NCFEB downto 1);
 signal ccb_l1a_rst_out : std_logic := '0';
 --signal ccb_l1a_rst_out_pulse : std_logic := '0';
 
@@ -716,7 +717,7 @@ begin
       DCFEB_TMS           => dcfeb_tms,
       DCFEB_TDI           => dcfeb_tdi,
 
-      DCFEB_FIFO_RST      => "0000000", -- auto-kill related
+      DCFEB_FIFO_RST      => dcfeb_fifo_rst, -- auto-kill related
       EOF_DATA            => eof_data,
       INTO_FIFO_DAV       => into_fifo_dav,
 
@@ -1222,8 +1223,8 @@ begin
   --Done reset is after DCFEBs have been loaded    usrclk_mgtc
   --FIFO_RESET : PULSE2FAST port map(DOUT => fifo_reset_pulse, CLK_DOUT => cmsclk, RST => reset, DIN => fiforst_counter_enable);
   FIFO_RESET : PULSE2FAST port map(DOUT => fifo_reset_pulse, CLK_DOUT => usrclk_mgtc, RST => reset, DIN => fiforst_counter_enable);
-  fifo_wr_rst <= (others => fifo_reset_pulse);
-  fifo_rd_rst <= (others => fifo_reset_pulse);
+  dcfeb_fifo_rst <= (others => fifo_reset_pulse);
+  --fifo_rd_rst <= (others => fifo_reset_pulse);
   
   --previous command
   --FD_FW_RESET : FD port map (Q => fw_reset_q, C => cmsclk, D => fw_reset);--
