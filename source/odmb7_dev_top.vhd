@@ -680,6 +680,9 @@ signal fifo_reset_pulse : std_logic := '0';
 --signal dcfeb_fifo_rst : std_logic_vector(NCFEB downto 1);
 signal ccb_l1a_rst_out : std_logic := '0';
 --signal ccb_l1a_rst_out_pulse : std_logic := '0';
+signal CCB_EVCNTRES_B_Q : std_logic;
+signal CCB_EVCNTRES_B_QQ : std_logic;
+signal ccb_cntres_rst : std_logic;
 
 begin
 
@@ -1022,7 +1025,7 @@ begin
         if    fw_startup = '1' then next_rst_state <= DCFEB_RST;
         elsif fw_reset = '1' or ccb_soft_reset_pulse='1' then next_rst_state <= CLK_RST;
         elsif opt_reset_pulse = '1' then next_rst_state <= OPT_RST;
-        elsif l1a_reset_pulse = '1' or ccb_l1a_rst_out = '1' then next_rst_state <= L1A_RST;
+        elsif l1a_reset_pulse = '1' or ccb_l1a_rst_out = '1' or ccb_cntres_rst = '1' then next_rst_state <= L1A_RST;
         else                             next_rst_state <= IDLE;
         end if;      
 
@@ -1041,7 +1044,6 @@ begin
         --Counted long enough, send clock resent and wait
         if dcfebrst_counter_value >= dcfebrst_counter_target_value then
             next_rst_state <= CLK_RST;
-            clk_reset_ps <= '1';
         else
             next_rst_state <= DCFEB_RST_CNTR;
         end if;
@@ -1050,22 +1052,23 @@ begin
     --Sent clk resent and now wait for mmcm_locked            
     when CLK_RST =>
         --Clock signal is locked, now start opt_rst and switch
+        clk_reset_ps <= '1';
         if(mmcm_locked='1') then 
             next_rst_state <= OPT_RST;
-            opt_reset_ps <= '1';
         else
             next_rst_state <= CLK_RST;   
         end if;
       
     --Sent Opt reset, now wait for ready signals
     when OPT_RST => 
+        opt_reset_ps <= '1';
+        
         --Depending on ENABLE_SPY_TO_DDU switch to state when devices are ready, start l1a reset     
         if(ENABLE_SPY_TO_DDU = '0' and spy_txready='1' and spy_rxready='1' and dcfeb_rxready='1') then
             next_rst_state <= L1A_RST;
-            l1a_reset_ps <= '1';
+            
         elsif(ENABLE_SPY_TO_DDU = '1' and pc_txready='1' and  pc_rxready='1' and dcfeb_rxready='1') then
             next_rst_state <= L1A_RST;
-            l1a_reset_ps <= '1';
         else
             next_rst_state <= OPT_RST;
         end if;
@@ -1074,6 +1077,10 @@ begin
     when L1A_RST =>
         l1arst_counter_enable <= '0';
         l1arst_counter_reset  <= '1';
+        
+        l1a_reset_ps <= '1';
+        fifo_reset_ps <= '1';
+        
         next_rst_state <= L1A_RST_CNTR;
     
     --Count for 50 microseconds    
@@ -1084,7 +1091,7 @@ begin
         --Counted long enough, send fifo reset and wait
         if l1arst_counter_value >= l1arst_counter_target_value then
             next_rst_state <= FIFO_RST;
-            fifo_reset_ps <= '1';
+            
         else
             next_rst_state <= L1A_RST_CNTR;
         end if;
@@ -1165,6 +1172,10 @@ begin
         count_out => fiforst_counter_value
      );
 
+  FD_EVCNTRES_B_Q : FD port map (Q => ccb_evcntres_b_q, C => cmsclk, D => ccb_evcntres_b);
+  FD_EVCNTRES_B_QQ : FD port map (Q => ccb_evcntres_b_qq, C => cmsclk, D => ccb_evcntres_b_q);
+  ccb_cntres_rst <= not ccb_evcntres_b_qq;
+  
   --Soft reset from CCB connecting to 
   FD_CCB_SOFTRST : FD generic map(INIT => '1') port map (Q => ccb_softrst_b_q, C => cmsclk, D => CCB_SOFT_RST_B);
   ccb_soft_reset_pulse <=  '1' when (CCB_SOFTRST_B_Q = '0' and CCB_SOFT_RST_B = '1') else '0';
