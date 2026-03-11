@@ -55,8 +55,11 @@
 // demonstration purposes
 // =====================================================================================================================
 
-module mgt_b04 (
-
+module mgt_b04 
+#(parameter FEDTXDWIDTH=16,
+  parameter FED_NTXLINK=4)
+(
+  // PORTS
   // Serial data ports for transceiver channel 0
   input  wire ch0_gthrxn_in,
   input  wire ch0_gthrxp_in,
@@ -81,9 +84,20 @@ module mgt_b04 (
   output wire ch3_gthtxn_out,
   output wire ch3_gthtxp_out,
 
+  // DATA    
   // TX Data 
-  input  wire [15:0] txdata,  // Data to be transmitted
-  input  wire txd_valid,
+  input  wire [FEDTXDWIDTH-1:0] fed_txdata1,  // Data to be transmitted
+  input  wire [FEDTXDWIDTH-1:0] fed_txdata2,  // Data to be transmitted
+  input  wire [FEDTXDWIDTH-1:0] fed_txdata3,  // Data to be transmitted
+  input  wire [FEDTXDWIDTH-1:0] fed_txdata4,  // Data to be transmitted
+  input  wire [FED_NTXLINK-1:0] txd_valid,
+  
+  // RX Data
+  output  wire [FEDTXDWIDTH-1:0] fed_rxdata1,  // Data to be transmitted
+  output  wire [FEDTXDWIDTH-1:0] fed_rxdata2,  // Data to be transmitted
+  output  wire [FEDTXDWIDTH-1:0] fed_rxdata3,  // Data to be transmitted
+  output  wire [FEDTXDWIDTH-1:0] fed_rxdata4,  // Data to be transmitted
+  output  wire [FED_NTXLINK-1:0] rxd_valid,
 
   // Clocks
   input  wire mgtrefclk,
