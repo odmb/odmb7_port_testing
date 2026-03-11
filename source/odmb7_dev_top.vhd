@@ -506,15 +506,9 @@ architecture Behavioral of odmb7_ucsb_dev is
 
   signal usrclk_fed_tx : std_logic; -- USRCLK for TX data preparation
   signal usrclk_fed_rx : std_logic; -- USRCLK for RX data readout
-  signal fed_txdata1 : std_logic_vector(FEDTXDWIDTH-1 downto 0);   -- Data to be transmitted
-  signal fed_txdata2 : std_logic_vector(FEDTXDWIDTH-1 downto 0);   -- Data to be transmitted
-  signal fed_txdata3 : std_logic_vector(FEDTXDWIDTH-1 downto 0);   -- Data to be transmitted
-  signal fed_txdata4 : std_logic_vector(FEDTXDWIDTH-1 downto 0);   -- Data to be transmitted
+  signal fed_txdata : std_logic_vector(FEDTXDWIDTH*FED_NTXLINK-1 downto 0);   -- Data to be transmitted
   signal fed_txd_valid : std_logic_vector(FED_NTXLINK downto 1);   -- Flag for tx valid data;
-  signal fed_rxdata1 : std_logic_vector(FEDRXDWIDTH-1 downto 0);   -- Data received
-  signal fed_rxdata2 : std_logic_vector(FEDRXDWIDTH-1 downto 0);   -- Data received
-  signal fed_rxdata3 : std_logic_vector(FEDRXDWIDTH-1 downto 0);   -- Data received
-  signal fed_rxdata4 : std_logic_vector(FEDRXDWIDTH-1 downto 0);   -- Data received
+  signal fed_rxdata : std_logic_vector(FEDRXDWIDTH*FED_NRXLINK-1 downto 0);   -- Data received
   signal fed_rxd_valid : std_logic_vector(FED_NRXLINK downto 1);   -- Flag for rx valid data;
   signal fed_bad_rx : std_logic_vector(FED_NRXLINK downto 1);   -- Flag for fiber errors;
   signal fed_rxready : std_logic; -- Flag for rx reset done
@@ -615,8 +609,9 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal ddu_data_valid, ddu_eof : std_logic;
   signal pc_data                 : std_logic_vector(15 downto 0);
   signal pc_data_valid           : std_logic;
-  signal fed_data                : std_logic_vector(15 downto 0);
-  signal fed_data_valid          : std_logic;
+-- Commented out fed_data signals to use fed_rxdata and fed_txdata vectors instead
+--  signal fed_data                : std_logic_vector(15 downto 0);
+--  signal fed_data_valid          : std_logic;
 
   signal gl_pc_tx_ack            : std_logic;
 
@@ -654,7 +649,8 @@ begin
   -------------------------------------------------------------------------------------------
   MBD : entity work.odmb_data
     generic map (
-      NCFEB => NCFEB
+      NCFEB => NCFEB,
+      FED_NTXLINK => FED_NTXLINK
       )
     port map (
       CMSCLK              => cmsclk,
@@ -1153,7 +1149,8 @@ begin
   MBC : entity work.ODMB_CTRL
     generic map (
       NCFEB => NCFEB,
-      CAFIFO_SIZE => 32
+      CAFIFO_SIZE => 32,
+      FED_NTXLINK => FED_NTXLINK
       )
     port map (
       DDUCLK    => usrclk_ddu,
@@ -1226,8 +1223,8 @@ begin
       DDU_DATA_VALID      => ddu_data_valid,
       PC_DATA             => pc_data,
       PC_DATA_VALID       => pc_data_valid,
-      FED_DATA            => fed_data,
-      FED_DATA_VALID      => fed_data_valid,
+      FED_DATA            => fed_txdata(15 downto 0),
+      FED_DATA_VALID      => fed_txd_valid(1),
 
       -- For headers/trailers
       GA => vme_ga_b,
@@ -1368,8 +1365,10 @@ begin
         ch3_gthrxp_in       => B04_RX_P(4), --to pins
         ch3_gthtxn_out      => DAQ_TX_N(4), --to pins
         ch3_gthtxp_out      => DAQ_TX_P(4), --to pins
-        txdata              => fed_data,  --spy_txdata,
-        txd_valid           => fed_data_valid, --spy_txd_valid,
+        fed_txdata          => fed_txdata,  
+        txd_valid           => fed_txd_valid, 
+        fed_rxdata          => fed_rxdata, 
+        rxd_valid           => fed_rxd_valid,
         reset               => opt_reset    --reset signal
         );
   end generate generate_run4;
