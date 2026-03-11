@@ -86,17 +86,11 @@ module mgt_b04
 
   // DATA    
   // TX Data 
-  input  wire [FEDTXDWIDTH-1:0] fed_txdata1,  // Data to be transmitted
-  input  wire [FEDTXDWIDTH-1:0] fed_txdata2,  // Data to be transmitted
-  input  wire [FEDTXDWIDTH-1:0] fed_txdata3,  // Data to be transmitted
-  input  wire [FEDTXDWIDTH-1:0] fed_txdata4,  // Data to be transmitted
+  input  wire [FEDTXDWIDTH*FED_NTXLINK-1:0] fed_txdata,
   input  wire [FED_NTXLINK-1:0] txd_valid,
   
   // RX Data
-  output  wire [FEDTXDWIDTH-1:0] fed_rxdata1,  // Data to be transmitted
-  output  wire [FEDTXDWIDTH-1:0] fed_rxdata2,  // Data to be transmitted
-  output  wire [FEDTXDWIDTH-1:0] fed_rxdata3,  // Data to be transmitted
-  output  wire [FEDTXDWIDTH-1:0] fed_rxdata4,  // Data to be transmitted
+  output  wire [FEDTXDWIDTH*FED_NTXLINK-1:0] fed_rxdata,  // Data to be transmitted
   output  wire [FED_NTXLINK-1:0] rxd_valid,
 
   // Clocks
@@ -229,6 +223,7 @@ module mgt_b04
   assign hb1_gtwiz_userdata_rx_int = gtwiz_userdata_rx_int[63:32];
   assign hb2_gtwiz_userdata_rx_int = gtwiz_userdata_rx_int[95:64];
   assign hb3_gtwiz_userdata_rx_int = gtwiz_userdata_rx_int[127:96];
+  assign fed_rxdata = {gtwiz_userdata_rx_int[111:96], gtwiz_userdata_rx_int[79:64], gtwiz_userdata_rx_int[47:32], gtwiz_userdata_rx_int[15:0]};
 
   //--------------------------------------------------------------------------------------------------------------------
   wire [0:0] gtrefclk00_int;
@@ -437,8 +432,8 @@ module mgt_b04
       tx_idle_char <= ~tx_idle_char;
     end
     else begin
-      if (txd_valid) begin
-        txdata_reg  <= {txdata, 16'b0};
+      if (txd_valid[1]) begin
+        txdata_reg  <= {fed_txdata[15:0], 16'b0};
         txdata_reg2  <= 32'b0;
         txctrl2_reg <= 8'b0;
       end
@@ -622,11 +617,11 @@ module mgt_b04
   assign ila_data[833:822] = rxbufstatus_int;
   assign ila_data[841:834] = rxclkcorcnt_int;
 
-  //ila_0 ila_i (
-  //  .clk(hb0_gtwiz_userclk_rx_usrclk2_int), // input wire clk
-  //  //.probe0(ila_trigger), // input wire [7:0]  probe0
-  //  .probe0(ila_data) // input wire [255:0]  probe1
-  //);
+  ila_0 ila_i (
+    .clk(hb0_gtwiz_userclk_rx_usrclk2_int), // input wire clk
+    //.probe0(ila_trigger), // input wire [7:0]  probe0
+    .probe0(ila_data) // input wire [255:0]  probe1
+  );
 
   // ===================================================================================================================
   // EXAMPLE WRAPPER INSTANCE
