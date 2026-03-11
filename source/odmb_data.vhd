@@ -10,7 +10,8 @@ use work.ucsb_types.all;
 
 entity odmb_data is
   generic (
-    NCFEB               : integer range 1 to 7 := 7  -- Number of DCFEBS, 7 for ME1/1, 5
+    NCFEB               : integer range 1 to 7 := 7;  -- Number of DCFEBS, 7 for ME1/1, 5
+    FED_NTXLINK         : integer := 4  -- Number of 12.5/12.48 Gbps links to FED, assuming 4
   );
   port (
     CMSCLK              : in std_logic;

@@ -14,6 +14,7 @@ entity ODMB_CTRL is
   generic (
     NFIFO       : integer range 1 to 16 := 16; --! Number of FIFOs in PCFIFO, not currently used
     NCFEB       : integer range 1 to 7 := 7;   --! Number of DCFEBS, 7/5
+    FED_NTXLINK : integer := 4; -- Number of 12.5/12.48 Gbps links to FED, assuming 4
     CAFIFO_SIZE : integer range 1 to 128 := 32 --! Number FIFO words in CAFIFO
   );
   PORT (
@@ -519,7 +520,8 @@ begin
 
   CONTROL_FSM_PM : CONTROL_FSM
     generic map(
-      NCFEB => NCFEB
+      NCFEB => NCFEB,
+      FED_NTXLINK => FED_NTXLINK
       )
     port map(
       --CSP_CONTROL_FSM_PORT_LA_CTRL => CSP_CONTROL_FSM_PORT_LA_CTRL,
@@ -593,7 +595,10 @@ begin
       data_out => PC_DATA
       );
 
-  FEDFIFO_PM : FEDFIFO
+--  GEN_FEDFIFO : for I in FED_NTXLINK downto 1 generate
+--  begin
+
+    FEDFIFO_PM : FEDFIFO
     generic map (NFIFO => NFIFO)
 
     port map(
@@ -609,6 +614,10 @@ begin
       dv_out   => FED_DATA_VALID,
       data_out => FED_DATA
       );
+
+
+--  end generate GEN_FEDFIFO;
+  
 
   CCBCODE_PM : CCBCODE
     port map(

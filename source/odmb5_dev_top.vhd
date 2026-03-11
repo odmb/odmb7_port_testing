@@ -253,7 +253,6 @@ end odmb5_ucsb_dev;
 
 architecture Behavioral of odmb5_ucsb_dev is
   constant NCFEB  : integer range 1 to 7 := 5;  -- Number of DCFEBS, 5 for ODMB5
-
   --------------------------------------
   -- Clock signals
   --------------------------------------
@@ -508,7 +507,7 @@ architecture Behavioral of odmb5_ucsb_dev is
   --------------------------------------
   -- MGT signals for DCFEB RX channels
   --------------------------------------
-  signal usrclk_mgtc : std_logic;
+  signal usrclk_mgtc : std_logic; -- 160 MHz 03/06/2026
   signal dcfeb_rxdata : t_std16_array(NCFEB downto 1);  -- Data received
   signal dcfeb_rxd_valid : std_logic_vector(NCFEB downto 1);   -- Flag for valid data;
   signal dcfeb_crc_valid : std_logic_vector(NCFEB downto 1);   -- Flag for valid data;
@@ -620,7 +619,8 @@ begin
   -------------------------------------------------------------------------------------------
   MBD : entity work.odmb_data
     generic map (
-      NCFEB => NCFEB
+      NCFEB => NCFEB,
+      FED_NTXLINK => FED_NTXLINK
       )
     port map (
       CMSCLK              => cmsclk,
@@ -1090,7 +1090,8 @@ begin
   MBC : entity work.ODMB_CTRL
     generic map (
       NCFEB => NCFEB,
-      CAFIFO_SIZE => 32
+      CAFIFO_SIZE => 32,
+      FED_NTXLINK => FED_NTXLINK
       )
     port map (
       DDUCLK    => usrclk_ddu,
@@ -1277,6 +1278,10 @@ begin
         reset           => opt_reset         --reset signal
         );
     GTH_B04 : entity work.mgt_b04
+    generic map (
+        FEDTXDWIDTH       => FEDTXDWIDTH,
+        FED_NTXLINK       => FED_NTXLINK
+    )
       port map (
         mgtrefclk           => mgtrefclk0_226, -- 156.25 MHz for 4 * 12.5 Gb/s FED transmission
         sysclk              => cmsclk,      -- maximum DRP clock frequency 62.5 MHz for 1.25 Gb/s line rate
@@ -1299,8 +1304,17 @@ begin
         ch3_gthrxp_in       => B04_RX_P(4), --to pins
         ch3_gthtxn_out      => DAQ_TX_N(4), --to pins
         ch3_gthtxp_out      => DAQ_TX_P(4), --to pins
-        txdata              => fed_data,  --spy_txdata,
+        fed_txdata1         => fed_data,  --spy_txdata,
+        fed_txdata2         => fed_data,  --spy_txdata,
+        fed_txdata3         => fed_data,  --spy_txdata,
+        fed_txdata4         => fed_data,  --spy_txdata,
         txd_valid           => fed_data_valid, --spy_txd_valid,
+        fed_rxdata1         => open,  
+        fed_rxdata2         => open,  
+        fed_rxdata3         => open,  
+        fed_rxdata4         => open,  
+        fed_rxdata4         => open,  
+        rxd_valid           => open,
         reset               => opt_reset    --reset signal
         );
   end generate generate_run4;
