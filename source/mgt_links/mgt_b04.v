@@ -671,13 +671,13 @@ module mgt_b04
 //    .probe0(ila_data) // input wire [255:0]  probe1
 //  );
 
-    ila_1 ila_rx (
+    ila_3 ila_rx (
     .clk(hb0_gtwiz_userclk_rx_usrclk2_int),
     .probe0(gtwiz_userdata_rx_int),
     .probe1(rxchanisaligned_int)
     );
     
-    ila_1 ila_tx (
+    ila_3 ila_tx (
     .clk(hb0_gtwiz_userclk_tx_usrclk2_int),
     .probe0(gtwiz_userdata_tx_int),
     .probe1(gtwiz_userdata_tx_int[3:0])
