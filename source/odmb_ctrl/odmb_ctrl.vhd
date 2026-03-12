@@ -14,8 +14,9 @@ entity ODMB_CTRL is
   generic (
     NFIFO       : integer range 1 to 16 := 16; --! Number of FIFOs in PCFIFO, not currently used
     NCFEB       : integer range 1 to 7 := 7;   --! Number of DCFEBS, 7/5
+    CAFIFO_SIZE : integer range 1 to 128 := 32; --! Number FIFO words in CAFIFO
     FED_NTXLINK : integer range 1 to 4 := 4; -- Number of 12.5/12.48 Gbps links to FED, assuming 4
-    CAFIFO_SIZE : integer range 1 to 128 := 32 --! Number FIFO words in CAFIFO
+    FEDTXDWIDTH : integer := 16             -- Width of FED interface
   );
   PORT (
     --------------------
@@ -112,8 +113,8 @@ entity ODMB_CTRL is
     DDU_DATA_VALID : out std_logic;                           --! Data valid to DDU gth from CONTROL_FSM
     PC_DATA        : out std_logic_vector(15 downto 0);       --! Data to PC gth from PCFIFO
     PC_DATA_VALID  : out std_logic;                           --! Data valid to PC gth from PCFIFO
-    FED_DATA       : out std_logic_vector(15 downto 0);       --! Data to FED from FEDFIFO
-    FED_DATA_VALID : out std_logic;                           --! Data valid to FED from FEDFIFO
+    FED_DATA       : out std_logic_vector(FED_NTXLINK*FEDTXDWIDTH-1 downto 0);       --! Data to FED from FEDFIFO
+    FED_DATA_VALID : out std_logic_vector(FED_NTXLINK-1 downto 0);                           --! Data valid to FED from FEDFIFO
 
     -- For headers/trailers
     --DAQMBID : in std_logic_vector(11 downto 0);  -- From CRATEID in SETFEBDLY, and GA
@@ -594,8 +595,8 @@ begin
       data_out => PC_DATA
       );
 
---  GEN_FEDFIFO : for I in FED_NTXLINK downto 1 generate
---  begin
+  GEN_FEDFIFO : for I in FED_NTXLINK downto 1 generate
+  begin
 
     FEDFIFO_PM : FEDFIFO
     generic map (NFIFO => NFIFO)
@@ -606,16 +607,16 @@ begin
       clk_out => FEDCLK,
       rst     => l1acnt_rst,
 
-      data_in => ddu_data_inner,
+      data_in => ddu_data_inner,        -- for now, just duplicate packets for all 4 transceivers
       dv_in   => ddu_data_valid_inner,
       ld_in   => eof,
 
-      dv_out   => FED_DATA_VALID,
-      data_out => FED_DATA
+      dv_out   => FED_DATA_VALID(I-1),
+      data_out => FED_DATA(FEDTXDWIDTH*I-1 downto FEDTXDWIDTH*I)
       );
 
 
---  end generate GEN_FEDFIFO;
+  end generate GEN_FEDFIFO;
   
 
   CCBCODE_PM : CCBCODE

@@ -617,11 +617,24 @@ module mgt_b04
   assign ila_data[833:822] = rxbufstatus_int;
   assign ila_data[841:834] = rxclkcorcnt_int;
 
-  ila_0 ila_i (
-    .clk(hb0_gtwiz_userclk_rx_usrclk2_int), // input wire clk
-    //.probe0(ila_trigger), // input wire [7:0]  probe0
-    .probe0(ila_data) // input wire [255:0]  probe1
-  );
+//  ila_0 ila_i (
+//    .clk(hb0_gtwiz_userclk_rx_usrclk2_int), // input wire clk
+//    //.probe0(ila_trigger), // input wire [7:0]  probe0
+//    .probe0(ila_data) // input wire [255:0]  probe1
+//  );
+
+    ila_1 ila_rx (
+    .clk(hb0_gtwiz_userclk_rx_usrclk2_int),
+    .probe0(gtwiz_userdata_rx_int),
+    .probe1(rxchanisaligned_int)
+    );
+    
+    ila_1 ila_tx (
+    .clk(hb0_gtwiz_userclk_tx_usrclk2_int),
+    .probe0(gtwiz_userdata_tx_int),
+    .probe1(gtwiz_userdata_tx_int[3:0])
+    );
+
 
   // ===================================================================================================================
   // EXAMPLE WRAPPER INSTANCE
