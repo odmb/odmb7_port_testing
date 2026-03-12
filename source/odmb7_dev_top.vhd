@@ -1223,8 +1223,8 @@ begin
       DDU_DATA_VALID      => ddu_data_valid,
       PC_DATA             => pc_data,
       PC_DATA_VALID       => pc_data_valid,
-      FED_DATA            => fed_txdata(15 downto 0),
-      FED_DATA_VALID      => fed_txd_valid(1),
+      FED_DATA            => fed_txdata,
+      FED_DATA_VALID      => fed_txd_valid,
 
       -- For headers/trailers
       GA => vme_ga_b,
