@@ -23,6 +23,7 @@ entity ODMB_CTRL is
     -- Clock
     --------------------
     DDUCLK       : in std_logic;                      --! 80 MHz clock to FED gth domain
+    DCFEBCLK     : in std_logic;                      --! 160 MHz clock for reading device FIFOs
     CMSCLK       : in std_logic;                      --! ~40 MHz clock
     PCCLK        : in std_logic;                      --! 62.5 MHz clock for PC ethernet gth
     FEDCLK       : in std_logic;                      --! 312.5 MHz clock for FED
@@ -208,7 +209,7 @@ architecture Behavioral of ODMB_CTRL is
 
       --CSP_FREE_AGENT_PORT_LA_CTRL : inout std_logic_vector(35 downto 0);
       clk                         : in    std_logic;
-      dduclk                      : in    std_logic;
+      dcfebclk                    : in    std_logic;
       l1acnt_rst                  : in    std_logic;
       bxcnt_rst                   : in    std_logic;
 
@@ -496,7 +497,7 @@ begin
     port map(
       --CSP_FREE_AGENT_PORT_LA_CTRL => CSP_FREE_AGENT_PORT_LA_CTRL,
       clk        => CMSCLK,
-      dduclk     => DDUCLK,
+      dcfebclk   => DCFEBCLK,
       l1acnt_rst => l1acnt_rst,
       bxcnt_rst  => bxcnt_rst,
 
@@ -528,7 +529,7 @@ begin
       )
     port map(
       --CSP_CONTROL_FSM_PORT_LA_CTRL => CSP_CONTROL_FSM_PORT_LA_CTRL,
-      CLK    => DDUCLK,
+      CLK    => DCFEBCLK,
       CLKCMS => CMSCLK,
       RST    => l1acnt_rst,
       STATUS => status,
@@ -585,7 +586,7 @@ begin
 
     port map(
 
-      clk_in  => DDUCLK,
+      clk_in  => DCFEBCLK,
       clk_out => PCCLK,
       rst     => l1acnt_rst,
 
@@ -607,7 +608,7 @@ begin
 
     port map(
 
-      clk_in  => DDUCLK,
+      clk_in  => DCFEBCLK,
       clk_out => FEDCLK,
       rst     => l1acnt_rst,
 

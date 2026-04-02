@@ -26,7 +26,7 @@ entity cafifo is
 
     --CSP_FREE_AGENT_PORT_LA_CTRL : inout std_logic_vector(35 downto 0);
     CLK        : in std_logic;                                 --! 40.079 MHz CMSCLK
-    DDUCLK     : in std_logic;                                 --! DDUCLK (80 MHz for 8b/10b)
+    DCFEBCLK     : in std_logic;                               --! DCFEBCLK (160 MHz)
     L1ACNT_RST : in std_logic;                                 --! From RESET or VMEMON L1A reset
     BXCNT_RST  : in std_logic;                                 --! not CCB_BXRST_B from CCB
 
@@ -208,21 +208,21 @@ begin
     FDL1AM        : FD port map(Q => l1a_match_in_reg(dev),   C => CLK, D => l1a_match_in_reg_d(dev));
     CF_L1AM_FD    : FDC port map(Q => current_l1a_match_d(dev),  C => CLK, CLR => L1ACNT_RST, D => current_l1a_match(dev));
     CF_L1AM_FDD   : FDC port map(Q => current_l1a_match_dd(dev), C => CLK, CLR => L1ACNT_RST, D => current_l1a_match_d(dev));
-    CF_L1AM_CROSS : CROSSCLOCK port map(DOUT => CAFIFO_L1A_MATCH(dev), CLK_DOUT => DDUCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_l1a_match_dd(dev));
-    CF_DAV_CROSS  : CROSSCLOCK port map(DOUT => CAFIFO_L1A_DAV(dev),   CLK_DOUT => DDUCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_l1a_dav(dev));
-    CF_LOST_CROSS : CROSSCLOCK port map(DOUT => CAFIFO_LOST_PCKT(dev), CLK_DOUT => DDUCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_lost_pckt(dev));
+    CF_L1AM_CROSS : CROSSCLOCK port map(DOUT => CAFIFO_L1A_MATCH(dev), CLK_DOUT => DCFEBCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_l1a_match_dd(dev));
+    CF_DAV_CROSS  : CROSSCLOCK port map(DOUT => CAFIFO_L1A_DAV(dev),   CLK_DOUT => DCFEBCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_l1a_dav(dev));
+    CF_LOST_CROSS : CROSSCLOCK port map(DOUT => CAFIFO_LOST_PCKT(dev), CLK_DOUT => DCFEBCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_lost_pckt(dev));
   end generate GEN_L1AM_REG;
   GEN_BX_REG : for dev in 0 to 11 generate
     FDL1AMD     : FD port map(Q => bx_cnt_out_reg_d(dev), C => CLK, D => bx_cnt_out(dev));
     FDL1AM      : FD port map(Q => bx_cnt_out_reg(dev),   C => CLK, D => bx_cnt_out_reg_d(dev));
-    CF_BX_CROSS : CROSSCLOCK port map(DOUT => CAFIFO_BX_CNT(dev), CLK_DOUT => DDUCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_bx_cnt(dev));
+    CF_BX_CROSS : CROSSCLOCK port map(DOUT => CAFIFO_BX_CNT(dev), CLK_DOUT => DCFEBCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_bx_cnt(dev));
   end generate GEN_BX_REG;
   GEN_L1A_REG : for dev in 0 to 23 generate
-    CF_L1A_CROSS : CROSSCLOCK port map(DOUT => CAFIFO_L1A_CNT(dev), CLK_DOUT => DDUCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_l1a_cnt(dev));
+    CF_L1A_CROSS : CROSSCLOCK port map(DOUT => CAFIFO_L1A_CNT(dev), CLK_DOUT => DCFEBCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_l1a_cnt(dev));
   end generate GEN_L1A_REG;
   CF_LONE_FD    : FDC port map(Q => current_lone_d, C => CLK, CLR => L1ACNT_RST, D => current_lone);
   CF_LONE_FDD   : FDC port map(Q => current_lone_dd, C => CLK, CLR => L1ACNT_RST, D => current_lone_d);
-  CF_LONE_CROSS : CROSSCLOCK port map(DOUT => CAFIFO_LONE, CLK_DOUT => DDUCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_lone_dd);
+  CF_LONE_CROSS : CROSSCLOCK port map(DOUT => CAFIFO_LONE, CLK_DOUT => DCFEBCLK, CLK_DIN => CLK, RST => L1ACNT_RST, DIN => current_lone_dd);
 
   -------------------- L1A Counter        --------------------
 
@@ -629,7 +629,7 @@ begin
 
   --ila_cafifo_inst : ila_2
   --  port map(
-  --    clk => DDUCLK,
+  --    clk => DCFEBCLK,
   --    probe0 => ila_data
   --    );
 

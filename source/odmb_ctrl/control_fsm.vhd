@@ -25,7 +25,7 @@ entity CONTROL_FSM is
 
     RST    : in std_logic;                     --! From RESET or VMEMON L1A reset
     CLKCMS : in std_logic;                     --! 40.079 MHz CMS clock
-    CLK    : in std_logic;                     --! DDU clock (typ 80 MHz)
+    CLK    : in std_logic;                     --! "DCFEB Clk" 160 MHz for reading all data FIFOs
     STATUS : in std_logic_vector(47 downto 0); --! Unused
 
     -- From DMB_VME
@@ -88,7 +88,7 @@ architecture CONTROL_arch of CONTROL_FSM is
       );
   end component;
 
-  signal fifo_pop_80 : std_logic := '0';
+  signal fifo_pop_160 : std_logic := '0';
 
   type hdr_tail_array is array (8 downto 1) of std_logic_vector(15 downto 0);
   signal hdr_word, tail_word : hdr_tail_array;
@@ -173,7 +173,7 @@ begin
   control_fsm_la_data(101 downto 97)      <= CAFIFO_L1A_CNT(4 downto 0); -- [101:97]
   control_fsm_la_data(89+NCFEB downto 88) <= FFOR_B; -- [96:88]
   control_fsm_la_data(80+NCFEB downto 79) <= cafifo_lost_pckt; -- [87:79]
-  control_fsm_la_data(78 downto 72)       <= next_state_svl & eof_inner & fifo_pop_inner & fifo_pop_80; -- [78:72]
+  control_fsm_la_data(78 downto 72)       <= next_state_svl & eof_inner & fifo_pop_inner & fifo_pop_160; -- [78:72]
   control_fsm_la_data(64+NCFEB downto 63) <= oefifo_b_inner; -- [71:63]
   control_fsm_la_data(55+NCFEB downto 54) <= renfifo_b_inner; -- [62:54]
   control_fsm_la_data(53 downto 38)       <= dout_inner; -- [53:38]
@@ -191,7 +191,7 @@ begin
   FDLAST : FD port map(Q => q_datain_last, C => clk, D => DATAIN_LAST);
 
 -- 40 MHz pulse for FIFO_POP
-  FDPOP : PULSE2SLOW port map(DOUT => fifo_pop_inner, CLK_DOUT => CLKCMS, CLK_DIN => CLK, RST => RST, DIN => fifo_pop_80);
+  FDPOP : PULSE2SLOW port map(DOUT => fifo_pop_inner, CLK_DOUT => CLKCMS, CLK_DIN => CLK, RST => RST, DIN => fifo_pop_160);
 
   control_fsm_regs : process (control_next_state, RST, CLK, dev_cnt, dev_cnt_en, tx_cnt,
                               tx_cnt_en, tx_cnt_rst, hdr_tail_cnt_en, lone_cnt_en, wait_cnt_en, wait_dev_cnt_en)
@@ -280,7 +280,7 @@ begin
     oefifo_b_inner  <= (others => '1');
     renfifo_b_inner <= (others => '1');
     eof_d           <= '0';
-    fifo_pop_80     <= '0';
+    fifo_pop_160    <= '0';
     hdr_tail_cnt_en <= '0';
     lone_cnt_en     <= '0';
     wait_cnt_en     <= '0';
@@ -360,9 +360,9 @@ begin
         dav_d           <= '1';
         hdr_tail_cnt_en <= '1';
         if (hdr_tail_cnt = 5) then -- With the synchronization ~13 cc to increase rd_addr_ou
-          fifo_pop_80        <= '1';
+          fifo_pop_160        <= '1';
         else
-          fifo_pop_80        <= '0';
+          fifo_pop_160        <= '0';
         end if;
         if (hdr_tail_cnt = 8) then
           control_next_state <= WAIT_IDLE;
@@ -377,9 +377,9 @@ begin
         dav_d       <= '1';
         lone_cnt_en <= '1';
         if (lone_cnt = 1) then -- With the synchronization ~13 cc to increase rd_addr_ou
-          fifo_pop_80        <= '1';
+          fifo_pop_160        <= '1';
         else
-          fifo_pop_80        <= '0';
+          fifo_pop_160        <= '0';
         end if;
         if (lone_cnt = 4) then
           control_next_state <= WAIT_IDLE;

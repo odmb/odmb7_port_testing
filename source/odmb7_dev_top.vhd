@@ -19,11 +19,7 @@ use work.ucsb_types.all;
 --! data acquisition firmware has not yet been developed
 entity odmb7_ucsb_dev is
   generic (
-<<<<<<< HEAD
-    ENABLE_SPY_TO_DDU : std_logic_vector := "01"
-=======
     ENABLE_SPY_TO_DDU : std_logic_vector := "00"
->>>>>>> 2b8d2cb (Working optical interface; Initial attempt at sending DAQ to B04 through FEDFIFO)
     );
   port (
     --------------------
@@ -168,17 +164,10 @@ entity odmb7_ucsb_dev is
 
     SPY_TX_P     : out std_logic;                          --! Finisar (spy) optical TX output to PC.
     SPY_TX_N     : out std_logic;                          --! Finisar (spy) optical TX output to PC.
-<<<<<<< HEAD
-    DAQ_TX_P     : out std_logic_vector(2 downto 2);       --! B04 optical TX, output to FED.
-    DAQ_TX_N     : out std_logic_vector(2 downto 2);       --! B04 optical TX, output to FED.
-    --DAQ_TX_P     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
-    --DAQ_TX_N     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
-=======
     -- DAQ_TX_P     : out std_logic_vector(2 downto 2);       --! B04 optical TX, output to FED.
     -- DAQ_TX_N     : out std_logic_vector(2 downto 2);       --! B04 optical TX, output to FED.
     DAQ_TX_P     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
     DAQ_TX_N     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
->>>>>>> 2b8d2cb (Working optical interface; Initial attempt at sending DAQ to B04 through FEDFIFO)
 
     --------------------------------
     -- Optical control signals
@@ -654,8 +643,6 @@ begin
       )
     port map (
       CMSCLK              => cmsclk,
-      DDUCLK              => usrclk_ddu,
-      CLK_160             => usrclk_mgtc,
       DCFEBCLK            => usrclk_mgtc,
       CLK_160             => usrclk_mgtc,
       RESET               => reset,
@@ -1154,6 +1141,7 @@ begin
       )
     port map (
       DDUCLK    => usrclk_ddu,
+      DCFEBCLK  => usrclk_mgtc,
       CMSCLK    => cmsclk,
       PCCLK     => usrclk_pc,
       FEDCLK    => usrclk_fed,
@@ -1313,8 +1301,6 @@ begin
   -- The second is "SPY configuration" where the SPY port is used to send packets to PC and B04 to DDU
   -- The third is "run 3 configuration" where the SPY port is used to send packets to DDU
   generate_run4 : if ENABLE_SPY_TO_DDU = "00" generate
-<<<<<<< HEAD
-=======
     GTH_PC : entity work.mgt_pc
       port map (
         mgtrefclk       => mgtrefclk1_226, -- mgtrefclk1_226 is sourced from the 125 MHz crystal for 1.25 Gb/s
@@ -1373,7 +1359,6 @@ begin
         );
   end generate generate_run4;
   generate_spy_pc : if ENABLE_SPY_TO_DDU = "01" generate
->>>>>>> 2b8d2cb (Working optical interface; Initial attempt at sending DAQ to B04 through FEDFIFO)
     GTH_PC : entity work.mgt_pc
       port map (
         mgtrefclk       => mgtrefclk1_226, -- mgtrefclk1_226 is sourced from the 125 MHz crystal for 1.25 Gb/s

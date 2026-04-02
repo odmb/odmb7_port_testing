@@ -14,7 +14,6 @@ ip/clockManager/clockManager.xci
 ip/datafifo_dcfeb/datafifo_dcfeb.xci 
 ip/fifo_l1acnt_gen/fifo_l1acnt_gen.xci 
 ip/datafifo_40mhz/datafifo_40mhz.xci 
-ip/ila_1_2/ila_1.xci locked
 ip/ila_0/ila_0.xci 
 ip/vio_cfeb/vio_cfeb.xci 
 ip/l1a_cnt_fifo_gen/l1a_cnt_fifo_gen.xci 
