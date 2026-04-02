@@ -15,7 +15,6 @@ entity odmb_data is
   );
   port (
     CMSCLK              : in std_logic;
-    DDUCLK              : in std_logic;
     DCFEBCLK            : in std_logic;
     RESET               : in std_logic;
     L1ACNT_RST          : in std_logic;
@@ -306,7 +305,7 @@ begin
     port map(
       srst      => l1acnt_fifo_rst,
       wr_clk    => CMSCLK,
-      rd_clk    => DDUCLK,
+      rd_clk    => DCFEBCLK,
       din       => alct_fifo_data_in,
       wr_en     => data_fifo_we(NCFEB+2),
       rd_en     => data_fifo_re(NCFEB+2),
@@ -320,7 +319,7 @@ begin
     port map(
       srst      => l1acnt_fifo_rst,
       wr_clk    => CMSCLK,
-      rd_clk    => DDUCLK,
+      rd_clk    => DCFEBCLK,
       din       => otmb_fifo_data_in,
       wr_en     => data_fifo_we(NCFEB+1),
       rd_en     => data_fifo_re(NCFEB+1),
@@ -405,7 +404,7 @@ begin
         --rst       => dcfeb_fifo_rst(I),
         srst      => l1acnt_fifo_rst,
         wr_clk    => DCFEBCLK,
-        rd_clk    => DDUCLK,
+        rd_clk    => DCFEBCLK,
         din       => eofgen_dcfeb_fifo_in(I),
         wr_en     => data_fifo_we(I),
         rd_en     => data_fifo_re(I),
