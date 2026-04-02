@@ -621,7 +621,6 @@ begin
       )
     port map (
       CMSCLK              => cmsclk,
-      DDUCLK              => usrclk_ddu,
       DCFEBCLK            => usrclk_mgtc,
       RESET               => reset,
       L1ACNT_RST          => l1acnt_rst,
@@ -1092,6 +1091,7 @@ begin
       )
     port map (
       DDUCLK    => usrclk_ddu,
+      DCFEBCLK  => usrclk_mgtc,
       CMSCLK    => cmsclk,
       PCCLK     => usrclk_pc,
       FEDCLK    => usrclk_fed,
