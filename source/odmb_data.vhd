@@ -95,7 +95,7 @@ architecture ODMB_DATA_ARCH of odmb_data is
       data_in : in std_logic_vector(15 downto 0);
 
       dv_out   : out std_logic;
-      data_out : out std_logic_vector(17 downto 0)
+      data_out : out std_logic_vector(71 downto 0)
       );
 
   end component;
@@ -160,7 +160,7 @@ architecture ODMB_DATA_ARCH of odmb_data is
   signal alct_qq             : std_logic_vector(17 downto 0);
 
   signal alct_fifo_data_valid : std_logic;
-  signal alct_fifo_data_in    : std_logic_vector(17 downto 0);
+  signal alct_fifo_data_in    : std_logic_vector(71 downto 0);
   signal alct_fifo_full       : std_logic;
   signal alct_fifo_empty      : std_logic;
 
@@ -174,7 +174,7 @@ architecture ODMB_DATA_ARCH of odmb_data is
   signal otmb_qq             : std_logic_vector(17 downto 0);
 
   signal otmb_fifo_data_valid : std_logic;
-  signal otmb_fifo_data_in    : std_logic_vector(17 downto 0);
+  signal otmb_fifo_data_in    : std_logic_vector(71 downto 0);
   signal otmb_fifo_full       : std_logic;
   signal otmb_fifo_empty      : std_logic;
 
@@ -206,7 +206,7 @@ architecture ODMB_DATA_ARCH of odmb_data is
   signal dcfeb_fifo_in : t_std16_array(NCFEB downto 1);
   signal dcfeb_data    : t_std16_array(NCFEB downto 1);
 
-  signal eofgen_dcfeb_fifo_in    : t_std18_array(NCFEB downto 1);
+  signal eofgen_dcfeb_fifo_in    : t_std72_array(NCFEB downto 1);
   signal eofgen_dcfeb_data_valid : std_logic_vector(NCFEB downto 1);
   signal dcfeb_fifo_out          : t_std18_array(NCFEB downto 1);
   signal alct_fifo_data_out      : std_logic_vector(17 downto 0);
@@ -308,7 +308,7 @@ begin
       srst      => l1acnt_fifo_rst,
       wr_clk    => CMSCLK,
       rd_clk    => DCFEBCLK,
-      din       => alct_fifo_data_in,
+      din       => alct_fifo_data_in(17 downto 0),
       wr_en     => data_fifo_we(NCFEB+2),
       rd_en     => data_fifo_re(NCFEB+2),
       dout      => alct_fifo_data_out,
@@ -322,7 +322,7 @@ begin
       srst      => l1acnt_fifo_rst,
       wr_clk    => CMSCLK,
       rd_clk    => DCFEBCLK,
-      din       => otmb_fifo_data_in,
+      din       => otmb_fifo_data_in(17 downto 0),
       wr_en     => data_fifo_we(NCFEB+1),
       rd_en     => data_fifo_re(NCFEB+1),
       dout      => otmb_fifo_data_out,
@@ -407,7 +407,7 @@ begin
         srst      => l1acnt_fifo_rst,
         wr_clk    => DCFEBCLK,
         rd_clk    => DCFEBCLK,
-        din       => eofgen_dcfeb_fifo_in(I),
+        din       => eofgen_dcfeb_fifo_in(I)(17 downto 0),
         wr_en     => data_fifo_we(I),
         rd_en     => data_fifo_re(I),
         dout      => dcfeb_fifo_out(I),
