@@ -19,7 +19,7 @@ use work.ucsb_types.all;
 --! data acquisition firmware has not yet been developed
 entity odmb7_ucsb_dev is
   generic (
-    ENABLE_SPY_TO_DDU : std_logic_vector := "00"
+    ENABLE_SPY_TO_DDU : std_logic_vector := "01"
     );
   port (
     --------------------
@@ -163,10 +163,10 @@ entity odmb7_ucsb_dev is
 
     SPY_TX_P     : out std_logic;                          --! Finisar (spy) optical TX output to PC.
     SPY_TX_N     : out std_logic;                          --! Finisar (spy) optical TX output to PC.
-    -- DAQ_TX_P     : out std_logic_vector(2 downto 2);       --! B04 optical TX, output to FED.
-    -- DAQ_TX_N     : out std_logic_vector(2 downto 2);       --! B04 optical TX, output to FED.
-    DAQ_TX_P     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
-    DAQ_TX_N     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
+    DAQ_TX_P     : out std_logic_vector(2 downto 2);       --! B04 optical TX, output to FED.
+    DAQ_TX_N     : out std_logic_vector(2 downto 2);       --! B04 optical TX, output to FED.
+    --DAQ_TX_P     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
+    --DAQ_TX_N     : out std_logic_vector(4 downto 1);    --! B04 optical TX, output to FED.
 
     --------------------------------
     -- Optical control signals
@@ -271,6 +271,7 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal sysclk20 : std_logic;
   signal sysclk40 : std_logic;
   signal sysclk80 : std_logic;
+  signal sysclk160 : std_logic;
   signal cmsclk : std_logic;
   signal clk_lfclk : std_logic;
   signal clk_gp6 : std_logic;
@@ -592,6 +593,7 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal into_fifo_dav  : std_logic_vector(NCFEB+2 downto 1);
   signal fifo_half_full : std_logic_vector(NCFEB+2 downto 1);
   signal fifo_empty     : std_logic_vector(NCFEB+2 downto 1);
+  signal fifo_full      : std_logic_vector(NCFEB+2 downto 1);
 
   signal fifo_dout : std_logic_vector(17 downto 0);
   signal fifo_oe_b : std_logic_vector(NCFEB+2 downto 1) := (others => '1');
@@ -633,6 +635,7 @@ begin
       CMSCLK              => cmsclk,
       DDUCLK              => usrclk_ddu,
       DCFEBCLK            => usrclk_mgtc,
+      CLK_160             => usrclk_mgtc,
       RESET               => reset,
       L1ACNT_RST          => l1acnt_rst,
       KILL                => kill,
@@ -662,7 +665,8 @@ begin
       FIFO_OE_B           => fifo_oe_b,
       FIFO_DOUT           => fifo_dout,
       FIFO_EMPTY          => fifo_empty,
-      FIFO_HALF_FULL      => fifo_half_full
+      FIFO_HALF_FULL      => fifo_half_full,
+      FIFO_FULL           => fifo_full
       );
 
   -------------------------------------------------------------------------------------------
@@ -703,6 +707,7 @@ begin
       clk_sysclk20   => sysclk20,
       clk_sysclk40   => sysclk40,
       clk_sysclk80   => sysclk80,
+      clk_sysclk160  => sysclk160,
       clk_cmsclk     => cmsclk,
       clk_lfclk      => clk_lfclk,
       clk_gp6        => clk_gp6,
@@ -1196,7 +1201,8 @@ begin
       FIFO_DOUT  => fifo_dout,
       -- FIFO_EOF => fifo_eof,
       FIFO_EMPTY   => fifo_empty,  -- emptyf*(7 DOWNTO 1) - from FIFOs
-      FIFO_HALF_FULL => fifo_half_full
+      FIFO_HALF_FULL => fifo_half_full,
+      FIFO_FULL => fifo_full
       );
 
 
@@ -1327,6 +1333,12 @@ begin
         );
   end generate generate_run4;
   generate_spy_pc : if ENABLE_SPY_TO_DDU = "01" generate
+    --DAQ_TX_P(1) <= 'Z';
+    --DAQ_TX_N(1) <= 'Z';
+    --DAQ_TX_P(3) <= 'Z';
+    --DAQ_TX_N(3) <= 'Z';
+    --DAQ_TX_P(4) <= 'Z';
+    --DAQ_TX_N(4) <= 'Z';
     GTH_PC : entity work.mgt_pc
       port map (
         mgtrefclk       => mgtrefclk1_226, -- mgtrefclk1_226 is sourced from the 125 MHz crystal for 1.25 Gb/s
@@ -1447,6 +1459,9 @@ begin
   -------------------------------------------------
   -- DCFEB receiver for ODMB7
   -------------------------------------------------
+  dcfeb_datafifo_full <= FIFO_FULL(NCFEB downto 1);
+  dcfeb_datafifo_afull <= FIFO_HALF_FULL(NCFEB downto 1);
+  
   GTH_DCFEB : entity work.mgt_cfeb
     generic map (
       NLINK        => NCFEB,  -- number of links
