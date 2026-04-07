@@ -126,7 +126,7 @@ entity ODMB_CTRL is
     -- From/To Data FIFOs 
     FIFO_RE_B      : out std_logic_vector(NCFEB+2 downto 1);  --! From CONTROL_FSM to read FE FIFO
     FIFO_OE_B      : out std_logic_vector(NCFEB+2 downto 1);  --! From CONTROL_FSM to select FE FIFO
-    FIFO_DOUT      : in std_logic_vector(17 downto 0);        --! Output from FE FIFOs to CONTROL_FSM
+    FIFO_DOUT      : in std_logic_vector(71 downto 0);        --! Output from FE FIFOs to CONTROL_FSM
     FIFO_EMPTY     : in std_logic_vector(NCFEB+2 downto 1);   --! Empty from FE FIFOs to CONTROL_FSM
     FIFO_HALF_FULL : in std_logic_vector(NCFEB+2 downto 1);   --! Full from FE FIFOs to CONTROL_FSM
     FIFO_FULL      : in std_logic_vector(NCFEB+2 downto 1)
