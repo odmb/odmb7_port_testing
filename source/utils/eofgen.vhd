@@ -33,9 +33,6 @@ architecture eofgen_architecture of eofgen is
   signal dv_reg                          : std_logic_vector(WORDS_PER_FIFO_WIDTH-1 downto 0);
   signal eof, eof_reg, end_of_fifo       : std_logic;
   signal width_match_counter             : std_logic_vector(1 downto 0);
-  type control_state is (FIRST, SECOND, THIRD, FOURTH, END_FRAME);
-  signal control_current_state, control_next_state : control_state := FIRST;
-  
 begin
 
   

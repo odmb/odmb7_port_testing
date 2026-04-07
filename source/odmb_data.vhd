@@ -10,8 +10,10 @@ use work.ucsb_types.all;
 
 entity odmb_data is
   generic (
-    NCFEB               : integer range 1 to 7 := 7;  -- Number of DCFEBS, 7 for ME1/1, 5
-    FED_NTXLINK         : integer := 4  -- Number of 12.5/12.48 Gbps links to FED, assuming 4
+    NCFEB                   : integer range 1 to 7 := 7;  -- Number of DCFEBS, 7 for ME1/1, 5
+    FED_NTXLINK             : integer := 4;  -- Number of 12.5/12.48 Gbps links to FED, assuming 4
+    WORDS_PER_FIFO_WIDTH    : integer range 1 to 16 := 4 --! Shift reg depth
+
   );
   port (
     CMSCLK              : in std_logic;
@@ -43,7 +45,7 @@ entity odmb_data is
 
     FIFO_RE_B           : in std_logic_vector(NCFEB+2 downto 1);
     FIFO_OE_B           : in std_logic_vector(NCFEB+2 downto 1);
-    FIFO_DOUT           : out std_logic_vector(17 downto 0);
+    FIFO_DOUT           : out std_logic_vector(18*WORDS_PER_FIFO_WIDTH-1 downto 0);
     FIFO_EMPTY          : out std_logic_vector(NCFEB+2 downto 1);
     FIFO_HALF_FULL      : out std_logic_vector(NCFEB+2 downto 1)
   );
@@ -56,10 +58,10 @@ architecture ODMB_DATA_ARCH of odmb_data is
       srst : in std_logic;
       wr_clk : in std_logic;
       rd_clk : in std_logic;
-      din : in std_logic_vector(17 downto 0);
+      din : in std_logic_vector(71 downto 0);
       wr_en : in std_logic;
       rd_en : in std_logic;
-      dout : out std_logic_vector(17 downto 0);
+      dout : out std_logic_vector(71 downto 0);
       full : out std_logic;
       empty : out std_logic;
       prog_full : out std_logic;
@@ -71,12 +73,11 @@ architecture ODMB_DATA_ARCH of odmb_data is
   component datafifo_dcfeb
     port (
       srst : in std_logic;
-      wr_clk : in std_logic;
-      rd_clk : in std_logic;
-      din : in std_logic_vector(17 downto 0);
+      clk : in std_logic;
+      din : in std_logic_vector(71 downto 0);
       wr_en : in std_logic;
       rd_en : in std_logic;
-      dout : out std_logic_vector(17 downto 0);
+      dout : out std_logic_vector(71 downto 0);
       full : out std_logic;
       empty : out std_logic;
       prog_full : out std_logic;
@@ -207,9 +208,9 @@ architecture ODMB_DATA_ARCH of odmb_data is
 
   signal eofgen_dcfeb_fifo_in    : t_std72_array(NCFEB downto 1);
   signal eofgen_dcfeb_data_valid : std_logic_vector(NCFEB downto 1);
-  signal dcfeb_fifo_out          : t_std18_array(NCFEB downto 1);
-  signal alct_fifo_data_out      : std_logic_vector(17 downto 0);
-  signal otmb_fifo_data_out      : std_logic_vector(17 downto 0);
+  signal dcfeb_fifo_out          : t_std72_array(NCFEB downto 1);
+  signal alct_fifo_data_out      : std_logic_vector(71 downto 0);
+  signal otmb_fifo_data_out      : std_logic_vector(71 downto 0);
 
   signal data_fifo_re            : std_logic_vector (NCFEB+2 downto 1);
   signal data_fifo_we            : std_logic_vector (NCFEB+2 downto 1);
@@ -306,7 +307,7 @@ begin
       srst      => l1acnt_fifo_rst,
       wr_clk    => CMSCLK,
       rd_clk    => DCFEBCLK,
-      din       => alct_fifo_data_in(17 downto 0),
+      din       => alct_fifo_data_in(71 downto 0),
       wr_en     => data_fifo_we(NCFEB+2),
       rd_en     => data_fifo_re(NCFEB+2),
       dout      => alct_fifo_data_out,
@@ -320,7 +321,7 @@ begin
       srst      => l1acnt_fifo_rst,
       wr_clk    => CMSCLK,
       rd_clk    => DCFEBCLK,
-      din       => otmb_fifo_data_in(17 downto 0),
+      din       => otmb_fifo_data_in(71 downto 0),
       wr_en     => data_fifo_we(NCFEB+1),
       rd_en     => data_fifo_re(NCFEB+1),
       dout      => otmb_fifo_data_out,
@@ -403,9 +404,8 @@ begin
         --need change due to use auto-kill
         --rst       => dcfeb_fifo_rst(I),
         srst      => l1acnt_fifo_rst,
-        wr_clk    => DCFEBCLK,
-        rd_clk    => DCFEBCLK,
-        din       => eofgen_dcfeb_fifo_in(I)(17 downto 0),
+        clk       => DCFEBCLK,
+        din       => eofgen_dcfeb_fifo_in(I),
         wr_en     => data_fifo_we(I),
         rd_en     => data_fifo_re(I),
         dout      => dcfeb_fifo_out(I),
