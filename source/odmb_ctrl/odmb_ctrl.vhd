@@ -613,7 +613,7 @@ begin
       ld_in   => eof,
 
       dv_out   => FED_DATA_VALID(I-1),
-      data_out => FED_DATA(FEDTXDWIDTH*I-1 downto FEDTXDWIDTH*I)
+      data_out => FED_DATA(FEDTXDWIDTH*I-1 downto FEDTXDWIDTH*(I-1))
       );
 
 
