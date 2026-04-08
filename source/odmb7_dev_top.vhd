@@ -283,6 +283,7 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal mgtclk5 : std_logic;
   signal mgtclk125 : std_logic;
   signal led_clkfreqs : std_logic_vector(7 downto 0);
+  signal mmcm_locked : std_logic;
 
   --------------------------------------
   -- VME signals
@@ -622,6 +623,9 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal fifo_empty     : std_logic_vector(NCFEB+2 downto 1);
   signal fifo_full      : std_logic_vector(NCFEB+2 downto 1);
 
+  signal fifo_wr_rst         : std_logic_vector(NCFEB+2 downto 1);
+  signal fifo_rd_rst         : std_logic_vector(NCFEB+2 downto 1);
+
   signal fifo_dout : std_logic_vector(17 downto 0);
   signal fifo_oe_b : std_logic_vector(NCFEB+2 downto 1) := (others => '1');
   signal fifo_re_b : std_logic_vector(NCFEB+2 downto 1) := (others => '1');
@@ -630,6 +634,8 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal ddu_data_valid, ddu_eof : std_logic;
   signal pc_data                 : std_logic_vector(15 downto 0);
   signal pc_data_valid           : std_logic;
+  signal pc_txready              : std_logic;
+  signal pc_rxready              : std_logic;
   signal fed_data                : std_logic_vector(15 downto 0);
   signal fed_data_valid          : std_logic;
 
@@ -821,29 +827,6 @@ begin
   dcfeb_extpls <= '0' when mask_pls = '1' else premask_extpls;
 
   dcfeb_tdo_int <= dcfeb_tdo when (odmb_ctrl_reg(7) = '0') else gen_dcfeb_tdo;
-
-  --generate RESYNC, BC0, L1A, and L1A match signals to DCFEBs
-  --synchronization of CCB signals and push button
-  ccb_bx0   <= not CCB_BX0_B;
-  FD_CCBBX0 : FD port map(Q => ccb_bx0_q, C => cmsclk, D => ccb_bx0);
-  FD_CCBBX  : FD port map(Q => ccb_bxrst_b_q, C => cmsclk, D => ccb_bx_rst_b);
-  bxcnt_rst <= not ccb_bxrst_b_q;
-
-  RESETPULSE      : PULSE2SAME port map(DOUT => reset_pulse, CLK_DOUT => cmsclk, RST => '0', DIN => reset);
-  FD_RESETPULSE_Q : FD port map (Q => reset_pulse_q,     C => cmsclk, D => reset_pulse);
-  FD_L1APULSE_Q   : FD port map (Q => l1a_reset_pulse_q, C => cmsclk, D => l1a_reset_pulse);
-
-  --TODO: fix l1acnt_rst, 20MHz clock using ccb_bx0, and all other effects thereof)
-  --TODO: fix this logic, copied from ODMB because timing violations
-  --l1acnt_rst <= clk20 and (l1a_reset_pulse or l1a_reset_pulse_q or reset_pulse or reset_pulse_q);
-  proc_sync_l1acnt : process (cmsclk)
-  begin
-    if rising_edge(cmsclk) then
-      l1acnt_rst <= (l1a_reset_pulse or l1a_reset_pulse_q or reset_pulse or reset_pulse_q);
-      l1acnt_rst_meta <= l1acnt_rst;
-      l1acnt_rst_sync <= l1acnt_rst_meta;
-    end if;
-  end process;
 
   pre_bc0    <= test_bc0 or ccb_bx0_q;
   masked_l1a <= '0' when mask_l1a(0) = '1' else odmbctrl_l1a;
@@ -1161,7 +1144,7 @@ begin
 
   reset <= fw_rst_reg(31) or pon_rst_reg(31);   -- Firmware reset
 
-  PLS_DONERESET : PULSE2FAST port map(DOUT => done_reset_pulse, CLK_DOUT => cmsclk, RST => reset, DIN => done_reset);
+  -- PLS_DONERESET : PULSE2FAST port map(DOUT => done_reset_pulse, CLK_DOUT => cmsclk, RST => reset, DIN => done_reset);
   FD_OPT_RESET : FD port map(Q => opt_reset_pulse_q, C => cmsclk, D => opt_reset_pulse);
   opt_rst_reg <= x"3FFFF000" when (opt_reset_pulse_q = '0' and opt_reset_pulse = '1') else
                  opt_rst_reg(30 downto 0) & '0' when rising_edge(cmsclk) else
