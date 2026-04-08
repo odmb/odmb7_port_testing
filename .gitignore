@@ -3,6 +3,7 @@ testbench/vivado*
 .Xil
 *webtalk*
 ip/**/*
+!ip/**/
 !ip/**/*.xci
 builds/
 
