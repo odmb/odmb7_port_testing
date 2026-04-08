@@ -441,8 +441,8 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal fw_rst_reg      : std_logic_vector(31 downto 0) := (others => '0');
   signal opt_rst_reg     : std_logic_vector(31 downto 0) := (others => '0');
   signal reset           : std_logic := '0';
-  signal lf_counter       : integer := 0;
-  signal done_reset       : std_logic := '0';
+  
+  -- signal done_reset       : std_logic := '0';
   signal done_reset_pulse : std_logic := '0';
   signal fw_startup      : std_logic := '1';
   
@@ -640,6 +640,24 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal alct_push_dly : integer range 0 to 63;
   signal otmb_push_dly : integer range 0 to 63;
   signal test_otmb_dav, test_alct_dav              : std_logic := '0';
+
+  component reset_counter 
+    Port ( clk : in STD_LOGIC;
+           counter_enable : in STD_LOGIC;
+           counter_reset : in STD_LOGIC;
+           reset : in STD_LOGIC;
+           count_out : out STD_LOGIC_VECTOR(15 downto 0));
+  end component;
+
+  type reset_states is (IDLE, DCFEB_RST, DCFEB_RST_CNTR, CLK_RST, OPT_RST, L1A_RST, L1A_RST_CNTR, FIFO_RST, FIFO_RST_CNTR, DONE);
+  signal current_rst_state : reset_states := IDLE;
+  signal next_rst_state    : reset_states := IDLE;
+
+  --Signals that track the reset signals and if the reset is finished
+  signal dcfeb_reprog_b_int : std_logic := '0';
+  signal ccb_soft_reset_pulse : std_logic := '0';
+  signal l1a_reset_ps_pulse : std_logic := '0';
+  signal fifo_reset_pulse : std_logic := '0';
 
 begin
 
