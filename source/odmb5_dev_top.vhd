@@ -19,7 +19,7 @@ use work.ucsb_types.all;
 --! data acquisition firmware has not yet been developed
 entity odmb5_ucsb_dev is
   generic (
-    ENABLE_SPY_TO_DDU : std_logic_vector := "01"
+    ENABLE_SPY_TO_DDU : std_logic := '0'
     );
   port (
     --------------------
@@ -281,12 +281,12 @@ architecture Behavioral of odmb5_ucsb_dev is
   signal mgtclk4 : std_logic;
   signal mgtclk5 : std_logic;
   signal mgtclk125 : std_logic;
-
+  signal mmcm_locked : std_logic;
   --------------------------------------
   -- VME signals
   --------------------------------------
   signal vme_dir_b        : std_logic;
-  signal vme_dir          : std_logic;
+  -- signal vme_dir          : std_logic;
   signal vme_oe_b         : std_logic;
   signal vme_data_out_buf : std_logic_vector(15 downto 0) := (others => '0');
   signal vme_data_in_buf  : std_logic_vector(15 downto 0) := (others => '0');
@@ -435,11 +435,10 @@ architecture Behavioral of odmb5_ucsb_dev is
   signal reset           : std_logic := '0';
   
   -- signal done_reset       : std_logic := '0';
-  -- signal done_enable      : std_logic := '1';
-  signal done_reset_pulse    : std_logic := '0';
-  signal fw_startup          : std_logic := '1';
+  signal done_reset_pulse : std_logic := '0';
+  signal fw_startup      : std_logic := '1';
 
-  signal lf_counter                   : integer := 0;
+  signal lf_counter          : integer := 0;
   signal dcfebrst_counter_enable      : std_logic := '0';
   signal dcfebrst_counter_reset       : std_logic := '1';
   signal dcfebrst_counter_reset_pulse : std_logic := '0';
@@ -465,6 +464,7 @@ architecture Behavioral of odmb5_ucsb_dev is
   signal opt_reset_ps : std_logic := '0';
   signal l1a_reset_ps : std_logic := '0';
   signal fifo_reset_ps : std_logic := '0';
+
   --------------------------------------
   -- MGT PRBS signals as place holder
   --------------------------------------
@@ -615,6 +615,9 @@ architecture Behavioral of odmb5_ucsb_dev is
   signal fifo_empty     : std_logic_vector(NCFEB+2 downto 1);
   signal fifo_full      : std_logic_vector(NCFEB+2 downto 1);
 
+  signal fifo_wr_rst         : std_logic_vector(NCFEB+2 downto 1);
+  signal fifo_rd_rst         : std_logic_vector(NCFEB+2 downto 1);
+
   signal fifo_dout : std_logic_vector(17 downto 0);
   signal fifo_oe_b : std_logic_vector(NCFEB+2 downto 1) := (others => '1');
   signal fifo_re_b : std_logic_vector(NCFEB+2 downto 1) := (others => '1');
@@ -623,6 +626,8 @@ architecture Behavioral of odmb5_ucsb_dev is
   signal ddu_data_valid, ddu_eof : std_logic;
   signal pc_data                 : std_logic_vector(15 downto 0);
   signal pc_data_valid           : std_logic;
+  signal pc_txready              : std_logic;
+  signal pc_rxready              : std_logic;
   signal fed_data                : std_logic_vector(15 downto 0);
   signal fed_data_valid          : std_logic;
 
@@ -731,6 +736,7 @@ begin
       CLK_125_REF_P  => CLK_125_REF_P,
       CLK_125_REF_N  => CLK_125_REF_N,
       LF_CLK         => LF_CLK,
+      -- Output clocks
       mgtrefclk0_224 => mgtrefclk0_224,
       mgtrefclk0_225 => mgtrefclk0_225,
       mgtrefclk0_226 => mgtrefclk0_226,
@@ -762,8 +768,7 @@ begin
   -------------------------------------------------------------------------------------------
 
   -- Handle VME data direction and output enable lines
-  KUS_VME_DIR <= vme_dir;
-  vme_dir <= not vme_dir_b;
+  KUS_VME_DIR <= not vme_dir_b;
   KUS_VME_OE_B <= vme_oe_b;
 
   GEN_VMEIO_16 : for I in 0 to 15 generate
@@ -805,29 +810,6 @@ begin
   dcfeb_extpls <= '0' when mask_pls = '1' else premask_extpls;
 
   dcfeb_tdo_int <= dcfeb_tdo when (odmb_ctrl_reg(7) = '0') else gen_dcfeb_tdo;
-
-  --generate RESYNC, BC0, L1A, and L1A match signals to DCFEBs
-  --synchronization of CCB signals and push button
-  ccb_bx0   <= not CCB_BX0_B;
-  FD_CCBBX0 : FD port map(Q => ccb_bx0_q, C => cmsclk, D => ccb_bx0);
-  FD_CCBBX  : FD port map(Q => ccb_bxrst_b_q, C => cmsclk, D => ccb_bx_rst_b);
-  bxcnt_rst <= not ccb_bxrst_b_q;
-
-  RESETPULSE      : PULSE2SAME port map(DOUT => reset_pulse, CLK_DOUT => cmsclk, RST => '0', DIN => reset);
-  FD_RESETPULSE_Q : FD port map (Q => reset_pulse_q,     C => cmsclk, D => reset_pulse);
-  FD_L1APULSE_Q   : FD port map (Q => l1a_reset_pulse_q, C => cmsclk, D => l1a_reset_pulse);
-
-  --TODO: fix l1acnt_rst, 20MHz clock using ccb_bx0, and all other effects thereof)
-  --TODO: fix this logic, copied from ODMB because timing violations
-  --l1acnt_rst <= clk20 and (l1a_reset_pulse or l1a_reset_pulse_q or reset_pulse or reset_pulse_q);
-  proc_sync_l1acnt : process (cmsclk)
-  begin
-    if rising_edge(cmsclk) then
-      l1acnt_rst <= (l1a_reset_pulse or l1a_reset_pulse_q or reset_pulse or reset_pulse_q);
-      l1acnt_rst_meta <= l1acnt_rst;
-      l1acnt_rst_sync <= l1acnt_rst_meta;
-    end if;
-  end process;
 
   pre_bc0    <= test_bc0 or ccb_bx0_q;
   masked_l1a <= '0' when mask_l1a(0) = '1' else odmbctrl_l1a;
@@ -1141,7 +1123,7 @@ begin
 
   reset <= fw_rst_reg(31) or pon_rst_reg(31);   -- Firmware reset
 
-  PLS_DONERESET : PULSE2FAST port map(DOUT => done_reset_pulse, CLK_DOUT => cmsclk, RST => reset, DIN => done_reset);
+  -- PLS_DONERESET : PULSE2FAST port map(DOUT => done_reset_pulse, CLK_DOUT => cmsclk, RST => reset, DIN => done_reset);
   FD_OPT_RESET : FD port map(Q => opt_reset_pulse_q, C => cmsclk, D => opt_reset_pulse);
   opt_rst_reg <= x"3FFFF000" when (opt_reset_pulse_q = '0' and opt_reset_pulse = '1') else
                  opt_rst_reg(30 downto 0) & '0' when rising_edge(cmsclk) else
@@ -1199,7 +1181,6 @@ begin
 --                 opt_rst_reg(30 downto 0) & '0' when rising_edge(cmsclk) else
 --                 opt_rst_reg;
 --  opt_reset <= opt_rst_reg(31) or pon_reset or mgt_reset or done_reset_pulse;  -- Optical reset
-
 
   -------------------------------------------------------------------------------------------
   -- Sub-modules
@@ -1352,7 +1333,7 @@ begin
       DDUCLK    => usrclk_ddu,
       CMSCLK    => cmsclk,
       PCCLK     => usrclk_pc,
-      -- FEDCLK    => usrclk_fed,
+      --FEDCLK    => usrclk_fed,
 
       CCB_CMD      => ccb_cmd,
       CCB_CMD_S    => ccb_cmd_s,
@@ -1501,67 +1482,8 @@ begin
   spy_rx_n <= DAQ_SPY_RX_N when SPY_SEL = '1' else '0';
   spy_rx_p <= DAQ_SPY_RX_P when SPY_SEL = '1' else '0';
 
-  -- This module can have three configurations
-  -- The first is "run 4 configuration" where the SPY port is used to send packets to PC and B04 to FED with channel bonding 
-  -- The second is "SPY configuration" where the SPY port is used to send packets to PC and B04 to DDU
-  -- The third is "run 3 configuration" where the SPY port is used to send packets to DDU
-    generate_run4 : if ENABLE_SPY_TO_DDU = "00" generate
-    GTH_PC : entity work.mgt_pc
-      port map (
-        mgtrefclk       => mgtrefclk1_226, -- mgtrefclk1_226 is sourced from the 125 MHz crystal for 1.25 Gb/s
-        txusrclk        => usrclk_pc,  -- 125 MHz for 1.25 Gb/s with 8b/10b encoding
-        rxusrclk        => open, --output rx clock
-        sysclk          => cmsclk,    -- maximum DRP clock frequency 62.5 MHz for 1.25 Gb/s line rate
-        spy_rx_n        => spy_rx_n, --to pins
-        spy_rx_p        => spy_rx_p, --to pins
-        spy_tx_n        => SPY_TX_N, --to pins
-        spy_tx_p        => SPY_TX_P, --to pins
-        txready         => open,     --unused
-        rxready         => open,     --unused
-        txdata          => pc_data,  --spy_txdata,
-        txd_valid       => pc_data_valid, --spy_txd_valid,
-        end_of_header   => gl_pc_tx_ack,     --end of header signal to PCFIFO
-        txdiffctrl      => spy_txdiffctrl,   --unused
-        loopback        => spy_loopback,     --unused
-        rxdata          => open,             --unused
-        rxd_valid       => open,             --unused
-        bad_rx          => open,             --unused
-        prbs_type       => mgt_prbs_type,    --from ODMB_VME
-        prbs_tx_en      => spy_prbs_tx_en,   --from ODMB_VME
-        prbs_rx_en      => spy_prbs_rx_en,   --from ODMB_VME
-        prbs_tst_cnt    => spy_prbs_tst_cnt, --from ODMB_VME
-        prbs_err_cnt    => open,             --from ODMB_VME
-        reset           => opt_reset         --reset signal
-        );
-    GTH_B04 : entity work.mgt_b04
-      port map (
-        mgtrefclk           => mgtrefclk0_226, -- 156.25 MHz for 4 * 12.5 Gb/s FED transmission
-        sysclk              => cmsclk,      -- maximum DRP clock frequency 62.5 MHz for 1.25 Gb/s line rate
-        clk80               => sysclk80,    -- Sys Clk 80 MHz
-        dduclk              => usrclk_ddu,  -- 80 MHz for DDU
-        txusrclk            => usrclk_fed,  -- 312.5 MHz for 12.5 Gb/s with 8b/10b encoding?
-        ch0_gthrxn_in       => BCK_PRS_N,   --to pins
-        ch0_gthrxp_in       => BCK_PRS_P,   --to pins
-        ch0_gthtxn_out      => DAQ_TX_N(1), --to pins
-        ch0_gthtxp_out      => DAQ_TX_P(1), --to pins
-        ch1_gthrxn_in       => B04_RX_N(2), --to pins
-        ch1_gthrxp_in       => B04_RX_P(2), --to pins
-        ch1_gthtxn_out      => DAQ_TX_N(2), --to pins
-        ch1_gthtxp_out      => DAQ_TX_P(2), --to pins
-        ch2_gthrxn_in       => B04_RX_N(3), --to pins
-        ch2_gthrxp_in       => B04_RX_P(3), --to pins
-        ch2_gthtxn_out      => DAQ_TX_N(3), --to pins
-        ch2_gthtxp_out      => DAQ_TX_P(3), --to pins
-        ch3_gthrxn_in       => B04_RX_N(4), --to pins
-        ch3_gthrxp_in       => B04_RX_P(4), --to pins
-        ch3_gthtxn_out      => DAQ_TX_N(4), --to pins
-        ch3_gthtxp_out      => DAQ_TX_P(4), --to pins
-        txdata              => fed_data,  --spy_txdata,
-        txd_valid           => fed_data_valid, --spy_txd_valid,
-        reset               => opt_reset    --reset signal
-        );
-  end generate generate_run4;
-  generate_spy_pc : if ENABLE_SPY_TO_DDU = "01" generate
+  
+  generate_spy_pc : if ENABLE_SPY_TO_DDU = '0' generate
   --DAQ_TX_P(1) <= 'Z';
   --DAQ_TX_N(1) <= 'Z';
   --DAQ_TX_P(3) <= 'Z';
@@ -1628,10 +1550,8 @@ begin
         reset           => opt_reset         --reset signal
         );
   end generate generate_spy_pc;
-  generate_spy_ddu : if ENABLE_SPY_TO_DDU = "10" generate    GTH_PC : entity work.mgt_pc
-      generic map (
-        CHANN_IDX       => 13
-      )
+  generate_spy_ddu : if ENABLE_SPY_TO_DDU = '1' generate
+    GTH_PC : entity work.mgt_pc
       port map (
         mgtrefclk       => mgtrefclk1_226, -- mgtrefclk1_226 is sourced from the 125 MHz crystal for 1.25 Gb/s
         txusrclk        => usrclk_pc,  -- 125 MHz for 1.25 Gb/s with 8b/10b encoding
@@ -1689,10 +1609,14 @@ begin
         );
   end generate generate_spy_ddu;
 
+
+  -------------------------------------------------
+  -- DCFEB receiver for ODMB7
+  -------------------------------------------------
   dcfeb_datafifo_full <= FIFO_FULL(NCFEB downto 1);
   dcfeb_datafifo_afull <= FIFO_HALF_FULL(NCFEB downto 1);
-  GTH_DCFEB : entity work.mgt_cfeb
   
+  GTH_DCFEB : entity work.mgt_cfeb
     generic map (
       NLINK        => NCFEB,  -- number of links
       DATAWIDTH    => 16  -- user data width
