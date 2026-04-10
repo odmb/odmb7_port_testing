@@ -126,7 +126,7 @@ entity odmb_dev is
     LVMB_CSB     : out std_logic_vector(6 downto 0);       --! LVMB ADC SPI chip select. Used by ODMB_VME. Connected to bank 67.
     LVMB_SCLK    : out std_logic;                          --! LVMB ADC SPI clock. Used by ODMB_VME. Connected to bank 68.
     LVMB_SDIN    : out std_logic;                          --! LVMB ADC SPI input. Used by ODMB_VME. Connected to bank 68.
-    -- POSSIBLE ISSUE ODMB5
+    -- WARNING: LVMB_SDOUT_P is single-ended on ODMB5 which is reflected in constraints and generate statements. LVMB_SDOUT_N is not connected.
     LVMB_SDOUT_P : in std_logic;                           --! LVMB ADC SPI output. Used by ODMB_VME. Connected to bank 67 as C_LVMB_SDOUT_P.
     LVMB_SDOUT_N : in std_logic;                           --! LVMB ADC SPI output. Used by ODMB_VME. Connected to bank 67 as C_LVMB_SDOUT_N.
 
@@ -183,7 +183,8 @@ entity odmb_dev is
     RX12_RST_B     : out std_logic;                        --! Reset signal to RX12 firefly, tied to '1'. Connected to bank 66.
     RX12_INT_B     : in std_logic;                         --! Interrupt (fault) signal from RX12 firefly, currently unused. Connected to bank 66.
     RX12_PRESENT_B : in std_logic;                         --! Present signal from RX12 firefly, currently unused. Connected to bank 66.
--- ISSUE ODMB5
+    
+    -- WARNING: TX12 Pins are not connected on ODMB5 but exist for unified firmware generation
     TX12_I2C_ENA   : out std_logic := '0';                        --! I2C enable for TX12 firefly, currently tied to 0. Connected to bank 66.
     TX12_SDA       : inout std_logic := '0';                      --! I2C serial data signal to/from TX12 firefly, currently unused. Connected to 66.
     TX12_SCL       : inout std_logic := '0';                      --! I2C serial clock signal to TX12 firefly, currently unused. Connected to bank 66.
@@ -956,8 +957,13 @@ begin
   -------------------------------------------------------------------------------------------
   -- Handle LVMB signals
   -------------------------------------------------------------------------------------------
--- ISSUE ODMB5
-  IB_LVMB_SDOUT: IBUFDS port map (O => lvmb_sdout, I => LVMB_SDOUT_P, IB => LVMB_SDOUT_N);
+  gen_lvmb_sdout_7 : if FLAVOUR = 7 generate
+      IB_LVMB_SDOUT: IBUFDS port map (O => lvmb_sdout, I => LVMB_SDOUT_P, IB => LVMB_SDOUT_N);
+  end generate gen_lvmb_sdout_7;
+
+  gen_lvmb_sdout_5 : if FLAVOUR = 5 generate
+      lvmb_sdout <= LVMB_SDOUT_P;
+  end generate gen_lvmb_sdout_5;
 
   -------------------------------------------------------------------------------------------
   -- Handle Triggers and DAVs

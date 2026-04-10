@@ -256,8 +256,14 @@ set_property -dict { PACKAGE_PIN C29   IOSTANDARD LVCMOS18 } [get_ports LVMB_CSB
 
 set_property -dict { PACKAGE_PIN L19   IOSTANDARD LVCMOS18 } [get_ports LVMB_SCLK]
 set_property -dict { PACKAGE_PIN L18   IOSTANDARD LVCMOS18 } [get_ports LVMB_SDIN]
-set_property -dict { PACKAGE_PIN H21   IOSTANDARD LVDS  DIFF_TERM_ADV TERM_100 } [get_ports LVMB_SDOUT_P]
-set_property -dict { PACKAGE_PIN G21   IOSTANDARD LVDS  DIFF_TERM_ADV TERM_100 } [get_ports LVMB_SDOUT_N]
+
+# --------------------------------------------------------------------------
+# Warning: for ODMB5, LVMB_SDOUT is single-ended, LVMB_SDOUT_N is not connected
+# Generated HDL accounts for this issue
+# --------------------------------------------------------------------------
+set_property -dict { PACKAGE_PIN H21   IOSTANDARD LVCMOS18 } [get_ports LVMB_SDOUT_P]
+set_property -dict { PACKAGE_PIN G21   IOSTANDARD LVCMOS18 } [get_ports LVMB_SDOUT_N]
+
 set_property -dict { PACKAGE_PIN A20   IOSTANDARD LVCMOS18 } [get_ports MON_LVMB_PON[0]]
 set_property -dict { PACKAGE_PIN C21   IOSTANDARD LVCMOS18 } [get_ports MON_LVMB_PON[1]]
 set_property -dict { PACKAGE_PIN C22   IOSTANDARD LVCMOS18 } [get_ports MON_LVMB_PON[2]]
@@ -371,6 +377,18 @@ set_property -dict { PACKAGE_PIN  F2   } [get_ports  B04_RX_P[4]]
 set_property -dict { PACKAGE_PIN  F1   } [get_ports  B04_RX_N[4]]
 set_property -dict { PACKAGE_PIN  R4   } [get_ports  SPY_TX_P]
 set_property -dict { PACKAGE_PIN  R3   } [get_ports  SPY_TX_N]
+
+# --------------------------------------------------------------------------
+# TX12
+# Warning: for ODMB5, this ports are disconnected and no modules generated
+# --------------------------------------------------------------------------
+set_property -dict { PACKAGE_PIN J13   IOSTANDARD LVCMOS18 } [get_ports TX12_I2C_ENA]
+set_property -dict { PACKAGE_PIN H13   IOSTANDARD LVCMOS18 } [get_ports TX12_SDA]
+set_property -dict { PACKAGE_PIN L12   IOSTANDARD LVCMOS18 } [get_ports TX12_SCL]
+set_property -dict { PACKAGE_PIN G10   IOSTANDARD LVCMOS18 } [get_ports TX12_CS_B]
+set_property -dict { PACKAGE_PIN F10   IOSTANDARD LVCMOS18 } [get_ports TX12_RST_B]
+set_property -dict { PACKAGE_PIN J8    IOSTANDARD LVCMOS18 } [get_ports TX12_INT_B]
+set_property -dict { PACKAGE_PIN H8    IOSTANDARD LVCMOS18 } [get_ports TX12_PRESENT_B]
 
 # --------------------------------------------------------------------------
 # Optical control pins
