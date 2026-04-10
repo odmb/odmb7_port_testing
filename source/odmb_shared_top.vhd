@@ -847,7 +847,7 @@ begin
   -- Handle PPIB/DCFEB signals
   -------------------------------------------------------------------------------------------
 
-  PPIB_OUT_EN_B <= '0'; -- always enable
+  CFEB_OR_PPIB_OUT_EN_B <= '0'; -- always enable
   -- Handle DCFEB I/O buffers
   OB_DCFEB_TMS: OBUFDS port map (I => dcfeb_tms, O => DCFEB_TMS_P, OB => DCFEB_TMS_N);
   OB_DCFEB_TDI: OBUFDS port map (I => dcfeb_tdi, O => DCFEB_TDI_P, OB => DCFEB_TDI_N);
