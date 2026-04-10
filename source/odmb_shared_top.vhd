@@ -184,13 +184,13 @@ entity odmb_dev is
     RX12_INT_B     : in std_logic;                         --! Interrupt (fault) signal from RX12 firefly, currently unused. Connected to bank 66.
     RX12_PRESENT_B : in std_logic;                         --! Present signal from RX12 firefly, currently unused. Connected to bank 66.
 -- ISSUE ODMB5
-    TX12_I2C_ENA   : out std_logic;                        --! I2C enable for TX12 firefly, currently tied to 0. Connected to bank 66.
-    TX12_SDA       : inout std_logic;                      --! I2C serial data signal to/from TX12 firefly, currently unused. Connected to 66.
-    TX12_SCL       : inout std_logic;                      --! I2C serial clock signal to TX12 firefly, currently unused. Connected to bank 66.
-    TX12_CS_B      : out std_logic;                        --! I2C chip select signal to TX12 firefly, tied to '1'. Connected to bank 66.
-    TX12_RST_B     : out std_logic;                        --! Reset signal to TX12 firefly, tied to '1'. Connected to bank 66.
-    TX12_INT_B     : in std_logic;                         --! Interrupt (fault) signal from TX12 firefly, currently unused. Connected to bank 66.
-    TX12_PRESENT_B : in std_logic;                         --! Present signal from TX12 firefly, currently unused. Connected to bank 66.
+    TX12_I2C_ENA   : out std_logic := '0';                        --! I2C enable for TX12 firefly, currently tied to 0. Connected to bank 66.
+    TX12_SDA       : inout std_logic := '0';                      --! I2C serial data signal to/from TX12 firefly, currently unused. Connected to 66.
+    TX12_SCL       : inout std_logic := '0';                      --! I2C serial clock signal to TX12 firefly, currently unused. Connected to bank 66.
+    TX12_CS_B      : out std_logic := '1';                        --! I2C chip select signal to TX12 firefly, tied to '1'. Connected to bank 66.
+    TX12_RST_B     : out std_logic := '1';                        --! Reset signal to TX12 firefly, tied to '1'. Connected to bank 66.
+    TX12_INT_B     : in std_logic := '0';                         --! Interrupt (fault) signal from TX12 firefly, currently unused. Connected to bank 66.
+    TX12_PRESENT_B : in std_logic := '0';                         --! Present signal from TX12 firefly, currently unused. Connected to bank 66.
 
     B04_I2C_ENA   : out std_logic;                         --! I2C enable for B04 firefly, currently tied to 0. Connected to bank 66.
     B04_SDA       : inout std_logic;                       --! I2C serial data signal to/from B04 firefly, currently unused. Connected to bank 66.
