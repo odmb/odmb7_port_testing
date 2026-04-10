@@ -54,4 +54,4 @@ source/feb_sim/user_counter_reg.vhd 93
 source/odmb_vme/vmeconfregs.vhd 93
 source/odmb_vme/vmemon.vhd 93
 source/odmb_vme/voltage_mon.vhd 93
-source/odmb7_dev_top.vhd top=odmb7_ucsb_dev 93
+source/odmb_shared_top.vhd top=odmb_dev 93
