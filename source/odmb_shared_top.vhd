@@ -91,7 +91,7 @@ entity odmb_dev is
     L1A_N          : out std_logic;                        --! Trigger L1A signal for (x)DCFEBs. From ODMB CTRL module. Connected to bank 66.
     L1A_MATCH_P    : out std_logic_vector(FLAVOUR downto 1);     --! L1A match for (x)DCFEBs. From ODMB CTRL module. Connected to bank 66.
     L1A_MATCH_N    : out std_logic_vector(FLAVOUR downto 1);     --! L1A match for (x)DCFEBs. From ODMB CTRL module. Connected to bank 66.
-    PPIB_OUT_EN_B  : out std_logic;                        --! PPIB output enable signal. Should be fixed to '0'. Connected to bank 68.
+    CFEB_OR_PPIB_OUT_EN_B  : out std_logic;                        --! PPIB output enable signal. Should be fixed to '0'. Connected to bank 68.
     DCFEB_REPROG_B : out std_logic;                        --! (x)DCFEB reprogram signal. From ODMBCTRL in ODMB_VME module. Connected to bank 68.
 
     --------------------
