@@ -33,7 +33,7 @@ entity CONTROL_FSM is
     KILL    : in std_logic_vector(NCFEB+2 downto 1); --! Killed FEBs, from VMECONFREGS
 
     -- to GigaBit Link
-    DOUT : out std_logic_vector(15 downto 0); --! Output data to GTX
+    DOUT : out std_logic_vector(63 downto 0); --! Output data to GTX
     DAV  : out std_logic;                     --! Data available signal to GTX
 
     -- to FIFOs
@@ -44,7 +44,7 @@ entity CONTROL_FSM is
     FIFO_HALF_FULL : in std_logic_vector(NCFEB+2 downto 1); --! for status words, programmable full signal
     FIFO_FULL      : in std_logic_vector(NCFEB+2 downto 1); --! routing FIFO full signals 
     FFOR_B         : in std_logic_vector(NCFEB+2 downto 1); --! debug signal, fifo empty signal
-    DATAIN         : in std_logic_vector(15 downto 0); --! data from FIFO (lower 15 bits in FIFOs)
+    DATAIN         : in std_logic_vector(63 downto 0); --! data from FIFO (lower 15 bits in FIFOs)
     DATAIN_LAST    : in std_logic; --! indicates last word, top bit in data FIFOs
 
     -- From JTAGCOM
@@ -90,10 +90,10 @@ architecture CONTROL_arch of CONTROL_FSM is
 
   signal fifo_pop_160 : std_logic := '0';
 
-  type hdr_tail_array is array (8 downto 1) of std_logic_vector(15 downto 0);
+  type hdr_tail_array is array (2 downto 1) of std_logic_vector(63 downto 0);
   signal hdr_word, tail_word : hdr_tail_array;
 
-  type lone_array is array (4 downto 1) of std_logic_vector(15 downto 0);
+  type lone_array is array (1 downto 1) of std_logic_vector(63 downto 0);
   signal lone_word : lone_array;
 
   constant fmt_vers         : std_logic_vector(1 downto 0)      := "10";
@@ -139,7 +139,7 @@ architecture CONTROL_arch of CONTROL_FSM is
 
   signal expect_pckt                      : std_logic                     := '0';
   signal dav_inner, dav_d                 : std_logic                     := '0';
-  signal dout_inner, dout_d               : std_logic_vector(15 downto 0) := (others => '0');
+  signal dout_inner, dout_d               : std_logic_vector(63 downto 0) := (others => '0');
   signal oefifo_b_inner, renfifo_b_inner  : std_logic_vector(NCFEB+2 downto 1);
   signal fifo_pop_inner, eof_inner, eof_d : std_logic                     := '0';
   signal d_fifo_pop_inner                 : std_logic                     := '0';
@@ -305,7 +305,7 @@ begin
         dout_d          <= hdr_word(hdr_tail_cnt);
         dav_d           <= '1';
         hdr_tail_cnt_en <= '1';
-        if (hdr_tail_cnt = 8) then
+        if (hdr_tail_cnt = 2) then
           control_next_state <= WAIT_DEV;
         else
           control_next_state <= HEADER;
@@ -359,12 +359,12 @@ begin
         dout_d          <= tail_word(hdr_tail_cnt);
         dav_d           <= '1';
         hdr_tail_cnt_en <= '1';
-        if (hdr_tail_cnt = 5) then -- With the synchronization ~13 cc to increase rd_addr_ou
+        if (hdr_tail_cnt = 2) then -- With the synchronization ~13 cc to increase rd_addr_ou
           fifo_pop_160        <= '1';
         else
           fifo_pop_160        <= '0';
         end if;
-        if (hdr_tail_cnt = 8) then
+        if (hdr_tail_cnt = 2) then
           control_next_state <= WAIT_IDLE;
           eof_d              <= '1';
         else
@@ -381,7 +381,7 @@ begin
         else
           fifo_pop_160        <= '0';
         end if;
-        if (lone_cnt = 4) then
+        if (lone_cnt = 1) then
           control_next_state <= WAIT_IDLE;
           eof_d              <= '1';
         else
@@ -455,35 +455,30 @@ begin
 
   cafifo_l1a_match_cfeb_big(NCFEB downto 1) <= cafifo_l1a_match(NCFEB downto 1);
   fifo_half_full_cfeb_big(NCFEB downto 1) <= FIFO_HALF_FULL(NCFEB downto 1);
-  hdr_word(1) <= x"9" & cafifo_l1a_cnt(11 downto 0);
-  hdr_word(2) <= x"9" & cafifo_l1a_cnt(23 downto 12);
-  hdr_word(3) <= x"9" & cafifo_l1a_match(NCFEB+2 downto NCFEB+1) & fmt_vers & l1a_dav_mismatch
-                 & cafifo_l1a_match_cfeb_big(7 downto 1);
-  hdr_word(4) <= x"9" & cafifo_bx_cnt;
-  hdr_word(5) <= x"A" & cafifo_l1a_match(NCFEB+2 downto NCFEB+1) & fmt_vers & l1a_dav_mismatch
-                 & cafifo_l1a_match_cfeb_big(7 downto 1);
-  hdr_word(6) <= x"A" & DAQMBID(11 downto 0);
-  hdr_word(7) <= x"A" & cafifo_l1a_match(NCFEB+2 downto NCFEB+1) & ovlp & cafifo_bx_cnt(4 downto 0);
-  hdr_word(8) <= x"A" & sync & fmt_vers & l1a_dav_mismatch & cafifo_l1a_cnt(4 downto 0);
+  hdr_word(1) <= x"9" & cafifo_bx_cnt
+                 & x"9" & cafifo_l1a_match(NCFEB+2 downto NCFEB+1) & fmt_vers & l1a_dav_mismatch & cafifo_l1a_match_cfeb_big(7 downto 1) 
+                 & x"9" & cafifo_l1a_cnt(23 downto 12) 
+                 & x"9" & cafifo_l1a_cnt(11 downto 0);
+  hdr_word(2) <= x"A" & sync & fmt_vers & l1a_dav_mismatch & cafifo_l1a_cnt(4 downto 0)
+                & x"A" & cafifo_l1a_match(NCFEB+2 downto NCFEB+1) & ovlp & cafifo_bx_cnt(4 downto 0)
+                & x"A" & DAQMBID(11 downto 0)
+                & x"A" & cafifo_l1a_match(NCFEB+2 downto NCFEB+1) & fmt_vers & l1a_dav_mismatch & cafifo_l1a_match_cfeb_big(7 downto 1);
 
-  tail_word(1) <= x"F" & alct_to_end & cafifo_bx_cnt(4 downto 0) & cafifo_l1a_cnt(5 downto 0);
-  --tail_word(2) <= x"F" & ovlp & AUTOKILLED_DCFEBS;
-  tail_word(2) <= x"F" & ovlp & "000" & x"0"; -- Set timeout to 0 to avoid DDU errors
-  tail_word(3) <= x"F" & fifo_full(3 downto 1) & cafifo_lost_pckt(NCFEB+1) & dmb_l1pipe;
-  -- tail_word(4) <= x"F" & cafifo_lost_pckt(9) & cafifo_lost_pckt(7 downto 1)
-  --                 & data_fifo_full(7 downto 4);
-  tail_word(4) <= x"F" & cafifo_lost_pckt(NCFEB+2) & "000" & x"0" -- Set timeout to 0 to avoid DDU errors
-                  & fifo_full(7 downto 4);
-  tail_word(5) <= x"E" & fifo_full(NCFEB+2 downto NCFEB+1) & FIFO_HALF_FULL(NCFEB+2 downto NCFEB+1)
-                  & otmb_to_end & fifo_half_full_cfeb_big(7 downto 1);
-  tail_word(6) <= x"E" & DAQMBID(11 downto 0);
-  tail_word(7) <= x"E" & REG_CRC(22) & REG_CRC(10 downto 0);
-  tail_word(8) <= x"E" & REG_CRC(23) & REG_CRC(21 downto 11);
+  tail_word(1) <= x"F" & cafifo_lost_pckt(NCFEB+2) & "000" & x"0" -- Set timeout to 0 to avoid DDU errors
+                  & data_fifo_full(7 downto 4)
+                  & x"F" & data_fifo_full(3 downto 1) & cafifo_lost_pckt(NCFEB+1) & dmb_l1pipe
+                  & x"F" & ovlp & "000" & x"0"
+                  & x"F" & alct_to_end & cafifo_bx_cnt(4 downto 0) & cafifo_l1a_cnt(5 downto 0);
 
-  lone_word(1) <= x"8" & cafifo_l1a_cnt(11 downto 0);
-  lone_word(2) <= x"8" & cafifo_l1a_cnt(23 downto 12);
-  lone_word(3) <= x"8" & x"000";
-  lone_word(4) <= x"8" & cafifo_bx_cnt;
-  
+  tail_word(2) <= x"E" & REG_CRC(23) & REG_CRC(21 downto 11)
+                & x"E" & REG_CRC(22) & REG_CRC(10 downto 0)
+                & x"E" & DAQMBID(11 downto 0)
+                & x"E" & data_fifo_full(NCFEB+2 downto NCFEB+1) & not FIFO_HALF_FULL(NCFEB+2 downto NCFEB+1)
+                                & otmb_to_end & not fifo_half_full_cfeb_big(7 downto 1);
+
+  lone_word(1) <= x"8" & cafifo_bx_cnt 
+                & x"8" & x"000"
+                & x"8" & cafifo_l1a_cnt(23 downto 12)
+                & x"8" & cafifo_l1a_cnt(11 downto 0);
 
 end CONTROL_arch;
