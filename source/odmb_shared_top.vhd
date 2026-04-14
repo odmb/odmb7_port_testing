@@ -1426,12 +1426,12 @@ begin
         );
   end generate generate_run4;
   generate_spy_pc : if ENABLE_SPY_TO_DDU = "01" generate
-    --DAQ_TX_P(1) <= 'Z';
-    --DAQ_TX_N(1) <= 'Z';
-    --DAQ_TX_P(3) <= 'Z';
-    --DAQ_TX_N(3) <= 'Z';
-    --DAQ_TX_P(4) <= 'Z';
-    --DAQ_TX_N(4) <= 'Z';
+    DAQ_TX_P(1) <= 'Z';
+    DAQ_TX_N(1) <= 'Z';
+    DAQ_TX_P(3) <= 'Z';
+    DAQ_TX_N(3) <= 'Z';
+    DAQ_TX_P(4) <= 'Z';
+    DAQ_TX_N(4) <= 'Z';
     GTH_PC : entity work.mgt_pc
       generic map (
         CHANN_IDX       => 11
