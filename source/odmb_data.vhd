@@ -96,7 +96,8 @@ architecture ODMB_DATA_ARCH of odmb_data is
       data_in : in std_logic_vector(15 downto 0);
 
       dv_out   : out std_logic;
-      data_out : out std_logic_vector(71 downto 0)
+      data_out : out std_logic_vector(63 downto 0);
+      eof_out  : out std_logic_vector(7 downto 0)
       );
 
   end component;
@@ -285,7 +286,8 @@ begin
       data_in => alct_data,
 
       dv_out   => alct_fifo_data_valid,
-      data_out => alct_fifo_data_in
+      data_out => alct_fifo_data_in(63 downto 0),  --! Use the lower 64 bits for data
+      eof_out  => alct_fifo_data_in(71 downto 64)  --! Use the upper 8 bits for EOF code
       );
 
   OTMB_EOFGEN_PM : EOFGEN
@@ -297,7 +299,8 @@ begin
       data_in => otmb_data,
 
       dv_out   => otmb_fifo_data_valid,
-      data_out => otmb_fifo_data_in
+      data_out => otmb_fifo_data_in(63 downto 0),  --! Use the lower 64 bits for data
+      eof_out  => otmb_fifo_data_in(71 downto 64)  --! Use the upper 8 bits for EOF code
       );
 
   data_fifo_we(NCFEB+2) <= alct_fifo_data_valid and datafifo_mask;
@@ -396,7 +399,8 @@ begin
         data_in => dcfeb_fifo_in(I),
 
         dv_out   => eofgen_dcfeb_data_valid(I),
-        data_out => eofgen_dcfeb_fifo_in(I)
+        data_out => eofgen_dcfeb_fifo_in(I)(63 downto 0),  --! Use the lower 64 bits for data
+        eof_out  => eofgen_dcfeb_fifo_in(I)(71 downto 64)  --! Use the upper 8 bits for EOF code
         );
 
     data_fifo_we(I) <= eofgen_dcfeb_data_valid(I) and datafifo_mask and not dcfeb_fifo_rst(I);

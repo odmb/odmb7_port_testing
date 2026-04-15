@@ -45,7 +45,7 @@ entity CONTROL_FSM is
     FIFO_FULL      : in std_logic_vector(NCFEB+2 downto 1); --! routing FIFO full signals 
     FFOR_B         : in std_logic_vector(NCFEB+2 downto 1); --! debug signal, fifo empty signal
     DATAIN         : in std_logic_vector(63 downto 0); --! data from FIFO (lower 15 bits in FIFOs)
-    DATAIN_LAST    : in std_logic; --! indicates last word, top bit in data FIFOs
+    DATAIN_EOF     : in std_logic_vector(7 downto 0); --! indicates last word, top bit in data FIFOs
 
     -- From JTAGCOM
     JOEF : in std_logic_vector(NCFEB+2 downto 1); --! unused, not connected (in legacy design, from LOADFIFO)
@@ -176,7 +176,7 @@ begin
   control_fsm_la_data(78 downto 72)       <= next_state_svl & eof_inner & fifo_pop_inner & fifo_pop_160; -- [78:72]
   control_fsm_la_data(64+NCFEB downto 63) <= oefifo_b_inner; -- [71:63]
   control_fsm_la_data(55+NCFEB downto 54) <= renfifo_b_inner; -- [62:54]
-  control_fsm_la_data(53 downto 38)       <= dout_inner; -- [53:38]
+  control_fsm_la_data(53 downto 38)       <= dout_inner(15 downto 0); -- [53:38]
   control_fsm_la_data(37 downto 35)       <= '0' & hdr_tail_cnt_en & dev_cnt_en; -- [37:35]
   control_fsm_la_data(27+NCFEB downto 26) <= CAFIFO_L1A_DAV; -- [34:26]
   control_fsm_la_data(18+NCFEB downto 17) <= CAFIFO_L1A_MATCH; -- [25:17]
@@ -188,7 +188,7 @@ begin
                    & current_state_svl;
 
 -- Needed because DATAIN_LAST does not arrive during the last word
-  FDLAST : FD port map(Q => q_datain_last, C => clk, D => DATAIN_LAST);
+  FDLAST : FD port map(Q => q_datain_last, C => clk, D => DATAIN_EOF(0));
 
 -- 40 MHz pulse for FIFO_POP
   FDPOP : PULSE2SLOW port map(DOUT => fifo_pop_inner, CLK_DOUT => CLKCMS, CLK_DIN => CLK, RST => RST, DIN => fifo_pop_160);
@@ -405,7 +405,7 @@ begin
   FD_DAV  : FD port map(Q => dav_inner, C => CLK, D => dav_d);
   EOF_DAV : FD port map(Q => eof_inner, C => CLK, D => eof_d);
 
-  GEN_FD_DOUT : for INDEX in 0 to 15 generate
+  GEN_FD_DOUT : for INDEX in 0 to 63 generate
     FD_DOUT : FD port map (Q => dout_inner(INDEX), C => CLK, D => dout_d(INDEX));
   end generate GEN_FD_DOUT;
 

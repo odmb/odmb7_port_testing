@@ -294,7 +294,7 @@ architecture Behavioral of ODMB_CTRL is
       KILL    : in std_logic_vector(NCFEB+2 downto 1);
 
       -- to GigaBit Link
-      DOUT : out std_logic_vector(15 downto 0);
+      DOUT : out std_logic_vector(63 downto 0);
       DAV  : out std_logic;
 
       -- to FIFOs
@@ -305,8 +305,8 @@ architecture Behavioral of ODMB_CTRL is
       FIFO_HALF_FULL : in std_logic_vector(NCFEB+2 downto 1);
       FIFO_FULL      : in std_logic_vector(NCFEB+2 downto 1); --! from odmb_data
       FFOR_B         : in std_logic_vector(NCFEB+2 downto 1);
-      DATAIN         : in std_logic_vector(15 downto 0);
-      DATAIN_LAST    : in std_logic;
+      DATAIN         : in std_logic_vector(63 downto 0);
+      DATAIN_EOF     : in std_logic_vector(7 downto 0);
 
       -- From LOADFIFO
       JOEF : in std_logic_vector(NCFEB+2 downto 1);
@@ -403,7 +403,7 @@ architecture Behavioral of ODMB_CTRL is
   signal control_debug_full   : std_logic_vector(143 downto 0);
   signal cafifo_pop           : std_logic := '0';
   signal eof                  : std_logic := '0';
-  signal ddu_data_inner       : std_logic_vector(15 downto 0);
+  signal ddu_data_inner       : std_logic_vector(63 downto 0);
   signal ddu_data_valid_inner : std_logic := 'L';
   signal pc_data_valid_inner  : std_logic := 'L';
 
@@ -550,8 +550,8 @@ begin
       FIFO_HALF_FULL => fifo_half_full,
       FIFO_FULL      => FIFO_FULL,
       FFOR_B         => fifo_empty,
-      DATAIN         => FIFO_DOUT(15 downto 0),
-      DATAIN_LAST    => FIFO_DOUT(17),
+      DATAIN         => FIFO_DOUT(63 downto 0),
+      DATAIN_EOF     => FIFO_DOUT(71 downto 64),
 
       -- From JTAGCOM
       JOEF => joef,       -- from LOADFIFO
@@ -592,7 +592,7 @@ begin
 
       tx_ack => GL_PC_TX_ACK,
 
-      data_in => ddu_data_inner,
+      data_in => ddu_data_inner(15 downto 0),
       dv_in   => ddu_data_valid_inner,
       ld_in   => eof,
 
@@ -612,7 +612,7 @@ begin
       clk_out => FEDCLK,
       rst     => l1acnt_rst,
 
-      data_in => ddu_data_inner,        -- for now, just duplicate packets for all 4 transceivers
+      data_in => ddu_data_inner(15 downto 0),        -- for now, just duplicate packets for all 4 transceivers
       dv_in   => ddu_data_valid_inner,
       ld_in   => eof,
 
@@ -655,7 +655,7 @@ begin
   ccb_bx0 <= not ccb_bx0_b;
   ccb_bxrst <= not ccb_bxrst_b;
 
-  DDU_DATA       <= ddu_data_inner;
+  DDU_DATA       <= ddu_data_inner(15 downto 0);
   DDU_DATA_VALID <= ddu_data_valid_inner;
   PC_DATA_VALID  <= pc_data_valid_inner;
 
