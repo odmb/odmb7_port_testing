@@ -182,7 +182,7 @@ set_property -dict { PACKAGE_PIN E10   IOSTANDARD LVDS }     [get_ports INJPLS_P
 set_property -dict { PACKAGE_PIN D10   IOSTANDARD LVDS }     [get_ports INJPLS_N]
 set_property -dict { PACKAGE_PIN B10   IOSTANDARD LVDS }     [get_ports EXTPLS_P]
 set_property -dict { PACKAGE_PIN A10   IOSTANDARD LVDS }     [get_ports EXTPLS_N]
-set_property -dict { PACKAGE_PIN C16   IOSTANDARD LVCMOS18 } [get_ports PPIB_OUT_EN_B]
+set_property -dict { PACKAGE_PIN C16   IOSTANDARD LVCMOS18 } [get_ports CFEB_OR_PPIB_OUT_EN_B]
 set_property -dict { PACKAGE_PIN A17   IOSTANDARD LVCMOS18 } [get_ports DCFEB_REPROG_B]
 
 # L1A pins
@@ -274,7 +274,6 @@ set_property -dict { PACKAGE_PIN L19   IOSTANDARD LVCMOS18 } [get_ports LVMB_SCL
 set_property -dict { PACKAGE_PIN L18   IOSTANDARD LVCMOS18 } [get_ports LVMB_SDIN]
 set_property -dict { PACKAGE_PIN H21   IOSTANDARD LVDS  DIFF_TERM_ADV TERM_100 } [get_ports LVMB_SDOUT_P]
 set_property -dict { PACKAGE_PIN G21   IOSTANDARD LVDS  DIFF_TERM_ADV TERM_100 } [get_ports LVMB_SDOUT_N]
-
 set_property -dict { PACKAGE_PIN A20   IOSTANDARD LVCMOS18 } [get_ports MON_LVMB_PON[0]]
 set_property -dict { PACKAGE_PIN C21   IOSTANDARD LVCMOS18 } [get_ports MON_LVMB_PON[1]]
 set_property -dict { PACKAGE_PIN C22   IOSTANDARD LVCMOS18 } [get_ports MON_LVMB_PON[2]]

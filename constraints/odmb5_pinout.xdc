@@ -172,8 +172,7 @@ set_property -dict { PACKAGE_PIN E10   IOSTANDARD LVDS }     [get_ports INJPLS_P
 set_property -dict { PACKAGE_PIN D10   IOSTANDARD LVDS }     [get_ports INJPLS_N]
 set_property -dict { PACKAGE_PIN B10   IOSTANDARD LVDS }     [get_ports EXTPLS_P]
 set_property -dict { PACKAGE_PIN A10   IOSTANDARD LVDS }     [get_ports EXTPLS_N]
-set_property -dict { PACKAGE_PIN C16   IOSTANDARD LVCMOS18 } [get_ports CFEB_OUT_EN_B]
-set_property -dict { PACKAGE_PIN E16   IOSTANDARD LVCMOS18 } [get_ports CFEB_OUT_EN]
+set_property -dict { PACKAGE_PIN C16   IOSTANDARD LVCMOS18 } [get_ports CFEB_OR_PPIB_OUT_EN_B]
 set_property -dict { PACKAGE_PIN A17   IOSTANDARD LVCMOS18 } [get_ports DCFEB_REPROG_B]
 
 # L1A pins
@@ -257,7 +256,13 @@ set_property -dict { PACKAGE_PIN C29   IOSTANDARD LVCMOS18 } [get_ports LVMB_CSB
 
 set_property -dict { PACKAGE_PIN L19   IOSTANDARD LVCMOS18 } [get_ports LVMB_SCLK]
 set_property -dict { PACKAGE_PIN L18   IOSTANDARD LVCMOS18 } [get_ports LVMB_SDIN]
-set_property -dict { PACKAGE_PIN H21   IOSTANDARD LVCMOS18 } [get_ports LVMB_SDOUT]
+
+# --------------------------------------------------------------------------
+# Warning: for ODMB5, LVMB_SDOUT is single-ended, LVMB_SDOUT_N is not connected
+# Generated HDL accounts for this issue
+# --------------------------------------------------------------------------
+set_property -dict { PACKAGE_PIN H21   IOSTANDARD LVCMOS18 } [get_ports LVMB_SDOUT_P]
+set_property -dict { PACKAGE_PIN G21   IOSTANDARD LVCMOS18 } [get_ports LVMB_SDOUT_N]
 
 set_property -dict { PACKAGE_PIN A20   IOSTANDARD LVCMOS18 } [get_ports MON_LVMB_PON[0]]
 set_property -dict { PACKAGE_PIN C21   IOSTANDARD LVCMOS18 } [get_ports MON_LVMB_PON[1]]
@@ -313,7 +318,6 @@ set_property -dict { PACKAGE_PIN AG15  IOSTANDARD LVCMOS18  PULLTYPE PULLDOWN } 
 set_property -dict { PACKAGE_PIN AG14  IOSTANDARD LVCMOS18  PULLTYPE PULLDOWN } [get_ports RAWLCT[3]]
 set_property -dict { PACKAGE_PIN AJ15  IOSTANDARD LVCMOS18  PULLTYPE PULLDOWN } [get_ports RAWLCT[4]]
 set_property -dict { PACKAGE_PIN AJ14  IOSTANDARD LVCMOS18  PULLTYPE PULLDOWN } [get_ports RAWLCT[5]]
-# set_property -dict { PACKAGE_PIN AE16  IOSTANDARD LVCMOS18  PULLTYPE PULLDOWN } [get_ports RAWLCT[6]]
 
 set_property -dict { PACKAGE_PIN AK8   IOSTANDARD LVCMOS18 } [get_ports RSVFD[1]]
 set_property -dict { PACKAGE_PIN AL8   IOSTANDARD LVCMOS18 } [get_ports RSVFD[2]]
@@ -355,14 +359,14 @@ set_property -dict { PACKAGE_PIN  T2   } [get_ports  DAQ_RX_P[10]]
 set_property -dict { PACKAGE_PIN  T1   } [get_ports  DAQ_RX_N[10]]
 set_property -dict { PACKAGE_PIN  P2   } [get_ports  DAQ_SPY_RX_P]
 set_property -dict { PACKAGE_PIN  P1   } [get_ports  DAQ_SPY_RX_N]
-# set_property -dict { PACKAGE_PIN  N4   } [get_ports  DAQ_TX_P[1]]
-# set_property -dict { PACKAGE_PIN  N3   } [get_ports  DAQ_TX_N[1]]
+set_property -dict { PACKAGE_PIN  N4   } [get_ports  DAQ_TX_P[1]]
+set_property -dict { PACKAGE_PIN  N3   } [get_ports  DAQ_TX_N[1]]
 set_property -dict { PACKAGE_PIN  L4   } [get_ports  DAQ_TX_P[2]]
 set_property -dict { PACKAGE_PIN  L3   } [get_ports  DAQ_TX_N[2]]
-# set_property -dict { PACKAGE_PIN  J4   } [get_ports  DAQ_TX_P[3]]
-# set_property -dict { PACKAGE_PIN  J3   } [get_ports  DAQ_TX_N[3]]
-# set_property -dict { PACKAGE_PIN  G4   } [get_ports  DAQ_TX_P[4]]
-# set_property -dict { PACKAGE_PIN  G3   } [get_ports  DAQ_TX_N[4]]
+set_property -dict { PACKAGE_PIN  J4   } [get_ports  DAQ_TX_P[3]]
+set_property -dict { PACKAGE_PIN  J3   } [get_ports  DAQ_TX_N[3]]
+set_property -dict { PACKAGE_PIN  G4   } [get_ports  DAQ_TX_P[4]]
+set_property -dict { PACKAGE_PIN  G3   } [get_ports  DAQ_TX_N[4]]
 set_property -dict { PACKAGE_PIN  M2   } [get_ports  BCK_PRS_P]
 set_property -dict { PACKAGE_PIN  M1   } [get_ports  BCK_PRS_N]
 set_property -dict { PACKAGE_PIN  K2   } [get_ports  B04_RX_P[2]]
@@ -373,6 +377,18 @@ set_property -dict { PACKAGE_PIN  F2   } [get_ports  B04_RX_P[4]]
 set_property -dict { PACKAGE_PIN  F1   } [get_ports  B04_RX_N[4]]
 set_property -dict { PACKAGE_PIN  R4   } [get_ports  SPY_TX_P]
 set_property -dict { PACKAGE_PIN  R3   } [get_ports  SPY_TX_N]
+
+# --------------------------------------------------------------------------
+# TX12
+# Warning: for ODMB5, this ports are disconnected and no modules generated
+# --------------------------------------------------------------------------
+set_property -dict { PACKAGE_PIN J13   IOSTANDARD LVCMOS18 } [get_ports TX12_I2C_ENA]
+set_property -dict { PACKAGE_PIN H13   IOSTANDARD LVCMOS18 } [get_ports TX12_SDA]
+set_property -dict { PACKAGE_PIN L12   IOSTANDARD LVCMOS18 } [get_ports TX12_SCL]
+set_property -dict { PACKAGE_PIN G10   IOSTANDARD LVCMOS18 } [get_ports TX12_CS_B]
+set_property -dict { PACKAGE_PIN F10   IOSTANDARD LVCMOS18 } [get_ports TX12_RST_B]
+set_property -dict { PACKAGE_PIN J8    IOSTANDARD LVCMOS18 } [get_ports TX12_INT_B]
+set_property -dict { PACKAGE_PIN H8    IOSTANDARD LVCMOS18 } [get_ports TX12_PRESENT_B]
 
 # --------------------------------------------------------------------------
 # Optical control pins
@@ -472,7 +488,7 @@ set_property -dict { PACKAGE_PIN P21   IOSTANDARD LVCMOS18 } [get_ports LEDS_CFV
 set_property -dict { PACKAGE_PIN M22   IOSTANDARD LVCMOS18 } [get_ports LEDS_CFV[11]]
 
 set_property -dict { PACKAGE_PIN P24   IOSTANDARD LVCMOS18 } [get_ports LEDS_HEART_BEAT]
-set_property -dict { PACKAGE_PIN P25   IOSTANDARD LVCMOS18 } [get_ports LEDS_CFEBS_DONE]
+set_property -dict { PACKAGE_PIN P25   IOSTANDARD LVCMOS18 } [get_ports LEDS_SPARE]
 
 # --------------------------------------------------------------------------
 # Clock synthesizer control pins

@@ -30,14 +30,14 @@ variables:
 
 
 #### FW Builds ###
-odmb5_ucsb_dev:
+odmb_ucsb.5:
         extends: .firmware_build
         variables:
                 extends: .vars
                 PROJECT_NAME: $CI_JOB_NAME
                 HOG_ONLY_SYNTH: 0 # if 1 runs only the synthesis
                 VIVADO_VERSION: $VIVADO_VERSION
-odmb7_ucsb_dev:
+odmb_ucsb.7:
         extends: .firmware_build
         variables:
                 extends: .vars
