@@ -17,6 +17,8 @@ entity odmb_data is
   );
   port (
     CMSCLK              : in std_logic;
+    DDUCLK              : in std_logic;
+    CLK_160             : in std_logic;
     DCFEBCLK            : in std_logic;
     RESET               : in std_logic;
     L1ACNT_RST          : in std_logic;

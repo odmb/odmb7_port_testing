@@ -223,7 +223,6 @@ module mgt_b04
   assign hb1_gtwiz_userdata_rx_int = gtwiz_userdata_rx_int[63:32];
   assign hb2_gtwiz_userdata_rx_int = gtwiz_userdata_rx_int[95:64];
   assign hb3_gtwiz_userdata_rx_int = gtwiz_userdata_rx_int[127:96];
-  assign fed_rxdata = {gtwiz_userdata_rx_int[111:96], gtwiz_userdata_rx_int[79:64], gtwiz_userdata_rx_int[47:32], gtwiz_userdata_rx_int[15:0]};
 
   //--------------------------------------------------------------------------------------------------------------------
   wire [0:0] gtrefclk00_int;
@@ -398,17 +397,7 @@ module mgt_b04
 
   (* DONT_TOUCH = "TRUE" *)
   gtwizard_ultrascale_0_example_reset_synchronizer example_stimulus_reset_synchronizer_inst (
-<<<<<<< HEAD
-<<<<<<< HEAD
-    //.clk_in  (gtwiz_userclk_tx_usrclk2_in),
     .clk_in  (hb0_gtwiz_userclk_tx_usrclk2_int),
-=======
-    .clk_in  (gtwiz_userclk_tx_usrclk2_in),
->>>>>>> 2b8d2cb (Working optical interface; Initial attempt at sending DAQ to B04 through FEDFIFO)
-=======
-    //.clk_in  (gtwiz_userclk_tx_usrclk2_in),
-    .clk_in  (hb0_gtwiz_userclk_tx_usrclk2_int),
->>>>>>> e9707ec (Fix bugs in DAQ simulation and FED FIFO)
     .rst_in  (example_stimulus_reset_int),
     .rst_out (example_stimulus_reset_sync)
   );
@@ -441,7 +430,7 @@ module mgt_b04
       tx_idle_char <= ~tx_idle_char;
     end
     else begin
-      if (txd_valid[1]) begin
+      if (txd_valid) begin
         txdata_reg  <= {fed_txdata[15:0], 16'b0};
         txdata_reg2  <= 32'b0;
         txctrl2_reg <= 8'b0;
@@ -467,7 +456,6 @@ module mgt_b04
   assign hb2_gtwiz_userdata_tx_int = txdata_reg2;
   assign hb3_gtwiz_userdata_tx_int = txdata_reg2;
 
-<<<<<<< HEAD
   // Comment above TXDATA section and use below PRBS data if PRBS-31 patterns need to be sent for testing
 
 //  // PRBS-based data stimulus module for transceiver channel 0
@@ -576,8 +564,6 @@ module mgt_b04
 //    .prbs_match_out              (prbs_match_int[3])
 //  );
 
-=======
->>>>>>> 2b8d2cb (Working optical interface; Initial attempt at sending DAQ to B04 through FEDFIFO)
   // ===================================================================================================================
   // INITIALIZATION
   // ===================================================================================================================
@@ -595,27 +581,12 @@ module mgt_b04
   
   assign ila_data[127:0] = gtwiz_userdata_rx_int;
   assign ila_data[255:128] = gtwiz_userdata_tx_int;
-<<<<<<< HEAD
   // assign ila_data[259:256] = prbs_match_int;
   //assign ila_data[260] = hb0_gtwiz_userclk_rx_usrclk2_int;
-<<<<<<< HEAD
   assign ila_data[261] = hb0_gtwiz_userclk_rx_active_int;
   assign ila_data[262] = hb_gtwiz_reset_all_int;
   assign ila_data[263] = hb0_gtwiz_reset_rx_done_int;
-  //assign ila_data[264] = hb0_gtwiz_userclk_tx_usrclk2_int;
-=======
-  assign ila_data[260] = hb0_gtwiz_userclk_rx_usrclk2_int;
-  assign ila_data[261] = hb0_gtwiz_userclk_rx_active_int;
-  assign ila_data[262] = hb_gtwiz_reset_all_int;
-  assign ila_data[263] = hb0_gtwiz_reset_rx_done_int;
-  assign ila_data[264] = hb0_gtwiz_userclk_tx_usrclk2_int;
->>>>>>> 2b8d2cb (Working optical interface; Initial attempt at sending DAQ to B04 through FEDFIFO)
-=======
-  assign ila_data[261] = hb0_gtwiz_userclk_rx_active_int;
-  assign ila_data[262] = hb_gtwiz_reset_all_int;
-  assign ila_data[263] = hb0_gtwiz_reset_rx_done_int;
-  //assign ila_data[264] = hb0_gtwiz_userclk_tx_usrclk2_int;
->>>>>>> 953ab7a (Removed ILA from B04 to remove time constraint issue. Changed firmware tag to D3B8.)
+  // assign ila_data[264] = hb0_gtwiz_userclk_tx_usrclk2_int;
   assign ila_data[265] = hb0_gtwiz_userclk_tx_active_int;
   assign ila_data[269:266] = rx8b10ben_int;
   assign ila_data[273:270] = rxcommadeten_int;
@@ -644,46 +615,11 @@ module mgt_b04
   assign ila_data[833:822] = rxbufstatus_int;
   assign ila_data[841:834] = rxclkcorcnt_int;
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> 953ab7a (Removed ILA from B04 to remove time constraint issue. Changed firmware tag to D3B8.)
   //ila_0 ila_i (
   //  .clk(hb0_gtwiz_userclk_rx_usrclk2_int), // input wire clk
   //  //.probe0(ila_trigger), // input wire [7:0]  probe0
   //  .probe0(ila_data) // input wire [255:0]  probe1
   //);
-<<<<<<< HEAD
-=======
-  ila_0 ila_i (
-    .clk(hb0_gtwiz_userclk_rx_usrclk2_int), // input wire clk
-    //.probe0(ila_trigger), // input wire [7:0]  probe0
-    .probe0(ila_data) // input wire [255:0]  probe1
-  );
->>>>>>> 2b8d2cb (Working optical interface; Initial attempt at sending DAQ to B04 through FEDFIFO)
-=======
->>>>>>> 953ab7a (Removed ILA from B04 to remove time constraint issue. Changed firmware tag to D3B8.)
-=======
-//  ila_0 ila_i (
-//    .clk(hb0_gtwiz_userclk_rx_usrclk2_int), // input wire clk
-//    //.probe0(ila_trigger), // input wire [7:0]  probe0
-//    .probe0(ila_data) // input wire [255:0]  probe1
-//  );
-
-    ila_3 ila_rx (
-    .clk(hb0_gtwiz_userclk_rx_usrclk2_int),
-    .probe0(gtwiz_userdata_rx_int),
-    .probe1(rxchanisaligned_int)
-    );
-    
-    ila_3 ila_tx (
-    .clk(hb0_gtwiz_userclk_tx_usrclk2_int),
-    .probe0(gtwiz_userdata_tx_int),
-    .probe1(gtwiz_userdata_tx_int[3:0])
-    );
-
->>>>>>> 66f2a52 (Add B04 ila that allows timing closure)
 
   // ===================================================================================================================
   // EXAMPLE WRAPPER INSTANCE

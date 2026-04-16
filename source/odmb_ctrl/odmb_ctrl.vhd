@@ -358,20 +358,6 @@ architecture Behavioral of ODMB_CTRL is
       );        
   end component;
 
-  -- Temporary debugging
-  component ila_1 is
-    port (
-      clk : in std_logic := '0';
-      probe0 : in std_logic_vector(127 downto 0) := (others=> '0')
-      );
-  end component;
-
-  component ila_2 is
-    port (
-      clk : in std_logic := '0';
-      probe0 : in std_logic_vector(383 downto 0) := (others=> '0')
-      );
-  end component;
 
   signal LOGICL : std_logic := '0';
   signal LOGICH : std_logic := '1';
@@ -683,19 +669,5 @@ begin
   ila_data1(114)                <= eof;
   ila_data1(115)                <= pc_data_valid_inner;
   ila_data1(116)                <= GL_PC_TX_ACK;
-
-  ila_odmb_ctrl_inst1 : ila_1
-    port map(
-      clk => DDUCLK,
-      probe0 => ila_data1
-      );
-
-  ila_data2(119 downto 0) <= control_debug_full(135 downto 16);
-
-   ila_odmb_ctrl_inst2 : ila_2
-     port map(
-       clk => DDUCLK,
-       probe0 => ila_data2
-       );
 
 end Behavioral;

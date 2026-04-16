@@ -462,7 +462,7 @@ begin
   end generate VCC_GEN_15;
 
   -- ODMB Firmware module
-  odmb_i: entity work.ODMB7_UCSB_DEV
+  odmb_i: entity work.ODMB_DEV
     port map(
       -- Clock
       CMS_CLK_FPGA_P       => cmsclk_p,
@@ -483,7 +483,7 @@ begin
       REF_CLK_5_N          => cmsclk160_n,
       CLK_125_REF_P        => oscclk125_p,
       CLK_125_REF_N        => oscclk125_n,
-      --EMCCLK               => oscclk125_p, -- Low frequency, 133 MHz for SPI programing clock, use 160 for now...
+      EMCCLK               => oscclk125_p, -- Low frequency, 133 MHz for SPI programing clock, use 160 for now...
       LF_CLK               => cmsclk10, -- Low frequency, 10 kHz, use clk10 for now
 
       VME_DATA             => vme_data_io,
@@ -525,7 +525,7 @@ begin
       L1A_N                => l1a_n,
       L1A_MATCH_P          => l1a_match_p,
       L1A_MATCH_N          => l1a_match_n,
-      PPIB_OUT_EN_B        => open,
+      CFEB_OR_PPIB_OUT_EN_B        => open,
       DCFEB_REPROG_B       => open,
 
       CCB_CMD              => "011000",

@@ -102,8 +102,8 @@ architecture CONTROL_arch of CONTROL_FSM is
   constant sync             : std_logic_vector(3 downto 0)      := "0000";
   constant alct_to_end      : std_logic                         := '0';
   constant otmb_to_end      : std_logic                         := '0';
-  -- constant data_fifo_full   : std_logic_vector(NCFEB+2 downto 1) := (others => '0');
-  -- constant data_fifo_half   : std_logic_vector(NCFEB+2 downto 1) := (others => '0');
+--  constant data_fifo_full   : std_logic_vector(NCFEB+2 downto 1) := (others => '0');
+--  constant data_fifo_half   : std_logic_vector(NCFEB+2 downto 1) := (others => '0');
   constant dmb_l1pipe       : std_logic_vector(7 downto 0)      := (others => '0');
   constant wait_max         : integer := 16;
   constant wait_dev_max     : integer := 5;
@@ -465,15 +465,15 @@ begin
                 & x"A" & cafifo_l1a_match(NCFEB+2 downto NCFEB+1) & fmt_vers & l1a_dav_mismatch & cafifo_l1a_match_cfeb_big(7 downto 1);
 
   tail_word(1) <= x"F" & cafifo_lost_pckt(NCFEB+2) & "000" & x"0" -- Set timeout to 0 to avoid DDU errors
-                  & data_fifo_full(7 downto 4)
-                  & x"F" & data_fifo_full(3 downto 1) & cafifo_lost_pckt(NCFEB+1) & dmb_l1pipe
+                  & FIFO_FULL(7 downto 4)
+                  & x"F" & FIFO_FULL(3 downto 1) & cafifo_lost_pckt(NCFEB+1) & dmb_l1pipe
                   & x"F" & ovlp & "000" & x"0"
                   & x"F" & alct_to_end & cafifo_bx_cnt(4 downto 0) & cafifo_l1a_cnt(5 downto 0);
 
   tail_word(2) <= x"E" & REG_CRC(23) & REG_CRC(21 downto 11)
                 & x"E" & REG_CRC(22) & REG_CRC(10 downto 0)
                 & x"E" & DAQMBID(11 downto 0)
-                & x"E" & data_fifo_full(NCFEB+2 downto NCFEB+1) & not FIFO_HALF_FULL(NCFEB+2 downto NCFEB+1)
+                & x"E" & FIFO_FULL(NCFEB+2 downto NCFEB+1) & not FIFO_HALF_FULL(NCFEB+2 downto NCFEB+1)
                                 & otmb_to_end & not fifo_half_full_cfeb_big(7 downto 1);
 
   lone_word(1) <= x"8" & cafifo_bx_cnt 
