@@ -112,7 +112,7 @@ architecture CONTROL_arch of CONTROL_FSM is
   signal control_current_state, control_next_state, q_control_current_state : control_state := IDLE;
 
   signal hdr_tail_cnt_en       : std_logic             := '0';
-  signal hdr_tail_cnt          : integer range 1 to 8  := 1;
+  signal hdr_tail_cnt          : integer range 1 to 2  := 1;
   signal lone_cnt_en           : std_logic             := '0';
   signal lone_cnt              : integer range 1 to 4  := 1;
   signal wait_cnt_en           : std_logic             := '0';
@@ -180,6 +180,7 @@ begin
   control_fsm_la_data(37 downto 35)       <= '0' & hdr_tail_cnt_en & dev_cnt_en; -- [37:35]
   control_fsm_la_data(27+NCFEB downto 26) <= CAFIFO_L1A_DAV; -- [34:26]
   control_fsm_la_data(18+NCFEB downto 17) <= CAFIFO_L1A_MATCH; -- [25:17]
+  control_fsm_la_data(18+NCFEB downto 17) <= CAFIFO_L1A_MATCH; -- [25:17]
   control_fsm_la_data(16 downto 15)       <= q_datain_last & expect_pckt; -- [16:15]
   control_fsm_la_data(14 downto 5)        <= hdr_tail_cnt_svl & dev_cnt_svl; -- [14:5]
   control_fsm_la_data(4 downto 0)         <= current_state_svl & dav_inner; -- [4:0]
@@ -188,8 +189,7 @@ begin
                    & current_state_svl;
 
 -- Needed because DATAIN_LAST does not arrive during the last word
-  FDLAST : FD port map(Q => q_datain_last, C => clk, D => DATAIN_EOF(0));
-
+--  FDLAST : FD port map(Q => q_datain_last, C => clk, D => DATAIN_EOF(0));
 -- 40 MHz pulse for FIFO_POP
   FDPOP : PULSE2SLOW port map(DOUT => fifo_pop_inner, CLK_DOUT => CLKCMS, CLK_DIN => CLK, RST => RST, DIN => fifo_pop_160);
 
@@ -220,7 +220,7 @@ begin
         end if;
       end if;
       if(hdr_tail_cnt_en = '1') then
-        if(hdr_tail_cnt = 8) then
+        if(hdr_tail_cnt = 2) then
           hdr_tail_cnt <= 1;
         else
           hdr_tail_cnt <= hdr_tail_cnt + 1;
@@ -443,8 +443,10 @@ begin
   crc_clr <= '1' when control_current_state = WAIT_IDLE
              else '0';
 
-  crc_en <= '1' when (dav_d = '1' and not (control_current_state = TAIL and hdr_tail_cnt > 4))
+  crc_en <= '1' when (dav_d = '1' and not (control_current_state = TAIL and hdr_tail_cnt > 1))
             else '0';
+            
+  q_datain_last <= '0' when (DATAIN_EOF = (DATAIN_EOF'range => '0')) else '1';
 
   DAV       <= dav_inner;
   DOUT      <= dout_inner;
