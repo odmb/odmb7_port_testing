@@ -348,8 +348,8 @@ begin
       );
 
   -- eof_data
-  PULSEEOFALCT : PULSE2SAME port map(DOUT => EOF_DATA(NCFEB+2), CLK_DOUT => CMSCLK, RST => RESET, DIN => alct_fifo_data_in(17));
-  PULSEEOFOTMB : PULSE2SAME port map(DOUT => EOF_DATA(NCFEB+1), CLK_DOUT => CMSCLK, RST => RESET, DIN => otmb_fifo_data_in(17));
+  PULSEEOFALCT : PULSE2SAME port map(DOUT => EOF_DATA(NCFEB+2), CLK_DOUT => CMSCLK, RST => RESET, DIN => alct_fifo_data_in(64));
+  PULSEEOFOTMB : PULSE2SAME port map(DOUT => EOF_DATA(NCFEB+1), CLK_DOUT => CMSCLK, RST => RESET, DIN => otmb_fifo_data_in(64));
 
   GEN_DCFEB : for I in NCFEB downto 1 generate
   begin
@@ -435,8 +435,8 @@ begin
         prog_full => FIFO_HALF_FULL(I)
         );
 
-    --pulse_eof160(i) <= eofgen_dcfeb_fifo_in(I)(17) and not kill(i) and not bad_dcfeb_pulse_long(i);
-    pulse_eof160(i) <= eofgen_dcfeb_fifo_in(I)(17) and not kill(i);
+    --pulse_eof160(i) <= eofgen_dcfeb_fifo_in(I)(64) and not kill(i) and not bad_dcfeb_pulse_long(i);
+    pulse_eof160(i) <= eofgen_dcfeb_fifo_in(I)(64) and not kill(i);
     PULSEEOFDCFEB : PULSE2SLOW port map(DOUT => pulse_eof40(i), CLK_DOUT => cmsclk, CLK_DIN => dcfebclk, RST => reset, DIN => pulse_eof160(i));
     DS_EOF_PUSH   : DELAY_SIGNAL generic map(push_dlyp4) port map(DOUT => EOF_DATA(I), CLK => cmsclk, NCYCLES => push_dlyp4, DIN => pulse_eof40(I));
 
