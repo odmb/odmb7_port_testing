@@ -108,7 +108,7 @@ architecture CONTROL_arch of CONTROL_FSM is
   constant wait_max         : integer := 16;
   constant wait_dev_max     : integer := 5;
 
-  type control_state is (IDLE, HEADER, WAIT_DEV, TX_DEV, TAIL, LONE, WAIT_IDLE);
+  type control_state is (IDLE, HEADER, PRE_DEV, TX_DEV, TAIL, LONE, WAIT_IDLE, WAIT_DEV);
   signal control_current_state, control_next_state, q_control_current_state : control_state := IDLE;
 
   signal hdr_tail_cnt_en       : std_logic             := '0';
@@ -121,13 +121,6 @@ architecture CONTROL_arch of CONTROL_FSM is
   signal wait_dev_cnt          : integer range 1 to wait_dev_max := 1;
   signal dev_cnt_en            : std_logic             := '0';
   signal dev_cnt               : integer range 1 to 9  := NCFEB+2;
-  signal tx_cnt_en, tx_cnt_rst : std_logic             := '0';
-  signal tx_cnt                : integer range 1 to 4  := 1;
-  type tx_cnt_array is array (1 to 9) of integer range 1 to 4;
-  --signal   tx_cnt                : tx_cnt_array          := (1, 1, 1, 1, 1, 1, 1, 1, 1);
-  --constant tx_cnt_max            : tx_cnt_array          := (4, 4, 4, 4, 4, 4, 4, 2, 2);
-  constant tx_cnt_max          : tx_cnt_array          := (1, 1, 1, 1, 1, 1, 1, 1, 1); -- ! Remove tx_cnt in future since we deal with ALCT 24 bit data by discarding the first two words in EOFGEN for DCFEBS
-
   signal reg_crc, crc : std_logic_vector(23 downto 0) := (others => '0');
 
   signal crc_clr, crc_en : std_logic;
@@ -193,8 +186,8 @@ begin
 -- 40 MHz pulse for FIFO_POP
   FDPOP : PULSE2SLOW port map(DOUT => fifo_pop_inner, CLK_DOUT => CLKCMS, CLK_DIN => CLK, RST => RST, DIN => fifo_pop_160);
 
-  control_fsm_regs : process (control_next_state, RST, CLK, dev_cnt, dev_cnt_en, tx_cnt,
-                              tx_cnt_en, tx_cnt_rst, hdr_tail_cnt_en, lone_cnt_en, wait_cnt_en, wait_dev_cnt_en)
+  control_fsm_regs : process (control_next_state, RST, CLK, dev_cnt, dev_cnt_en, hdr_tail_cnt_en, 
+                              lone_cnt_en, wait_cnt_en, wait_dev_cnt_en)
   begin
     if (RST = '1') then
       control_current_state <= IDLE;
@@ -203,7 +196,6 @@ begin
       wait_cnt              <= 1;
       wait_dev_cnt          <= 1;
       dev_cnt               <= NCFEB+2;
-      tx_cnt                <= 1;
     elsif rising_edge(CLK) then
       if(wait_cnt_en = '1') then
         if(wait_cnt = wait_max) then
@@ -244,11 +236,6 @@ begin
           dev_cnt <= dev_cnt + 1;
         end if;
       end if;
-      if(tx_cnt_rst = '1') then
-        tx_cnt <= 1;
-      elsif(tx_cnt_en = '1' and tx_cnt < 4) then
-        tx_cnt <= tx_cnt+1;
-      end if;
       control_current_state <= control_next_state;
     end if;
   end process;
@@ -256,7 +243,7 @@ begin
   with control_current_state select
     current_state_svl <= x"1" when IDLE,
                          x"2" when HEADER,
-                         x"3" when WAIT_DEV,
+                         x"3" when PRE_DEV,
                          x"4" when TX_DEV,
                          x"5" when TAIL,
                          x"6" when LONE,
@@ -266,7 +253,7 @@ begin
   with control_next_state select
     next_state_svl <= x"1" when IDLE,
                       x"2" when HEADER,
-                      x"3" when WAIT_DEV,
+                      x"3" when PRE_DEV,
                       x"4" when TX_DEV,
                       x"5" when TAIL,
                       x"6" when LONE,
@@ -274,7 +261,7 @@ begin
                       x"0" when others;
 
   control_fsm_logic : process (control_current_state, cafifo_l1a_match, cafifo_l1a_dav,
-                               hdr_word, hdr_tail_cnt, lone_cnt, dev_cnt, tx_cnt, DATAIN,
+                               hdr_word, hdr_tail_cnt, lone_cnt, dev_cnt, DATAIN,
                                q_datain_last, tail_word, wait_cnt, wait_dev_cnt, cafifo_lone)
   begin
     oefifo_b_inner  <= (others => '1');
@@ -286,9 +273,6 @@ begin
     wait_cnt_en     <= '0';
     wait_dev_cnt_en <= '0';
     dev_cnt_en      <= '0';
-    tx_cnt_rst      <= '0';
-    tx_cnt_en       <= '0';
-
     case control_current_state is
       when IDLE =>
         dout_d <= (others => '0');
@@ -306,15 +290,14 @@ begin
         dav_d           <= '1';
         hdr_tail_cnt_en <= '1';
         if (hdr_tail_cnt = 2) then
-          control_next_state <= WAIT_DEV;
+          control_next_state <= PRE_DEV;
         else
           control_next_state <= HEADER;
         end if;
 
-      when WAIT_DEV =>
+      when PRE_DEV =>
         dout_d     <= (others => '0');
         dav_d      <= '0';
-        tx_cnt_rst <= '1';
         wait_dev_cnt_en <= '1';
         if (wait_dev_cnt = wait_dev_max) then
           if (cafifo_l1a_match(dev_cnt) = '0' or cafifo_lost_pckt(dev_cnt) = '1' or KILL(dev_cnt) = '1') then
@@ -322,28 +305,24 @@ begin
             if (dev_cnt = NCFEB) then
               control_next_state <= TAIL;
             else
-              control_next_state <= WAIT_DEV;
+              control_next_state <= PRE_DEV;
             end if;
           elsif (cafifo_l1a_dav(dev_cnt) = '1') then
             control_next_state      <= TX_DEV;
             oefifo_b_inner(dev_cnt) <= '0';
           else
-            control_next_state <= WAIT_DEV;
+            control_next_state <= PRE_DEV;
           end if;
         else
-          control_next_state <= WAIT_DEV;
+          control_next_state <= PRE_DEV;
         end if;
         
       when TX_DEV =>
         dout_d                   <= DATAIN;
         oefifo_b_inner(dev_cnt)  <= '0';
         renfifo_b_inner(dev_cnt) <= '0';
-        tx_cnt_en                <= '1';
-        if (tx_cnt >= tx_cnt_max(dev_cnt)) then
-          dav_d <= '1';
-        else
-          dav_d <= '0';
-        end if;
+        dav_d <= '1';
+        
         if (q_datain_last = '1' or KILL(dev_cnt) = '1') then
           dev_cnt_en <= '1';
           if (dev_cnt = NCFEB) then
@@ -354,6 +333,24 @@ begin
         else
           control_next_state <= TX_DEV;
         end if;
+
+      when WAIT_DEV =>
+        dout_d     <= (others => '0');
+        dav_d      <= '0';
+        wait_dev_cnt_en <= '1';
+        if (cafifo_l1a_dav(dev_cnt) = '1') then
+          control_next_state      <= TX_DEV;
+          oefifo_b_inner(dev_cnt) <= '0';
+          if (q_datain_last = '0' and KILL(dev_cnt) = '0') then -- check it is not special case before starting transmission
+            dout_d                   <= DATAIN;
+            oefifo_b_inner(dev_cnt)  <= '0';
+            renfifo_b_inner(dev_cnt) <= '0';
+            dav_d <= '1';
+          end if;
+        else
+          control_next_state <= WAIT_DEV;
+        end if;
+        
 
       when TAIL =>
         dout_d          <= tail_word(hdr_tail_cnt);
