@@ -121,7 +121,10 @@ architecture cafifo_architecture of cafifo is
 
   type fifo_data_array_type is array (NCFEB+2 downto 1) of std_logic_vector(23 downto 0);
   signal l1acnt_dav_fifo_in, l1acnt_dav_fifo_out : fifo_data_array_type;
+  signal l1acnt_dav_fifo_out_d                   : fifo_data_array_type;
   signal l1acnt_fifo_rst                         : std_logic := '0';
+  signal l1a_dav_en_d, lost_pckt_en_d            : std_logic_vector(NCFEB+2 downto 1);
+  signal l1a_dav_match, lost_pckt_match          : l1a_array_type := ((others => (others => '0')));
 
   -- BX counter
   constant nbx_lhc_orbit : integer := 3564;  -- Number of BX in one LHC orbit
@@ -330,8 +333,42 @@ begin
     );
   end generate GEN_L1ACNT_DAV;
 
+  -- Pipeline the compare path before writing l1a_dav/lost_pckt bits.
+  DAV_LOST_PIPE : process(L1ACNT_RST, CLK)
+  begin
+    if (l1acnt_rst = '1') then
+      l1a_dav_en_d     <= (others => '0');
+      lost_pckt_en_d   <= (others => '0');
+      l1acnt_dav_fifo_out_d <= (others => (others => '0'));
+      for dev in 1 to NCFEB+2 loop
+        for index in 0 to CAFIFO_SIZE-1 loop
+          l1a_dav_match(index)(dev)   <= '0';
+          lost_pckt_match(index)(dev) <= '0';
+        end loop;
+      end loop;
+    elsif rising_edge(CLK) then
+      l1a_dav_en_d        <= l1a_dav_en;
+      lost_pckt_en_d      <= lost_pckt_en;
+      l1acnt_dav_fifo_out_d <= l1acnt_dav_fifo_out;
+      for dev in 1 to NCFEB+2 loop
+        for index in 0 to CAFIFO_SIZE-1 loop
+          if (l1acnt_dav_fifo_out_d(dev) = l1a_cnt(index) and l1a_dav_en_d(dev) = '1') then
+            l1a_dav_match(index)(dev) <= '1';
+          else
+            l1a_dav_match(index)(dev) <= '0';
+          end if;
+          if (l1acnt_dav_fifo_out_d(dev) = l1a_cnt(index) and lost_pckt_en_d(dev) = '1') then
+            lost_pckt_match(index)(dev) <= '1';
+          else
+            lost_pckt_match(index)(dev) <= '0';
+          end if;
+        end loop;
+      end loop;
+    end if;
+  end process;
+
   -- asynchronous fifo for lost_pckt and l1a_dav
-  DAV_LOST_PRO : process(L1ACNT_RST, CLK, cafifo_rden, rd_addr_out, l1a_dav_en, lost_pckt_en)
+  DAV_LOST_PRO : process(L1ACNT_RST, CLK, cafifo_rden, rd_addr_out)
   begin
     for dev in 1 to NCFEB+2 loop
       for index in 0 to CAFIFO_SIZE-1 loop
@@ -339,10 +376,10 @@ begin
           l1a_dav(index)(dev)   <= '0';
           lost_pckt(index)(dev) <= '0';
         elsif rising_edge(CLK) then
-          if (l1acnt_dav_fifo_out(dev) = l1a_cnt(index) and l1a_dav_en(dev) = '1') then
+          if (l1a_dav_match(index)(dev) = '1') then
             l1a_dav(index)(dev) <= '1';
           end if;
-          if (l1acnt_dav_fifo_out(dev) = l1a_cnt(index) and lost_pckt_en(dev) = '1') then
+          if (lost_pckt_match(index)(dev) = '1') then
             lost_pckt(index)(dev) <= '1';
           end if;
         end if;
