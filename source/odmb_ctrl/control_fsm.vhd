@@ -126,7 +126,7 @@ architecture CONTROL_arch of CONTROL_FSM is
   type tx_cnt_array is array (1 to 9) of integer range 1 to 4;
   --signal   tx_cnt                : tx_cnt_array          := (1, 1, 1, 1, 1, 1, 1, 1, 1);
   --constant tx_cnt_max            : tx_cnt_array          := (4, 4, 4, 4, 4, 4, 4, 2, 2);
-  constant tx_cnt_max          : tx_cnt_array          := (3, 3, 3, 3, 3, 3, 3, 1, 1);
+  constant tx_cnt_max          : tx_cnt_array          := (1, 1, 1, 1, 1, 1, 1, 1, 1); -- ! Remove tx_cnt in future since we deal with ALCT 24 bit data by discarding the first two words in EOFGEN for DCFEBS
 
   signal reg_crc, crc : std_logic_vector(23 downto 0) := (others => '0');
 

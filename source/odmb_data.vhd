@@ -90,6 +90,10 @@ architecture ODMB_DATA_ARCH of odmb_data is
   end component;
 
   component EOFGEN is
+  generic (
+    WORDS_PER_FIFO_WIDTH      : integer range 1 to 16 := 4; --! Shift reg depth
+    DISCARD_DCFEB_24_BIT_DATA : boolean := true --! Whether to discard the first two words of DCFEB data that includes ALCT info
+  );
     port(
       clk : in std_logic;
       rst : in std_logic;
@@ -280,6 +284,9 @@ begin
   otmb_data <= otmb_qq(15 downto 0) when (GEN_DCFEB_SEL = '0') else gen_otmb_data;
 
   ALCT_EOFGEN_PM : EOFGEN
+  generic map (
+    DISCARD_DCFEB_24_BIT_DATA => false  --! For ALCT/OTMB data, we don't need to discard any word since they are already 16-bit data
+  )
     port map (
       clk => cmsclk,
       rst => reset,
@@ -293,6 +300,9 @@ begin
       );
 
   OTMB_EOFGEN_PM : EOFGEN
+    generic map (
+      DISCARD_DCFEB_24_BIT_DATA => false  --! For ALCT/OTMB data, we don't need to discard any word since they are already 16-bit data
+    )
     port map (
       clk => cmsclk,
       rst => reset,
@@ -393,6 +403,9 @@ begin
     dcfeb_tdo(I) <= gen_tdo(I);
 
     EOFGEN_PM : EOFGEN
+    generic map (
+      DISCARD_DCFEB_24_BIT_DATA => true  --! For DCFEB only
+    )
       port map (
         clk => DCFEBCLK,
         rst => reset,
