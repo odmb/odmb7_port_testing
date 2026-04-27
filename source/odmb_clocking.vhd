@@ -55,6 +55,7 @@ entity odmb_clocking is
     clk_lfclk : out std_logic;          --! buffered 10 kHz clock
     clk_gp6 : out std_logic;            --! buffered 80 MHz cock
     clk_gp7 : out std_logic;            --! buffered 80 MHz clock
+    mmcm_locked : out std_logic;
  
     clk_mgtclk1 : out std_logic;        --! buffered clock from MGT quad 224 clock 0, from REF_CLK_1
     clk_mgtclk2 : out std_logic;        --! buffered clock from MGT quad 227 clock 0, from REF_CLK_2
@@ -78,7 +79,8 @@ architecture Clocking_Arch of odmb_clocking is
       clk_out20 : out std_logic;
       clk_out40 : out std_logic;
       clk_out80 : out std_logic;
-      clk_out160 : out std_logic
+      clk_out160 : out std_logic;
+      locked : out std_logic
       );
   end component;
 
@@ -303,7 +305,8 @@ begin
       clk_out20 => clk_sysclk20,     -- output 20 MHz
       clk_out40 => clk_sysclk40,     -- output 40 MHz
       clk_out80 => clk_sysclk80,     -- output 80 MHz
-      clk_out160 => clk_sysclk160    -- output 160 MHz
+      clk_out160 => clk_sysclk160,   -- output 160 MHz
+      locked => mmcm_locked
       );
 
 

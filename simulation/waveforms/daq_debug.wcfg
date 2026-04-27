@@ -9,20 +9,19 @@
             <top_module name="glbl" />
             <top_module name="latches_flipflops" />
             <top_module name="ucsb_types" />
-            <top_module name="vcomponents" />
          </top_modules>
       </db_ref>
    </db_ref_list>
    <zoom_setting>
-      <ZoomStartTime time="28674600fs"></ZoomStartTime>
-      <ZoomEndTime time="29493601fs"></ZoomEndTime>
-      <Cursor1Time time="29062600fs"></Cursor1Time>
+      <ZoomStartTime time="12332565fs"></ZoomStartTime>
+      <ZoomEndTime time="12563530fs"></ZoomEndTime>
+      <Cursor1Time time="31720312fs"></Cursor1Time>
    </zoom_setting>
    <column_width_setting>
-      <NameColumnWidth column_width="114"></NameColumnWidth>
-      <ValueColumnWidth column_width="66"></ValueColumnWidth>
+      <NameColumnWidth column_width="223"></NameColumnWidth>
+      <ValueColumnWidth column_width="90"></ValueColumnWidth>
    </column_width_setting>
-   <WVObjectSize size="58" />
+   <WVObjectSize size="98" />
    <wvobject fp_name="divider412" type="divider">
       <obj_property name="label">Clocks</obj_property>
       <obj_property name="DisplayName">label</obj_property>
@@ -102,6 +101,10 @@
    <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/LEGACY_ALCT_DAV">
       <obj_property name="ElementShortName">LEGACY_ALCT_DAV</obj_property>
       <obj_property name="ObjectShortName">LEGACY_ALCT_DAV</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/cmsclk80_p">
+      <obj_property name="ElementShortName">cmsclk80_p</obj_property>
+      <obj_property name="ObjectShortName">cmsclk80_p</obj_property>
    </wvobject>
    <wvobject fp_name="divider412" type="divider">
       <obj_property name="label">Data</obj_property>
@@ -254,5 +257,161 @@
    <wvobject type="array" fp_name="/Firmware_tb/odmb_i/MBC/CONTROL_FSM_PM/DOUT">
       <obj_property name="ElementShortName">DOUT[15:0]</obj_property>
       <obj_property name="ObjectShortName">DOUT[15:0]</obj_property>
+   </wvobject>
+   <wvobject fp_name="divider250" type="divider">
+      <obj_property name="label">REsets</obj_property>
+      <obj_property name="DisplayName">label</obj_property>
+   </wvobject>
+   <wvobject type="other" fp_name="/Firmware_tb/odmb_i/current_rst_state">
+      <obj_property name="ElementShortName">current_rst_state</obj_property>
+      <obj_property name="ObjectShortName">current_rst_state</obj_property>
+   </wvobject>
+   <wvobject type="other" fp_name="/Firmware_tb/odmb_i/next_rst_state">
+      <obj_property name="ElementShortName">next_rst_state</obj_property>
+      <obj_property name="ObjectShortName">next_rst_state</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/dcfeb_reprog_b_int">
+      <obj_property name="ElementShortName">dcfeb_reprog_b_int</obj_property>
+      <obj_property name="ObjectShortName">dcfeb_reprog_b_int</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/ccb_soft_reset_pulse">
+      <obj_property name="ElementShortName">ccb_soft_reset_pulse</obj_property>
+      <obj_property name="ObjectShortName">ccb_soft_reset_pulse</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/opt_reset_pulse">
+      <obj_property name="ElementShortName">opt_reset_pulse</obj_property>
+      <obj_property name="ObjectShortName">opt_reset_pulse</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/opt_reset_pulse_q">
+      <obj_property name="ElementShortName">opt_reset_pulse_q</obj_property>
+      <obj_property name="ObjectShortName">opt_reset_pulse_q</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/l1a_reset_ps_pulse">
+      <obj_property name="ElementShortName">l1a_reset_ps_pulse</obj_property>
+      <obj_property name="ObjectShortName">l1a_reset_ps_pulse</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/fifo_reset_pulse">
+      <obj_property name="ElementShortName">fifo_reset_pulse</obj_property>
+      <obj_property name="ObjectShortName">fifo_reset_pulse</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/clk_reset_ps">
+      <obj_property name="ElementShortName">clk_reset_ps</obj_property>
+      <obj_property name="ObjectShortName">clk_reset_ps</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/opt_reset_ps">
+      <obj_property name="ElementShortName">opt_reset_ps</obj_property>
+      <obj_property name="ObjectShortName">opt_reset_ps</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/l1a_reset_ps">
+      <obj_property name="ElementShortName">l1a_reset_ps</obj_property>
+      <obj_property name="ObjectShortName">l1a_reset_ps</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/fifo_reset_ps">
+      <obj_property name="ElementShortName">fifo_reset_ps</obj_property>
+      <obj_property name="ObjectShortName">fifo_reset_ps</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/reset">
+      <obj_property name="ElementShortName">reset</obj_property>
+      <obj_property name="ObjectShortName">reset</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/done_reset_pulse">
+      <obj_property name="ElementShortName">done_reset_pulse</obj_property>
+      <obj_property name="ObjectShortName">done_reset_pulse</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/fw_startup">
+      <obj_property name="ElementShortName">fw_startup</obj_property>
+      <obj_property name="ObjectShortName">fw_startup</obj_property>
+   </wvobject>
+   <wvobject type="other" fp_name="/Firmware_tb/odmb_i/lf_counter">
+      <obj_property name="ElementShortName">lf_counter</obj_property>
+      <obj_property name="ObjectShortName">lf_counter</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/dcfebrst_counter_enable">
+      <obj_property name="ElementShortName">dcfebrst_counter_enable</obj_property>
+      <obj_property name="ObjectShortName">dcfebrst_counter_enable</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/dcfebrst_counter_reset">
+      <obj_property name="ElementShortName">dcfebrst_counter_reset</obj_property>
+      <obj_property name="ObjectShortName">dcfebrst_counter_reset</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/dcfebrst_counter_reset_pulse">
+      <obj_property name="ElementShortName">dcfebrst_counter_reset_pulse</obj_property>
+      <obj_property name="ObjectShortName">dcfebrst_counter_reset_pulse</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Firmware_tb/odmb_i/dcfebrst_counter_value">
+      <obj_property name="ElementShortName">dcfebrst_counter_value[15:0]</obj_property>
+      <obj_property name="ObjectShortName">dcfebrst_counter_value[15:0]</obj_property>
+   </wvobject>
+   <wvobject type="other" fp_name="/Firmware_tb/odmb_i/l1arst_counter">
+      <obj_property name="ElementShortName">l1arst_counter</obj_property>
+      <obj_property name="ObjectShortName">l1arst_counter</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/l1arst_counter_enable">
+      <obj_property name="ElementShortName">l1arst_counter_enable</obj_property>
+      <obj_property name="ObjectShortName">l1arst_counter_enable</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/l1arst_counter_reset">
+      <obj_property name="ElementShortName">l1arst_counter_reset</obj_property>
+      <obj_property name="ObjectShortName">l1arst_counter_reset</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/l1arst_counter_reset_pulse">
+      <obj_property name="ElementShortName">l1arst_counter_reset_pulse</obj_property>
+      <obj_property name="ObjectShortName">l1arst_counter_reset_pulse</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Firmware_tb/odmb_i/l1arst_counter_value">
+      <obj_property name="ElementShortName">l1arst_counter_value[15:0]</obj_property>
+      <obj_property name="ObjectShortName">l1arst_counter_value[15:0]</obj_property>
+   </wvobject>
+   <wvobject type="other" fp_name="/Firmware_tb/odmb_i/fiforst_counter">
+      <obj_property name="ElementShortName">fiforst_counter</obj_property>
+      <obj_property name="ObjectShortName">fiforst_counter</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/fiforst_counter_enable">
+      <obj_property name="ElementShortName">fiforst_counter_enable</obj_property>
+      <obj_property name="ObjectShortName">fiforst_counter_enable</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/fiforst_counter_reset">
+      <obj_property name="ElementShortName">fiforst_counter_reset</obj_property>
+      <obj_property name="ObjectShortName">fiforst_counter_reset</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/fiforst_counter_reset_pulse">
+      <obj_property name="ElementShortName">fiforst_counter_reset_pulse</obj_property>
+      <obj_property name="ObjectShortName">fiforst_counter_reset_pulse</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Firmware_tb/odmb_i/fiforst_counter_value">
+      <obj_property name="ElementShortName">fiforst_counter_value[15:0]</obj_property>
+      <obj_property name="ObjectShortName">fiforst_counter_value[15:0]</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/cmsclk">
+      <obj_property name="ElementShortName">cmsclk</obj_property>
+      <obj_property name="ObjectShortName">cmsclk</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/LF_CLK">
+      <obj_property name="ElementShortName">LF_CLK</obj_property>
+      <obj_property name="ObjectShortName">LF_CLK</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/proc_dcfeb_rst_cntr/clk">
+      <obj_property name="ElementShortName">clk</obj_property>
+      <obj_property name="ObjectShortName">clk</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/proc_dcfeb_rst_cntr/counter_enable">
+      <obj_property name="ElementShortName">counter_enable</obj_property>
+      <obj_property name="ObjectShortName">counter_enable</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/proc_dcfeb_rst_cntr/counter_reset">
+      <obj_property name="ElementShortName">counter_reset</obj_property>
+      <obj_property name="ObjectShortName">counter_reset</obj_property>
+   </wvobject>
+   <wvobject type="logic" fp_name="/Firmware_tb/odmb_i/proc_dcfeb_rst_cntr/reset">
+      <obj_property name="ElementShortName">reset</obj_property>
+      <obj_property name="ObjectShortName">reset</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Firmware_tb/odmb_i/proc_dcfeb_rst_cntr/count_out">
+      <obj_property name="ElementShortName">count_out[15:0]</obj_property>
+      <obj_property name="ObjectShortName">count_out[15:0]</obj_property>
+   </wvobject>
+   <wvobject type="array" fp_name="/Firmware_tb/odmb_i/proc_dcfeb_rst_cntr/count_unsigned">
+      <obj_property name="ElementShortName">count_unsigned[15:0]</obj_property>
+      <obj_property name="ObjectShortName">count_unsigned[15:0]</obj_property>
    </wvobject>
 </wave_config>

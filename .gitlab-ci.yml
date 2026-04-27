@@ -5,7 +5,7 @@ include:
 
 variables:
         VIVADO_VERSION: 2019.2
-        HOG_DEVELOP_BRANCH: 'develop'
+        HOG_DEVELOP_BRANCH: 'master'
 
 ## Generic FW build rule ###
 .firmware_build:
