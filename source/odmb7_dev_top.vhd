@@ -284,6 +284,7 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal mgtclk5 : std_logic;
   signal mgtclk125 : std_logic;
   signal led_clkfreqs : std_logic_vector(11 downto 0);
+  signal mmcm_locked : std_logic;
 
   --------------------------------------
   -- VME signals
@@ -442,10 +443,38 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal fw_rst_reg      : std_logic_vector(31 downto 0) := (others => '0');
   signal opt_rst_reg     : std_logic_vector(31 downto 0) := (others => '0');
   signal reset           : std_logic := '0';
-  signal lf_counter       : integer := 0;
-  signal done_reset       : std_logic := '0';
+  --signal done_reset       : std_logic := '0';
+  --signal done_enable      : std_logic := '1';
+  
   signal done_reset_pulse : std_logic := '0';
-  signal done_enable      : std_logic := '1';
+  signal fw_startup      : std_logic := '1';
+  
+  signal lf_counter          : integer := 0;
+  signal dcfebrst_counter_enable      : std_logic := '0';
+  signal dcfebrst_counter_reset       : std_logic := '1';
+  signal dcfebrst_counter_reset_pulse : std_logic := '0';
+  signal dcfebrst_counter_value : std_logic_vector(15 downto 0) := (others => '0');
+  constant dcfebrst_counter_target_value : std_logic_vector(15 downto 0) := "0000010010110000"; --1,200 10kHz clock cycles --> 120 ms
+  
+  signal l1arst_counter             : integer := 0;
+  signal l1arst_counter_enable      : std_logic := '0';
+  signal l1arst_counter_reset       : std_logic := '1';
+  signal l1arst_counter_reset_pulse : std_logic := '0';
+  signal l1arst_counter_value : std_logic_vector(15 downto 0) := (others => '0');
+  constant l1arst_counter_target_value : std_logic_vector(15 downto 0) := "0000011111010000"; --2,000 at 40 MHz --> 50 microseconds
+  
+  signal fiforst_counter             : integer := 0;
+  signal fiforst_counter_enable      : std_logic := '0';
+  signal fiforst_counter_reset       : std_logic := '1';
+  signal fiforst_counter_reset_pulse : std_logic := '0';
+  signal fiforst_counter_value : std_logic_vector(15 downto 0) := (others => '0');
+  constant fiforst_counter_target_value : std_logic_vector(15 downto 0) := "0000001111101000";
+  -- "0010011100010000"; --10,000 at 40 MHZ  --> 250 microseconds
+  
+  signal clk_reset_ps : std_logic := '0';
+  signal opt_reset_ps : std_logic := '0';
+  signal l1a_reset_ps : std_logic := '0';
+  signal fifo_reset_ps : std_logic := '0';
 
   --------------------------------------
   -- MGT PRBS signals as place holder
@@ -595,6 +624,9 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal fifo_empty     : std_logic_vector(NCFEB+2 downto 1);
   signal fifo_full      : std_logic_vector(NCFEB+2 downto 1);
 
+  signal fifo_wr_rst         : std_logic_vector(NCFEB+2 downto 1);
+  signal fifo_rd_rst         : std_logic_vector(NCFEB+2 downto 1);
+
   signal fifo_dout : std_logic_vector(17 downto 0);
   signal fifo_oe_b : std_logic_vector(NCFEB+2 downto 1) := (others => '1');
   signal fifo_re_b : std_logic_vector(NCFEB+2 downto 1) := (others => '1');
@@ -603,7 +635,9 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal ddu_data_valid, ddu_eof : std_logic;
   signal pc_data                 : std_logic_vector(15 downto 0);
   signal pc_data_valid           : std_logic;
-
+  signal pc_txready              : std_logic;
+  signal pc_rxready              : std_logic;
+  
   signal gl_pc_tx_ack            : std_logic;
 
   -- for TRGCNTRL
@@ -616,6 +650,14 @@ architecture Behavioral of odmb7_ucsb_dev is
   signal vio_select : std_logic := '0';
   signal vio_leds : std_logic_vector(11 downto 0) := (others => '0');
   
+  component reset_counter 
+    Port ( clk : in STD_LOGIC;
+           counter_enable : in STD_LOGIC;
+           counter_reset : in STD_LOGIC;
+           reset : in STD_LOGIC;
+           count_out : out STD_LOGIC_VECTOR(15 downto 0));
+  end component;
+  
   --Manually control the blinking of leds
   --component vio_0
 --  port(
@@ -624,6 +666,23 @@ architecture Behavioral of odmb7_ucsb_dev is
 --    probe_out1 : out std_logic_vector(11 downto 0)
 --  );
 --  end component;
+
+type reset_states is (IDLE, DCFEB_RST, DCFEB_RST_CNTR, CLK_RST, OPT_RST, L1A_RST, L1A_RST_CNTR, FIFO_RST, FIFO_RST_CNTR, DONE);
+signal current_rst_state : reset_states := IDLE;
+signal next_rst_state    : reset_states := IDLE;
+
+--Signals that track the reset signals and if the reset is finished
+signal dcfeb_reprog_b_int : std_logic := '0';
+signal ccb_soft_reset_pulse : std_logic := '0';
+signal l1a_reset_ps_pulse : std_logic := '0';
+signal fifo_reset_pulse : std_logic := '0';
+
+--signal dcfeb_fifo_rst : std_logic_vector(NCFEB downto 1);
+signal ccb_l1a_rst_out : std_logic := '0';
+--signal ccb_l1a_rst_out_pulse : std_logic := '0';
+signal CCB_EVCNTRES_B_Q : std_logic;
+signal CCB_EVCNTRES_B_QQ : std_logic;
+signal ccb_cntres_rst : std_logic;
 
 begin
 
@@ -661,7 +720,7 @@ begin
       DCFEB_TMS           => dcfeb_tms,
       DCFEB_TDI           => dcfeb_tdi,
 
-      DCFEB_FIFO_RST      => "0000000", -- auto-kill related
+      DCFEB_FIFO_RST      => dcfeb_fifo_rst, -- auto-kill related
       EOF_DATA            => eof_data,
       INTO_FIFO_DAV       => into_fifo_dav,
 
@@ -677,7 +736,10 @@ begin
       FIFO_DOUT           => fifo_dout,
       FIFO_EMPTY          => fifo_empty,
       FIFO_HALF_FULL      => fifo_half_full,
-      FIFO_FULL           => fifo_full
+      FIFO_FULL           => fifo_full,
+      
+      FIFO_WR_RST              => fifo_wr_rst,
+      FIFO_RD_RST              => fifo_rd_rst
       );
 
   -------------------------------------------------------------------------------------------
@@ -730,7 +792,8 @@ begin
       clk_mgtclk4    => mgtclk4,
       clk_mgtclk5    => mgtclk5,
       clk_mgtclk125  => mgtclk125,
-      led_clkfreqs   => led_clkfreqs
+      led_clkfreqs   => led_clkfreqs,
+      mmcm_locked    => mmcm_locked
       );
 
   -- Make LED lights blink to reflect clock frequencies
@@ -801,28 +864,7 @@ begin
 
   dcfeb_tdo_int <= dcfeb_tdo when (odmb_ctrl_reg(7) = '0') else gen_dcfeb_tdo;
 
-  --generate RESYNC, BC0, L1A, and L1A match signals to DCFEBs
-  --synchronization of CCB signals and push button
-  ccb_bx0   <= not CCB_BX0_B;
-  FD_CCBBX0 : FD port map(Q => ccb_bx0_q, C => cmsclk, D => ccb_bx0);
-  FD_CCBBX  : FD port map(Q => ccb_bxrst_b_q, C => cmsclk, D => ccb_bx_rst_b);
-  bxcnt_rst <= not ccb_bxrst_b_q;
 
-  RESETPULSE      : PULSE2SAME port map(DOUT => reset_pulse, CLK_DOUT => cmsclk, RST => '0', DIN => reset);
-  FD_RESETPULSE_Q : FD port map (Q => reset_pulse_q,     C => cmsclk, D => reset_pulse);
-  FD_L1APULSE_Q   : FD port map (Q => l1a_reset_pulse_q, C => cmsclk, D => l1a_reset_pulse);
-
-  --TODO: fix l1acnt_rst, 20MHz clock using ccb_bx0, and all other effects thereof)
-  --TODO: fix this logic, copied from ODMB because timing violations
-  --l1acnt_rst <= clk20 and (l1a_reset_pulse or l1a_reset_pulse_q or reset_pulse or reset_pulse_q);
-  proc_sync_l1acnt : process (cmsclk)
-  begin
-    if rising_edge(cmsclk) then
-      l1acnt_rst <= (l1a_reset_pulse or l1a_reset_pulse_q or reset_pulse or reset_pulse_q);
-      l1acnt_rst_meta <= l1acnt_rst;
-      l1acnt_rst_sync <= l1acnt_rst_meta;
-    end if;
-  end process;
 
   pre_bc0    <= test_bc0 or ccb_bx0_q;
   masked_l1a <= '0' when mask_l1a(0) = '1' else odmbctrl_l1a;
@@ -953,50 +995,268 @@ begin
   -------------------------------------------------------------------------------------------
   -- Handle reset signals
   -------------------------------------------------------------------------------------------
-  proc_done_rst : process (clk_lfclk)
+  --Process that handles the state transitions
+  proc_reset_state_control : process(cmsclk)
+  
   begin
-    if rising_edge(clk_lfclk) then
-      if done_reset = '1' then
-        done_reset <= '0';
-        done_enable <= '0';
-      end if;
-      if done_enable = '1' then
-        if lf_counter = 1200 then
-          done_reset <= '1';
-          lf_counter <= 0;
-        else
-          lf_counter <= lf_counter + 1;
-        end if;
-      end if;
+    if mmcm_locked='0' then
+        current_rst_state <= IDLE;
+    elsif rising_edge(cmsclk) then
+        current_rst_state <= next_rst_state;
     end if;
   end process;
 
-  FD_CCB_SOFTRST : FD generic map(INIT => '1') port map (Q => ccb_softrst_b_q, C => cmsclk, D => CCB_SOFT_RST_B);
+  -- FSM that:
+  -- 0: has IDLE condition until a reset is sent
+  -- 1: waits for DCFEB programming (states: DCFEB_RST, RCFEB_RST_CNTR)
+  -- 2: Resets the clocks (states: CLK_RST)
+  -- 3: Resets the optical transceivers (states: OPT_RST)
+  -- 4: Resets the L1A count (states: L1A_RST, L1A_RST_CNTR)
+  -- 5: Resets the FIFOs (states: FIFO_RST, FIFO_RST_CNTR) -- Unused right now
+  proc_reset_fsm : process(cmsclk, next_rst_state, current_rst_state)
+  begin 
+  
+    case current_rst_state is
+    when IDLE =>
+       
+        --reprog_b is '1' in sim, so removing for now
+        --if    fw_startup = '1' or dcfeb_reprog_b_int='1' then next_rst_state <= DCFEB_RST;
+        
+        if    fw_startup = '1' then next_rst_state <= DCFEB_RST;
+        elsif fw_reset = '1' or ccb_soft_reset_pulse='1' then next_rst_state <= CLK_RST;
+        elsif opt_reset_pulse = '1' then next_rst_state <= OPT_RST;
+        elsif l1a_reset_pulse = '1' or ccb_l1a_rst_out = '1' or ccb_cntres_rst = '1' then next_rst_state <= L1A_RST;
+        else                             next_rst_state <= IDLE;
+        end if;      
 
-  FD_FW_RESET : FD port map (Q => fw_reset_q, C => cmsclk, D => fw_reset);
-  fw_rst_reg <= x"3FFFF000" when ((fw_reset_q = '0' and fw_reset = '1') or ccb_softrst_b_q = '0') else
+    --Need to wait for reset signals to be sent to the DCFEBs, so initialize a counter
+    when DCFEB_RST =>
+        dcfebrst_counter_enable <= '0';
+        dcfebrst_counter_reset  <= '1';
+        fw_startup <= '0';
+        next_rst_state <= DCFEB_RST_CNTR;
+
+    --Count for 100ms and then switch
+    when DCFEB_RST_CNTR =>
+        dcfebrst_counter_enable <= '1';
+        dcfebrst_counter_reset  <= '0';
+        
+        --Counted long enough, send clock resent and wait
+        if dcfebrst_counter_value >= dcfebrst_counter_target_value then
+            next_rst_state <= CLK_RST;
+        else
+            next_rst_state <= DCFEB_RST_CNTR;
+        end if;
+    
+    --BYPASS THIS STATE and remove
+    --Sent clk resent and now wait for mmcm_locked            
+    when CLK_RST =>
+        --Clock signal is locked, now start opt_rst and switch
+        clk_reset_ps <= '1';
+        if(mmcm_locked='1') then 
+            next_rst_state <= OPT_RST;
+        else
+            next_rst_state <= CLK_RST;   
+        end if;
+      
+    --Sent Opt reset, now wait for ready signals
+    when OPT_RST => 
+        opt_reset_ps <= '1';
+        
+        --Depending on ENABLE_SPY_TO_DDU switch to state when devices are ready, start l1a reset     
+        if(ENABLE_SPY_TO_DDU = '0' and spy_txready='1' and spy_rxready='1' and dcfeb_rxready='1') then
+            next_rst_state <= L1A_RST;
+            
+        elsif(ENABLE_SPY_TO_DDU = '1' and pc_txready='1' and  pc_rxready='1' and dcfeb_rxready='1') then
+            next_rst_state <= L1A_RST;
+        else
+            next_rst_state <= OPT_RST;
+        end if;
+
+    --Initiate L1A reset counter
+    when L1A_RST =>
+        l1arst_counter_enable <= '0';
+        l1arst_counter_reset  <= '1';
+        
+        l1a_reset_ps <= '1';
+        fifo_reset_ps <= '1';
+        
+        next_rst_state <= L1A_RST_CNTR;
+    
+    --Count for 50 microseconds    
+    when L1A_RST_CNTR =>
+        l1arst_counter_enable <= '1';
+        l1arst_counter_reset  <= '0';
+        
+        --Counted long enough, send fifo reset and wait
+        if l1arst_counter_value >= l1arst_counter_target_value then
+            next_rst_state <= FIFO_RST;
+            
+        else
+            next_rst_state <= L1A_RST_CNTR;
+        end if;
+
+    --Initialize FIFO reset counter
+    when FIFO_RST =>
+        fiforst_counter_enable <= '0';
+        fiforst_counter_reset  <= '1';
+        next_rst_state <= FIFO_RST_CNTR;
+
+    --Count for 250 microseconds then move to done
+    when FIFO_RST_CNTR =>
+        fiforst_counter_enable <= '1';
+        fiforst_counter_reset  <= '0';
+        
+        --Counted long enough, send clock resent and wait
+        if fiforst_counter_value >= fiforst_counter_target_value then
+            next_rst_state <= DONE;
+        else
+            next_rst_state <= FIFO_RST_CNTR;
+        end if;
+
+    --Reset values and shift to IDLE state
+    when DONE =>        
+        --pulse start signals
+        clk_reset_ps <= '0';
+        opt_reset_ps <= '0';
+        l1a_reset_ps <= '0';
+        fifo_reset_ps <= '0';
+        
+        --counter enables/resets
+        dcfebrst_counter_enable <= '0';
+        dcfebrst_counter_reset  <= '1';
+        fiforst_counter_enable <= '0';
+        fiforst_counter_reset  <= '1';   
+        l1arst_counter_enable <= '0';
+        l1arst_counter_reset  <= '1';
+        
+        --End startup reset
+        fw_startup <= '0';
+        
+        --Done with the resets move back to IDLE
+        next_rst_state <= IDLE;
+        
+    --Set Idle as default behavior
+    when OTHERS => 
+        next_rst_state <= IDLE;
+    end case;
+  end process;  
+  
+  --Counter for the DCFEB reset
+  proc_dcfeb_rst_cntr : reset_counter 
+    port map(
+        clk=> clk_lfclk, 
+        counter_enable=> dcfebrst_counter_enable, 
+        counter_reset => dcfebrst_counter_reset, 
+        reset=> '0', --reset, 
+        count_out => dcfebrst_counter_value
+     );
+     
+  --Counter for the L1A reset
+  proc_l1arst_cntr : reset_counter 
+    port map(
+        clk=> cmsclk, 
+        counter_enable=> l1arst_counter_enable, 
+        counter_reset => l1arst_counter_reset, 
+        reset=> '0', --reset, 
+        count_out => l1arst_counter_value
+     );
+     
+  --Counter for the FIFO reset
+  proc_fiforst_cntr : reset_counter 
+    port map(
+        clk=> cmsclk, 
+        counter_enable=> fiforst_counter_enable, 
+        counter_reset => fiforst_counter_reset, 
+        reset=> '0', --reset, 
+        count_out => fiforst_counter_value
+     );
+
+  FD_EVCNTRES_B_Q : FD port map (Q => ccb_evcntres_b_q, C => cmsclk, D => ccb_evcntres_b);
+  FD_EVCNTRES_B_QQ : FD port map (Q => ccb_evcntres_b_qq, C => cmsclk, D => ccb_evcntres_b_q);
+  ccb_cntres_rst <= not ccb_evcntres_b_qq;
+  
+  --Soft reset from CCB connecting to 
+  FD_CCB_SOFTRST : FD generic map(INIT => '1') port map (Q => ccb_softrst_b_q, C => cmsclk, D => CCB_SOFT_RST_B);
+  ccb_soft_reset_pulse <=  '1' when (CCB_SOFTRST_B_Q = '0' and CCB_SOFT_RST_B = '1') else '0';
+
+  --Done reset is after DCFEBs have been loaded
+  --PLS_DONERESET : PULSE2FAST port map(DOUT => done_reset_pulse, CLK_DOUT => cmsclk, RST => reset, DIN => clk_reset_ps);
+
+  --FW reset now starts at clock (first firmware reset signal)
+  FD_FW_RESET : FD port map (Q => fw_reset_q, C => cmsclk, D => clk_reset_ps); 
+  fw_rst_reg <= x"3FFFF000" when ((fw_reset_q = '0' and clk_reset_ps = '1') or ccb_softrst_b_q = '0') else
                 fw_rst_reg(30 downto 0) & '0' when rising_edge(cmsclk) else
                 fw_rst_reg;
-
-  -- original: reset <= fw_rst_reg(31) or pon_rst_reg(31) or not pb0_q;
-  -- pon_rst_reg used to be reset from pll lock
+ 
   pon_rst_reg <= pon_rst_reg(30 downto 0) & '0' when rising_edge(cmsclk) else
                  pon_rst_reg;
   pon_reset <= pon_rst_reg(31);
-
   reset <= fw_rst_reg(31) or pon_rst_reg(31);   -- Firmware reset
 
-  PLS_DONERESET : PULSE2FAST port map(DOUT => done_reset_pulse, CLK_DOUT => cmsclk, RST => reset, DIN => done_reset);
-  FD_OPT_RESET : FD port map(Q => opt_reset_pulse_q, C => cmsclk, D => opt_reset_pulse);
-  opt_rst_reg <= x"3FFFF000" when (opt_reset_pulse_q = '0' and opt_reset_pulse = '1') else
+  --Set opt reset flip flop using reset initializer
+  FD_OPT_RESET : FD port map(Q => opt_reset_pulse_q, C => cmsclk, D => opt_reset_ps);
+  opt_rst_reg <= x"3FFFF000" when (opt_reset_pulse_q = '0' and opt_reset_ps = '1') else
                  opt_rst_reg(30 downto 0) & '0' when rising_edge(cmsclk) else
                  opt_rst_reg;
-  opt_reset <= opt_rst_reg(31) or pon_reset or mgt_reset or done_reset_pulse;  -- Optical reset
+  opt_reset <= opt_rst_reg(31) or pon_reset or mgt_reset; --or done_reset_pulse;  -- Optical reset
+  
+  --generate RESYNC, BC0, L1A, and L1A match signals to DCFEBs
+  --synchronization of CCB signals and push button
+  ccb_bx0   <= not CCB_BX0_B;
+  FD_CCBBX0 : FD port map(Q => ccb_bx0_q, C => cmsclk, D => ccb_bx0);
+  FD_CCBBX  : FD port map(Q => ccb_bxrst_b_q, C => cmsclk, D => ccb_bx_rst_b);
+  bxcnt_rst <= not ccb_bxrst_b_q;
+
+  RESETPULSE      : PULSE2SAME port map(DOUT => reset_pulse, CLK_DOUT => cmsclk, RST => '0', DIN => reset);
+  --FD_RESETPULSE_Q : FD port map (Q => reset_pulse_q,     C => cmsclk, D => reset_pulse);
+  FD_RESETPULSE_Q : FD port map (Q => reset_pulse_q,     C => cmsclk, D => reset_pulse);
+  
+  
+  L1ARESETPULSE   : PULSE2SAME port map(DOUT => l1a_reset_ps_pulse, CLK_DOUT => cmsclk, RST => '0', DIN => l1a_reset_ps);
+  FD_L1APULSE_Q   : FD port map (Q => l1a_reset_pulse_q, C => cmsclk, D => l1a_reset_ps_pulse);
+  --FD_L1APULSE_Q   : FD port map (Q => l1a_reset_pulse_q, C => cmsclk, D => l1a_reset_pulse);
+
+  --TODO: fix l1acnt_rst, 20MHz clock using ccb_bx0, and all other effects thereof)
+  --TODO: fix this logic, copied from ODMB because timing violations
+  --l1acnt_rst <= clk20 and (l1a_reset_pulse or l1a_reset_pulse_q or reset_pulse or reset_pulse_q);
+  proc_sync_l1acnt : process (cmsclk)
+  begin
+    if rising_edge(cmsclk) then
+      l1acnt_rst <= (l1a_reset_pulse or l1a_reset_pulse_q or reset_pulse or reset_pulse_q);
+      l1acnt_rst_meta <= l1acnt_rst;
+      l1acnt_rst_sync <= l1acnt_rst_meta;
+    end if;
+  end process;
+  
+  DCFEB_REPROG_B <= DCFEB_REPROG_B_INT;
+  
+  --Done reset is after DCFEBs have been loaded    usrclk_mgtc
+  --FIFO_RESET : PULSE2FAST port map(DOUT => fifo_reset_pulse, CLK_DOUT => cmsclk, RST => reset, DIN => fiforst_counter_enable);
+  FIFO_RESET : PULSE2FAST port map(DOUT => fifo_reset_pulse, CLK_DOUT => usrclk_mgtc, RST => reset, DIN => fiforst_counter_enable);
+  dcfeb_fifo_rst <= (others => fifo_reset_pulse);
+  --fifo_rd_rst <= (others => fifo_reset_pulse);
+  
+  --previous command
+  --FD_FW_RESET : FD port map (Q => fw_reset_q, C => cmsclk, D => fw_reset);--
+
+
+  -- original: reset <= fw_rst_reg(31) or pon_rst_reg(31) or not pb0_q;
+  -- pon_rst_reg used to be reset from pll lock
+
+
+  --PLS_DONERESET : PULSE2FAST port map(DOUT => done_reset_pulse, CLK_DOUT => cmsclk, RST => reset, DIN => done_reset);
+  --FD_OPT_RESET : FD port map(Q => opt_reset_pulse_q, C => cmsclk, D => opt_reset_pulse);
+  
+--  opt_rst_reg <= x"3FFFF000" when (opt_reset_pulse_q = '0' and opt_reset_pulse = '1') else
+--                 opt_rst_reg(30 downto 0) & '0' when rising_edge(cmsclk) else
+--                 opt_rst_reg;
+--  opt_reset <= opt_rst_reg(31) or pon_reset or mgt_reset or done_reset_pulse;  -- Optical reset
 
   -------------------------------------------------------------------------------------------
   -- Sub-modules
   -------------------------------------------------------------------------------------------
-
+ 
   MBV : entity work.ODMB_VME
     generic map (
       NCFEB => NCFEB
@@ -1031,7 +1291,7 @@ begin
       DCFEB_TDO      => dcfeb_tdo,
       DCFEB_DONE     => DCFEB_DONE,
       DCFEB_INITJTAG => dcfeb_initjtag,
-      DCFEB_REPROG_B => DCFEB_REPROG_B,
+      DCFEB_REPROG_B => DCFEB_REPROG_B_INT,
 
       ODMB_TCK      => KUS_TCK,
       ODMB_TMS      => KUS_TMS,
@@ -1144,7 +1404,8 @@ begin
       DDUCLK    => usrclk_ddu,
       CMSCLK    => cmsclk,
       PCCLK     => usrclk_pc,
-
+      --FEDCLK    => usrclk_fed,
+      
       CCB_CMD      => ccb_cmd,
       CCB_CMD_S    => ccb_cmd_s,
       CCB_DATA     => ccb_data,
@@ -1153,6 +1414,7 @@ begin
       CCB_BXRST_B  => ccb_bx_rst_b,
       CCB_L1ARST_B => ccb_l1a_rst_b,
       CCB_CLKEN    => ccb_clken,
+      CCB_L1A_RST  => ccb_l1a_rst_out, 
 
       TEST_CCBINJ => test_inj,
       TEST_CCBPLS => test_pls,
@@ -1310,8 +1572,8 @@ begin
         spy_rx_p        => spy_rx_p, --to pins
         spy_tx_n        => SPY_TX_N, --to pins
         spy_tx_p        => SPY_TX_P, --to pins
-        txready         => open,     --unused
-        rxready         => open,     --unused
+        txready         => pc_txready,     --unused
+        rxready         => pc_rxready,     --unused
         txdata          => pc_data,  --spy_txdata,
         txd_valid       => pc_data_valid, --spy_txd_valid,
         end_of_header   => gl_pc_tx_ack,     --end of header signal to PCFIFO
@@ -1371,8 +1633,8 @@ begin
         spy_rx_p        => B04_RX_P(2), --to pins
         spy_tx_n        => DAQ_TX_N(2), --to pins
         spy_tx_p        => DAQ_TX_P(2), --to pins
-        txready         => open,     --unused
-        rxready         => open,     --unused
+        txready         => pc_txready,     --unused
+        rxready         => pc_rxready,     --unused
         txdata          => pc_data,  --spy_txdata,
         txd_valid       => pc_data_valid, --spy_txd_valid,
         end_of_header   => gl_pc_tx_ack,     --end of header signal to PCFIFO
