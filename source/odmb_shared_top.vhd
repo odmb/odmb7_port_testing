@@ -289,7 +289,6 @@ architecture Behavioral of odmb_dev is
   -- Check if it is an issue for ODMB5
   signal led_clkfreqs : std_logic_vector(11 downto 0);
   signal mmcm_locked : std_logic;
-  signal mmcm_locked : std_logic;
 
   --------------------------------------
   -- VME signals
@@ -634,9 +633,6 @@ architecture Behavioral of odmb_dev is
   signal fifo_wr_rst         : std_logic_vector(NCFEB+2 downto 1);
   signal fifo_rd_rst         : std_logic_vector(NCFEB+2 downto 1);
 
-  signal fifo_wr_rst         : std_logic_vector(NCFEB+2 downto 1);
-  signal fifo_rd_rst         : std_logic_vector(NCFEB+2 downto 1);
-
   signal fifo_dout : std_logic_vector(17 downto 0);
   signal fifo_oe_b : std_logic_vector(NCFEB+2 downto 1) := (others => '1');
   signal fifo_re_b : std_logic_vector(NCFEB+2 downto 1) := (others => '1');
@@ -732,7 +728,6 @@ begin
       DCFEB_TMS           => dcfeb_tms,
       DCFEB_TDI           => dcfeb_tdi,
 
-      DCFEB_FIFO_RST      => dcfeb_fifo_rst, -- auto-kill related
       DCFEB_FIFO_RST      => dcfeb_fifo_rst, -- auto-kill related
       EOF_DATA            => eof_data,
       INTO_FIFO_DAV       => into_fifo_dav,
@@ -1094,10 +1089,10 @@ begin
         opt_reset_ps <= '1';
         
         --Depending on ENABLE_SPY_TO_DDU switch to state when devices are ready, start l1a reset     
-        if(ENABLE_SPY_TO_DDU = '0' and spy_txready='1' and spy_rxready='1' and dcfeb_rxready='1') then
+        if(ENABLE_SPY_TO_DDU = "00" and spy_txready='1' and spy_rxready='1' and dcfeb_rxready='1') then
             next_rst_state <= L1A_RST;
             
-        elsif(ENABLE_SPY_TO_DDU = '1' and pc_txready='1' and  pc_rxready='1' and dcfeb_rxready='1') then
+        elsif(ENABLE_SPY_TO_DDU = "01" and pc_txready='1' and  pc_rxready='1' and dcfeb_rxready='1') then
             next_rst_state <= L1A_RST;
         else
             next_rst_state <= OPT_RST;
