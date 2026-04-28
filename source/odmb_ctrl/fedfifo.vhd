@@ -50,23 +50,6 @@ architecture fedfifo_architecture of fedfifo is
       RD_RST_BUSY : out std_logic
       );
   end component;
-
-  COMPONENT ila_fedfifo_in
-  PORT (
-      clk : IN STD_LOGIC;
-      probe0 : IN STD_LOGIC; 
-      probe1 : IN STD_LOGIC;
-      probe2 : IN STD_LOGIC_VECTOR(15 DOWNTO 0)
-  );
-  END COMPONENT;
-    
-  COMPONENT ila_fedfifo_out
-  PORT (
-      clk : IN STD_LOGIC;
-      probe0 : IN STD_LOGIC;
-      probe1 : IN STD_LOGIC_VECTOR(15 DOWNTO 0)
-  );
-  END COMPONENT;
     
   type fsm_state_type is (IDLE, FIFO_TX, DONE);
   signal fedfifo_current_state : fsm_state_type := IDLE;
@@ -121,21 +104,6 @@ begin
       WR_RST_BUSY => open,
       RD_RST_BUSY => open
       );
-
---  i_ila_fedfifo_in : ila_fedfifo_in
---    port map(
---      clk    => clk_in,
---      probe0 => dv_in, 
---      probe1 => ld_in,
---      probe2 => data_in      
---    );
-
---  i_ila_fedfifo_out : ila_fedfifo_out
---    port map(
---      clk    => clk_out,
---      probe0 => fifo_empty, 
---      probe1 => fifo_out(15 downto 0)
---    );
 
 
 ---- FIFOs

@@ -133,6 +133,16 @@ architecture Behavioral of Firmware_tb is
       DOUT2 : out std_logic_vector(15 downto 0)
       );
   end component;
+  
+  component trigger_generator is
+  port (
+    CLK      : in std_logic;
+    OTMB_DAV : out std_logic;
+    ALCT_DAV : out std_logic;
+    LCT      : out std_logic_vector(7 downto 0);
+    L1A_B    : out std_logic
+  );
+  end component;
 
   signal use_vio_input_vector : std_logic_vector(0 downto 0) := "0";
   signal vio_issue_vme_cmd_vector : std_logic_vector(0 downto 0) := "0";
@@ -348,7 +358,7 @@ begin
       DOUT2 => lut_input2_dout_c
       );
 
-  trigger_generator_i: entity work.trigger_generator
+  trigger_generator_i: trigger_generator
     port map(
       CLK => cmsclk,
       OTMB_DAV => sim_otmb_dav,
@@ -462,7 +472,7 @@ begin
   end generate VCC_GEN_15;
 
   -- ODMB Firmware module
-  odmb_i: entity work.ODMB7_UCSB_DEV
+  odmb_i: entity work.ODMB_DEV
     port map(
       -- Clock
       CMS_CLK_FPGA_P       => cmsclk_p,
@@ -525,7 +535,7 @@ begin
       L1A_N                => l1a_n,
       L1A_MATCH_P          => l1a_match_p,
       L1A_MATCH_N          => l1a_match_n,
-      PPIB_OUT_EN_B        => open,
+      CFEB_OR_PPIB_OUT_EN_B        => open,
       DCFEB_REPROG_B       => open,
 
       CCB_CMD              => "011000",

@@ -27,4 +27,5 @@ simulation/data/Input2_testctrl.coe
 simulation/data/Input1_testctrl.coe 
 source/mgt_links/gtwiz_exdes/gtwizard_ultrascale_0_example_checking_8b10b.v 
 source/mgt_links/gtwiz_exdes/gtwizard_ultrascale_0_prbs_any.v 
-source/mgt_links/gtwiz_exdes/gtwizard_ultrascale_0_example_stimulus_8b10b.v 
+simulation/data/Input2_testctrl.coe 
+simulation/data/Input1_testctrl.coe 

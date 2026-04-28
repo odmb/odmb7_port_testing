@@ -55,8 +55,11 @@
 // demonstration purposes
 // =====================================================================================================================
 
-module mgt_b04 (
-
+module mgt_b04 
+#(parameter FEDTXDWIDTH=16,
+  parameter FED_NTXLINK=4)
+(
+  // PORTS
   // Serial data ports for transceiver channel 0
   input  wire ch0_gthrxn_in,
   input  wire ch0_gthrxp_in,
@@ -81,9 +84,14 @@ module mgt_b04 (
   output wire ch3_gthtxn_out,
   output wire ch3_gthtxp_out,
 
+  // DATA    
   // TX Data 
-  input  wire [15:0] txdata,  // Data to be transmitted
-  input  wire txd_valid,
+  input  wire [FEDTXDWIDTH*FED_NTXLINK-1:0] fed_txdata,
+  input  wire [FED_NTXLINK-1:0] txd_valid,
+  
+  // RX Data
+  output  wire [FEDTXDWIDTH*FED_NTXLINK-1:0] fed_rxdata,  // Data to be transmitted
+  output  wire [FED_NTXLINK-1:0] rxd_valid,
 
   // Clocks
   input  wire mgtrefclk,
@@ -389,7 +397,6 @@ module mgt_b04 (
 
   (* DONT_TOUCH = "TRUE" *)
   gtwizard_ultrascale_0_example_reset_synchronizer example_stimulus_reset_synchronizer_inst (
-    //.clk_in  (gtwiz_userclk_tx_usrclk2_in),
     .clk_in  (hb0_gtwiz_userclk_tx_usrclk2_int),
     .rst_in  (example_stimulus_reset_int),
     .rst_out (example_stimulus_reset_sync)
@@ -424,7 +431,7 @@ module mgt_b04 (
     end
     else begin
       if (txd_valid) begin
-        txdata_reg  <= {txdata, 16'b0};
+        txdata_reg  <= {fed_txdata[15:0], 16'b0};
         txdata_reg2  <= 32'b0;
         txctrl2_reg <= 8'b0;
       end
@@ -579,7 +586,7 @@ module mgt_b04 (
   assign ila_data[261] = hb0_gtwiz_userclk_rx_active_int;
   assign ila_data[262] = hb_gtwiz_reset_all_int;
   assign ila_data[263] = hb0_gtwiz_reset_rx_done_int;
-  //assign ila_data[264] = hb0_gtwiz_userclk_tx_usrclk2_int;
+  // assign ila_data[264] = hb0_gtwiz_userclk_tx_usrclk2_int;
   assign ila_data[265] = hb0_gtwiz_userclk_tx_active_int;
   assign ila_data[269:266] = rx8b10ben_int;
   assign ila_data[273:270] = rxcommadeten_int;

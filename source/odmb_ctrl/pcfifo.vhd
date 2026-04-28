@@ -18,7 +18,7 @@ entity pcfifo is
     NFIFO : integer range 1 to 16 := 16);  -- Number of FIFOs in PCFIFO
   port(
 
-    clk_in  : in std_logic; --! user clock from DDU mgt (80 MHz)
+    clk_in  : in std_logic; --! user clock from DCFEB data fifos (160 MHz)
     clk_out : in std_logic; --! user clock from PC(spy) mgt (62.5 MHz)
     rst     : in std_logic; --! reset
 

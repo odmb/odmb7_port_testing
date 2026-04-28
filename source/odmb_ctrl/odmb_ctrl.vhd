@@ -14,13 +14,16 @@ entity ODMB_CTRL is
   generic (
     NFIFO       : integer range 1 to 16 := 16; --! Number of FIFOs in PCFIFO, not currently used
     NCFEB       : integer range 1 to 7 := 7;   --! Number of DCFEBS, 7/5
-    CAFIFO_SIZE : integer range 1 to 128 := 32 --! Number FIFO words in CAFIFO
+    CAFIFO_SIZE : integer range 1 to 128 := 32; --! Number FIFO words in CAFIFO
+    FED_NTXLINK : integer range 1 to 4 := 4; -- Number of 12.5/12.48 Gbps links to FED, assuming 4
+    FEDTXDWIDTH : integer := 16             -- Width of FED interface
   );
   PORT (
     --------------------
     -- Clock
     --------------------
     DDUCLK       : in std_logic;                      --! 80 MHz clock to FED gth domain
+    DCFEBCLK     : in std_logic;                      --! 160 MHz clock for reading device FIFOs
     CMSCLK       : in std_logic;                      --! ~40 MHz clock
     PCCLK        : in std_logic;                      --! 62.5 MHz clock for PC ethernet gth
     FEDCLK       : in std_logic;                      --! 312.5 MHz clock for FED
@@ -112,8 +115,8 @@ entity ODMB_CTRL is
     DDU_DATA_VALID : out std_logic;                           --! Data valid to DDU gth from CONTROL_FSM
     PC_DATA        : out std_logic_vector(15 downto 0);       --! Data to PC gth from PCFIFO
     PC_DATA_VALID  : out std_logic;                           --! Data valid to PC gth from PCFIFO
-    FED_DATA       : out std_logic_vector(15 downto 0);       --! Data to FED from FEDFIFO
-    FED_DATA_VALID : out std_logic;                           --! Data valid to FED from FEDFIFO
+    FED_DATA       : out std_logic_vector(FED_NTXLINK*FEDTXDWIDTH-1 downto 0);       --! Data to FED from FEDFIFO
+    FED_DATA_VALID : out std_logic_vector(FED_NTXLINK-1 downto 0);                           --! Data valid to FED from FEDFIFO
 
     -- For headers/trailers
     --DAQMBID : in std_logic_vector(11 downto 0);  -- From CRATEID in SETFEBDLY, and GA
@@ -124,7 +127,7 @@ entity ODMB_CTRL is
     -- From/To Data FIFOs 
     FIFO_RE_B      : out std_logic_vector(NCFEB+2 downto 1);  --! From CONTROL_FSM to read FE FIFO
     FIFO_OE_B      : out std_logic_vector(NCFEB+2 downto 1);  --! From CONTROL_FSM to select FE FIFO
-    FIFO_DOUT      : in std_logic_vector(17 downto 0);        --! Output from FE FIFOs to CONTROL_FSM
+    FIFO_DOUT      : in std_logic_vector(71 downto 0);        --! Output from FE FIFOs to CONTROL_FSM
     FIFO_EMPTY     : in std_logic_vector(NCFEB+2 downto 1);   --! Empty from FE FIFOs to CONTROL_FSM
     FIFO_HALF_FULL : in std_logic_vector(NCFEB+2 downto 1);   --! Full from FE FIFOs to CONTROL_FSM
     FIFO_FULL      : in std_logic_vector(NCFEB+2 downto 1)
@@ -207,7 +210,7 @@ architecture Behavioral of ODMB_CTRL is
 
       --CSP_FREE_AGENT_PORT_LA_CTRL : inout std_logic_vector(35 downto 0);
       clk                         : in    std_logic;
-      dduclk                      : in    std_logic;
+      dcfebclk                    : in    std_logic;
       l1acnt_rst                  : in    std_logic;
       bxcnt_rst                   : in    std_logic;
 
@@ -292,7 +295,7 @@ architecture Behavioral of ODMB_CTRL is
       KILL    : in std_logic_vector(NCFEB+2 downto 1);
 
       -- to GigaBit Link
-      DOUT : out std_logic_vector(15 downto 0);
+      DOUT : out std_logic_vector(63 downto 0);
       DAV  : out std_logic;
 
       -- to FIFOs
@@ -303,8 +306,8 @@ architecture Behavioral of ODMB_CTRL is
       FIFO_HALF_FULL : in std_logic_vector(NCFEB+2 downto 1);
       FIFO_FULL      : in std_logic_vector(NCFEB+2 downto 1); --! from odmb_data
       FFOR_B         : in std_logic_vector(NCFEB+2 downto 1);
-      DATAIN         : in std_logic_vector(15 downto 0);
-      DATAIN_LAST    : in std_logic;
+      DATAIN         : in std_logic_vector(63 downto 0);
+      DATAIN_EOF     : in std_logic_vector(7 downto 0);
 
       -- From LOADFIFO
       JOEF : in std_logic_vector(NCFEB+2 downto 1);
@@ -356,20 +359,6 @@ architecture Behavioral of ODMB_CTRL is
       );        
   end component;
 
-  -- Temporary debugging
-  component ila_1 is
-    port (
-      clk : in std_logic := '0';
-      probe0 : in std_logic_vector(127 downto 0) := (others=> '0')
-      );
-  end component;
-
-  component ila_2 is
-    port (
-      clk : in std_logic := '0';
-      probe0 : in std_logic_vector(383 downto 0) := (others=> '0')
-      );
-  end component;
 
   signal LOGICL : std_logic := '0';
   signal LOGICH : std_logic := '1';
@@ -401,7 +390,7 @@ architecture Behavioral of ODMB_CTRL is
   signal control_debug_full   : std_logic_vector(143 downto 0);
   signal cafifo_pop           : std_logic := '0';
   signal eof                  : std_logic := '0';
-  signal ddu_data_inner       : std_logic_vector(15 downto 0);
+  signal ddu_data_inner       : std_logic_vector(63 downto 0);
   signal ddu_data_valid_inner : std_logic := 'L';
   signal pc_data_valid_inner  : std_logic := 'L';
 
@@ -495,7 +484,7 @@ begin
     port map(
       --CSP_FREE_AGENT_PORT_LA_CTRL => CSP_FREE_AGENT_PORT_LA_CTRL,
       clk        => CMSCLK,
-      dduclk     => DDUCLK,
+      dcfebclk   => DCFEBCLK,
       l1acnt_rst => l1acnt_rst,
       bxcnt_rst  => bxcnt_rst,
 
@@ -527,7 +516,7 @@ begin
       )
     port map(
       --CSP_CONTROL_FSM_PORT_LA_CTRL => CSP_CONTROL_FSM_PORT_LA_CTRL,
-      CLK    => DDUCLK,
+      CLK    => DCFEBCLK,
       CLKCMS => CMSCLK,
       RST    => l1acnt_rst,
       STATUS => status,
@@ -548,8 +537,8 @@ begin
       FIFO_HALF_FULL => fifo_half_full,
       FIFO_FULL      => FIFO_FULL,
       FFOR_B         => fifo_empty,
-      DATAIN         => FIFO_DOUT(15 downto 0),
-      DATAIN_LAST    => FIFO_DOUT(17),
+      DATAIN         => FIFO_DOUT(63 downto 0),
+      DATAIN_EOF     => FIFO_DOUT(71 downto 64),
 
       -- From JTAGCOM
       JOEF => joef,       -- from LOADFIFO
@@ -584,13 +573,13 @@ begin
 
     port map(
 
-      clk_in  => DDUCLK,
+      clk_in  => DCFEBCLK,
       clk_out => PCCLK,
       rst     => l1acnt_rst,
 
       tx_ack => GL_PC_TX_ACK,
 
-      data_in => ddu_data_inner,
+      data_in => ddu_data_inner(15 downto 0),
       dv_in   => ddu_data_valid_inner,
       ld_in   => eof,
 
@@ -598,22 +587,29 @@ begin
       data_out => PC_DATA
       );
 
-  FEDFIFO_PM : FEDFIFO
+  GEN_FEDFIFO : for I in FED_NTXLINK downto 1 generate
+  begin
+
+    FEDFIFO_PM : FEDFIFO
     generic map (NFIFO => NFIFO)
 
     port map(
 
-      clk_in  => DDUCLK,
+      clk_in  => DCFEBCLK,
       clk_out => FEDCLK,
       rst     => l1acnt_rst,
 
-      data_in => ddu_data_inner,
+      data_in => ddu_data_inner(15 downto 0),        -- for now, just duplicate packets for all 4 transceivers
       dv_in   => ddu_data_valid_inner,
       ld_in   => eof,
 
-      dv_out   => FED_DATA_VALID,
-      data_out => FED_DATA
+      dv_out   => FED_DATA_VALID(I-1),
+      data_out => FED_DATA(FEDTXDWIDTH*I-1 downto FEDTXDWIDTH*(I-1))
       );
+
+
+  end generate GEN_FEDFIFO;
+  
 
   CCBCODE_PM : CCBCODE
     port map(
@@ -646,7 +642,7 @@ begin
   ccb_bx0 <= not ccb_bx0_b;
   ccb_bxrst <= not ccb_bxrst_b;
 
-  DDU_DATA       <= ddu_data_inner;
+  DDU_DATA       <= ddu_data_inner(15 downto 0);
   DDU_DATA_VALID <= ddu_data_valid_inner;
   PC_DATA_VALID  <= pc_data_valid_inner;
 
@@ -674,19 +670,5 @@ begin
   ila_data1(114)                <= eof;
   ila_data1(115)                <= pc_data_valid_inner;
   ila_data1(116)                <= GL_PC_TX_ACK;
-
-  ila_odmb_ctrl_inst1 : ila_1
-    port map(
-      clk => DDUCLK,
-      probe0 => ila_data1
-      );
-
-  ila_data2(119 downto 0) <= control_debug_full(135 downto 16);
-
-   ila_odmb_ctrl_inst2 : ila_2
-     port map(
-       clk => DDUCLK,
-       probe0 => ila_data2
-       );
 
 end Behavioral;
