@@ -122,20 +122,20 @@ begin
       RD_RST_BUSY => open
       );
 
-  i_ila_fedfifo_in : ila_fedfifo_in
-    port map(
-      clk    => clk_in,
-      probe0 => dv_in, 
-      probe1 => ld_in,
-      probe2 => data_in      
-    );
+--  i_ila_fedfifo_in : ila_fedfifo_in
+--    port map(
+--      clk    => clk_in,
+--      probe0 => dv_in, 
+--      probe1 => ld_in,
+--      probe2 => data_in      
+--    );
 
-  i_ila_fedfifo_out : ila_fedfifo_out
-    port map(
-      clk    => clk_out,
-      probe0 => fifo_empty, 
-      probe1 => fifo_out(15 downto 0)
-    );
+--  i_ila_fedfifo_out : ila_fedfifo_out
+--    port map(
+--      clk    => clk_out,
+--      probe0 => fifo_empty, 
+--      probe1 => fifo_out(15 downto 0)
+--    );
 
 
 ---- FIFOs
