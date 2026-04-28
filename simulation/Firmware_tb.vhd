@@ -336,7 +336,7 @@ begin
   oscclk160_n <= not cmsclk160_n after 3.125 ns;
   oscclk125_p <= not oscclk125_p after 4.0 ns;
   oscclk125_n <= not oscclk125_n after 4.0 ns;
-
+  cmsclk10 <= not cmsclk10 after 5 ns; --It is unbearable to watch this go at 10khz
   -- -- Input LUTs
   -- lut_input1_i: lut_input1
   --   port map(

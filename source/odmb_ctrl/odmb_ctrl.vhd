@@ -36,6 +36,7 @@ entity ODMB_CTRL is
     CCB_BXRST_B  : in  std_logic;                     --! CCB BX counter reset
     CCB_L1ARST_B : in  std_logic;                     --! Sent to CCBCODE but not used
     CCB_CLKEN    : in  std_logic;                     --! Sent to CCBCODE, but not used
+    CCB_L1A_RST  : out std_logic; 
     --------------------
     -- ODMB VME <-> CALIBTRIG
     --------------------
@@ -624,7 +625,7 @@ begin
 
       BX0          => open,
       BXRST        => open,
-      L1ARST       => open,
+      L1ARST       => CCB_L1A_RST,
       CLKEN        => open,
       BC0          => bc0,
       L1ASRST      => open,
