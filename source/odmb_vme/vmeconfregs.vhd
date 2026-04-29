@@ -36,7 +36,9 @@ use work.ucsb_types.all;
 --! CONST register 4 (4500) Year firmware was synthesized
 entity VMECONFREGS is
   generic (
-    NCFEB   : integer range 1 to 7 := 7  -- Number of DCFEBS, 7 for ME1/1, 5
+    NCFEB       : integer range 1 to 7 := 7;  -- Number of DCFEBS, 7 for ME1/1, 5
+    GLOBAL_VER  : std_logic_vector(31 downto 0) := x"00000000";
+    GLOBAL_DATE : std_logic_vector(31 downto 0) := x"00000000"
     );
   port (
     SLOWCLK : in std_logic; --! 2.5 MHz clock input
@@ -88,10 +90,10 @@ end VMECONFREGS;
 
 architecture VMECONFREGS_Arch of VMECONFREGS is
 
-  constant FW_VERSION       : std_logic_vector(15 downto 0) := x"0F5D";
+  constant FW_VERSION       : std_logic_vector(15 downto 0) := GLOBAL_VER(31 downto 16);
   constant FW_ID            : std_logic_vector(15 downto 0) := x"0001";
-  constant FW_MONTH_DAY     : std_logic_vector(15 downto 0) := x"1106";
-  constant FW_YEAR          : std_logic_vector(15 downto 0) := x"2024";
+  constant FW_MONTH_DAY     : std_logic_vector(15 downto 0) := GLOBAL_DATE(23 downto 16) & GLOBAL_DATE(31 downto 24);
+  constant FW_YEAR          : std_logic_vector(15 downto 0) := GLOBAL_DATE(15 downto 0);
   constant able_write_const : std_logic                     := '0';
 
   constant cfg_reg_mask_we   : std_logic_vector(15 downto 0) := x"FDFF";

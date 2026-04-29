@@ -27,7 +27,9 @@ use work.ucsb_types.all;
 --! * Device 9 - SYSTEM_TEST - used to perform communication tests including optical connection to (x)DCFEBs, backplane connection to OTMB, and FED/SPY loopback
 entity ODMB_VME is
   generic (
-    NCFEB       : integer range 1 to 7 := 7
+    NCFEB       : integer range 1 to 7 := 7;
+    GLOBAL_VER  : std_logic_vector(31 downto 0) := x"00000000";
+    GLOBAL_DATE : std_logic_vector(31 downto 0) := x"00000000"
     );
   port (
     --------------------
@@ -214,7 +216,9 @@ architecture Behavioral of ODMB_VME is
 
   component VMECONFREGS is
     generic (
-      NCFEB   : integer range 1 to 7 := 7
+      NCFEB       : integer range 1 to 7 := 7;
+      GLOBAL_VER  : std_logic_vector(31 downto 0) := x"00000000";
+      GLOBAL_DATE : std_logic_vector(31 downto 0) := x"00000000"
       );
     port (
       SLOWCLK : in std_logic;
