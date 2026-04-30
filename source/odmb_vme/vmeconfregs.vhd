@@ -37,8 +37,8 @@ use work.ucsb_types.all;
 entity VMECONFREGS is
   generic (
     NCFEB       : integer range 1 to 7 := 7;  -- Number of DCFEBS, 7 for ME1/1, 5
-    GLOBAL_VER  : std_logic_vector(31 downto 0) := x"00000000";
-    GLOBAL_DATE : std_logic_vector(31 downto 0) := x"00000000"
+    GLOBAL_VER  : std_logic_vector(31 downto 0) := (others => '0');
+    GLOBAL_DATE : std_logic_vector(31 downto 0) := (others => '0')
     );
   port (
     SLOWCLK : in std_logic; --! 2.5 MHz clock input

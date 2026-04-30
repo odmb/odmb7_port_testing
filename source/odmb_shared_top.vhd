@@ -19,11 +19,11 @@ use work.ucsb_types.all;
 --! data acquisition firmware has not yet been developed
 entity odmb_dev is
   generic (
-    FLAVOUR           : integer range 1 to 7 := 7;
-    GLOBAL_VER        : std_logic_vector(31 downto 0) := x"00000000";
-    GLOBAL_DATE       : std_logic_vector(31 downto 0) := x"00000000";
-    ENABLE_SPY_TO_DDU : std_logic_vector := "01"; --! Bit 0 controls whether SPY optical data is sent to DDU, bit 1 controls whether OTMB data is sent to DDU. For ODMB5, only SPY optical data can be sent to DDU since OTMB port is not connected.
-    FED_NTXLINK       : integer range 1 to 4 := 4
+    FED_NTXLINK       : integer range 1 to 4 := 4;
+    FLAVOUR             : integer range 1 to 7 := 7;
+    GLOBAL_VER        : std_logic_vector(31 downto 0) := (others => '0');
+    GLOBAL_DATE       : std_logic_vector(31 downto 0) := (others => '0');
+    ENABLE_SPY_TO_DDU_GEN : std_logic_vector(3 downto 0) := "0001"
     );
   port (
     --------------------
@@ -261,7 +261,7 @@ end odmb_dev;
 
 architecture Behavioral of odmb_dev is
   constant NCFEB  : integer range 1 to 7 := FLAVOUR;  -- Number of DCFEBS, 7 for ODMB7
-
+  constant ENABLE_SPY_TO_DDU : std_logic_vector (1 downto 0) := ENABLE_SPY_TO_DDU_GEN(1 downto 0); -- Control signal to select spy output to DDU instead of PC when both are enabled. Connected to bank 66.
   --------------------------------------
   -- Clock signals
   --------------------------------------
@@ -1287,8 +1287,8 @@ begin
   MBV : entity work.ODMB_VME
     generic map (
       NCFEB => NCFEB,
-      GLOBAL_VER => GLOBAL_VER,
-      GLOBAL_DATE => GLOBAL_DATE
+      GLOBAL_DATE => GLOBAL_DATE,
+      GLOBAL_VER => GLOBAL_VER
       )
     port map (
       CLK160         => mgtclk1,
