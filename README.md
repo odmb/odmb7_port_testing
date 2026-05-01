@@ -1,5 +1,5 @@
 # ARCHIVE ONLY
-Migrated to CSC Gitlab [here]([url](https://gitlab.cern.ch/emu/odmb7_5_FW)).
+Migrated to CSC Gitlab [here](https://gitlab.cern.ch/emu/odmb7_5_FW).
 
 # ODMB7/5 Development
 
